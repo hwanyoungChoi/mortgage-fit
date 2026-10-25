@@ -132,3 +132,11 @@
 {"ts":"2026-10-24T14:08:28.819Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; W=$S/wr-header; rm -rf $W; mkdir -p $W && rsync -a --exclude node_modules -"}
 {"ts":"2026-10-24T14:15:27.383Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T14:16:52.694Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T14:25:43.089Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T14:25:47.735Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T14:26:59.999Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-25T04:45:33.607Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-25T04:45:58.989Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T04:52:08.382Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T04:55:35.541Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
+{"ts":"2026-10-25T04:55:35.541Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
