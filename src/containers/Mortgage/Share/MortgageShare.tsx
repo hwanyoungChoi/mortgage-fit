@@ -1,13 +1,13 @@
 import { useState } from "react";
 
 import KakaoLoginLink from "@/components/KakaoLoginLink";
+import StatusPanel from "@/components/StatusPanel";
 import { useListingSource, type ListingSource } from "@/hooks/useListingSource";
 import { ApiRequestError } from "@/lib/api/client";
 import { PATHS } from "@/lib/constants/paths";
 import { SHARE_TOKEN_PATTERN } from "@/lib/constants/share";
 
 import styles from "./MortgageShare.module.css";
-import SharePanel from "./components/SharePanel";
 import SharedListingRow from "./components/SharedListingRow";
 import { useShare } from "./hooks/useShare";
 import { parseShareResponse, type SharedListings } from "./parseShareResponse";
@@ -43,6 +43,7 @@ const ADD_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string> 
   notReady: "계정 상태를 확인하는 중입니다",
   unauthorized: "로그인이 끝났습니다. 다시 로그인해 주세요",
   deletedElsewhere: "추가하지 못했습니다. 다시 시도해 주세요",
+  deletedInHousehold: "추가하지 못했습니다. 다시 시도해 주세요",
   limit: "계정에는 매물을 500개까지 저장할 수 있습니다",
   network: "추가하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
@@ -88,20 +89,20 @@ function MortgageShare({
     // 모양이 틀린 토큰은 묻지 않고 사라진 링크와 같은 화면이다.
     if (!isTokenValid || (share.isError && isShareGone(share.error))) {
       return (
-        <SharePanel
+        <StatusPanel
           title="만료되었거나 끊긴 링크입니다"
           description="보낸 사람에게 새 링크를 받아 주세요"
         >
           <a className={styles.primaryLink} href={PATHS.calculator}>
             계산기로 가기
           </a>
-        </SharePanel>
+        </StatusPanel>
       );
     }
-    if (share.isPending) return <SharePanel title="공유받은 매물을 불러오는 중" />;
+    if (share.isPending) return <StatusPanel title="공유받은 매물을 불러오는 중" />;
     if (share.isError) {
       return (
-        <SharePanel title="불러오지 못했습니다" description="연결을 확인하고 다시 시도해 주세요">
+        <StatusPanel title="불러오지 못했습니다" description="연결을 확인하고 다시 시도해 주세요">
           <button
             type="button"
             className={styles.primaryButton}
@@ -110,20 +111,20 @@ function MortgageShare({
           >
             다시 시도
           </button>
-        </SharePanel>
+        </StatusPanel>
       );
     }
     const shared = parseShareResponse(share.data);
     if (shared === null) {
       return (
-        <SharePanel
+        <StatusPanel
           title="불러오지 못했습니다"
           description="공유받은 매물의 값이 올바르지 않습니다. 보낸 사람에게 새 링크를 받아 주세요"
         >
           <a className={styles.primaryLink} href={PATHS.calculator}>
             계산기로 가기
           </a>
-        </SharePanel>
+        </StatusPanel>
       );
     }
     return (

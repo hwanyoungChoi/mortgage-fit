@@ -15,12 +15,16 @@ const API_ERROR_VIEWS: Record<ApiError["error"], TradesErrorView> = {
   upstream: { message: `${LOAD_FAILED}(국토교통부 응답 오류)`, canRetry: true },
   invalidParams: { message: LOAD_FAILED, canRetry: true },
   methodNotAllowed: { message: LOAD_FAILED, canRetry: true },
-  // 실거래가 조회에서는 오지 않는 코드(공유·계정 API용)
+  // 실거래가 조회에서는 오지 않는 코드(공유·계정·함께 쓰기 API용)
   unauthorized: { message: LOAD_FAILED, canRetry: true },
   forbidden: { message: LOAD_FAILED, canRetry: true },
   notFound: { message: LOAD_FAILED, canRetry: true },
   shareGone: { message: LOAD_FAILED, canRetry: true },
   payloadTooLarge: { message: LOAD_FAILED, canRetry: true },
+  ownInvite: { message: LOAD_FAILED, canRetry: true },
+  alreadyInHousehold: { message: LOAD_FAILED, canRetry: true },
+  householdFull: { message: LOAD_FAILED, canRetry: true },
+  householdLimit: { message: LOAD_FAILED, canRetry: true },
   internal: { message: LOAD_FAILED, canRetry: true },
 };
 

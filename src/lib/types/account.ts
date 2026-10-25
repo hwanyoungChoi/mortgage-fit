@@ -1,8 +1,12 @@
 // /api/me, /api/listings 계약(스펙 account-sync-share "태스크 2"), /api/budget 계약(스펙 sort-order-budget-sync), /api/listing-order 계약(ADR-026). 응답의 `Listing`은 로컬 타입 그대로다.
+import type { Household } from "./household";
 import type { Listing, ListingInput, ListingStatus } from "./listing";
 
-/** GET /api/me → 200. 로그인 안 했으면 `user`가 null이다. `id`는 내부 id(카카오 회원번호 아님). */
-export type MeResponse = { user: { id: string } | null };
+/**
+ * GET /api/me → 200. 로그인 안 했으면 `user`가 null이다. `id`는 내부 id(카카오 회원번호 아님).
+ * `household`는 함께 쓰는 목록에 있으면 인원, 혼자 쓰면 null(스펙 shared-list).
+ */
+export type MeResponse = { user: { id: string; household: Household | null } | null };
 
 /** GET /api/listings → 200 */
 export type ListingListResponse = { listings: Listing[] };

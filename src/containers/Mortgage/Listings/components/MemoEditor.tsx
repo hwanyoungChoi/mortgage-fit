@@ -35,6 +35,7 @@ const WRITE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string
   notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
   unauthorized: "로그인이 끝났습니다. 다시 로그인해 주세요",
   deletedElsewhere: "다른 기기에서 삭제된 매물입니다",
+  deletedInHousehold: "함께 쓰는 사람이나 다른 기기에서 삭제된 매물입니다",
   limit: "저장하지 못했습니다. 다시 시도해 주세요",
   network: "저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };

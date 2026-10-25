@@ -5,6 +5,7 @@ import { useImportBudget } from "@/hooks/useImportBudget";
 import { useMe } from "@/hooks/useMe";
 import { useSaveBudget } from "@/hooks/useSaveBudget";
 import { ApiRequestError } from "@/lib/api/client";
+import { householdRefetchInterval } from "@/lib/utils/household";
 
 import { useBudget } from "./useBudget";
 
@@ -64,7 +65,10 @@ export function useBudgetSource({
   const saveBudget = useSaveBudget();
   const isImportDone =
     userId !== null && importState?.userId === userId && importState.status === "done";
-  const accountBudget = useAccountBudget({ enabled: isImportDone });
+  const accountBudget = useAccountBudget({
+    enabled: isImportDone,
+    refetchInterval: householdRefetchInterval(me.data),
+  });
 
   const runImport = useCallback(
     async (targetUserId: string) => {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ApiRequestError } from "@/lib/api/client";
 import { createRandomId } from "@/lib/utils/createRandomId";
+import { householdOf, householdRefetchInterval } from "@/lib/utils/household";
 import { toListingFields } from "@/lib/utils/listingStore";
 
 import { isAccountImportSettled, type AccountImport } from "./useAccountImport";
@@ -19,6 +20,7 @@ import { useUpdateListingName } from "./useUpdateListingName";
 import { useUpdateListingStatus } from "./useUpdateListingStatus";
 
 import type { MeResponse } from "@/lib/types/account";
+import type { Household } from "@/lib/types/household";
 import type {
   Listing,
   ListingInput,
@@ -43,6 +45,8 @@ type ListingSourceOptions = {
 
 export type ListingSource = {
   status: ListingSourceStatus;
+  /** 함께 쓰는 목록에 있으면 그 요약(로그인 상태에서만), 아니면 null */
+  household: Household | null;
   list: ListingListState;
   /** 받아 둔 서버 목록은 있는데 다시 조회하지 못했다(창 포커스 재조회 실패 등). 목록은 지우지 않는다. */
   isRefreshFailed: boolean;
@@ -98,11 +102,20 @@ function isUnauthorized(error: unknown): boolean {
   return error instanceof ApiRequestError && error.status === 401;
 }
 
-/** 추가(POST·import)의 400은 계정 500개 상한이다. 필드는 클라이언트가 같은 규칙으로 먼저 검증한다. */
-function toWriteFailure(error: unknown, isCreate: boolean): ListingSourceWriteFailure {
+/**
+ * 추가(POST·import)의 400은 계정 500개 상한이다. 필드는 클라이언트가 같은 규칙으로 먼저 검증한다.
+ * 404는 함께 쓰는 중이면 상대가 지웠을 수도 있어 사유를 나눈다(혼자면 기존 사유 그대로).
+ */
+function toWriteFailure(
+  error: unknown,
+  isCreate: boolean,
+  isInHousehold: boolean,
+): ListingSourceWriteFailure {
   if (!(error instanceof ApiRequestError)) return { ok: false, reason: "network" };
   if (error.status === 401) return { ok: false, reason: "unauthorized" };
-  if (error.status === 404) return { ok: false, reason: "deletedElsewhere" };
+  if (error.status === 404) {
+    return { ok: false, reason: isInHousehold ? "deletedInHousehold" : "deletedElsewhere" };
+  }
   if (error.status === 400 && isCreate) return { ok: false, reason: "limit" };
   return { ok: false, reason: "network" };
 }
@@ -124,7 +137,11 @@ export function useListingSource({
   const localSnapshot = useListings(listingStore);
   const me = useMe();
   const status = selectSourceStatus(me.data, me.isError, sessionHintStore.has(), accountImport);
-  const serverList = useListingList({ enabled: status === "loggedIn" });
+  const household = status === "loggedIn" ? householdOf(me.data) : null;
+  const serverList = useListingList({
+    enabled: status === "loggedIn",
+    refetchInterval: householdRefetchInterval(me.data),
+  });
   const endSession = useEndSession(sessionHintStore);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const createListing = useCreateListing();
@@ -169,9 +186,9 @@ export function useListingSource({
       await write();
       return { ok: true };
     } catch (error) {
-      const failure = toWriteFailure(error, isCreate);
+      const failure = toWriteFailure(error, isCreate, household !== null);
       if (failure.reason === "unauthorized") expireSession();
-      if (failure.reason === "deletedElsewhere") {
+      if (failure.reason === "deletedElsewhere" || failure.reason === "deletedInHousehold") {
         void queryClient.invalidateQueries({ queryKey: listingListQueryKey() });
       }
       return failure;
@@ -211,6 +228,7 @@ export function useListingSource({
 
   return {
     status,
+    household,
     list: selectList(),
     isRefreshFailed: status === "loggedIn" && serverList.isError && serverList.data !== undefined,
     isSessionExpired: isSessionExpired && status === "loggedOut",

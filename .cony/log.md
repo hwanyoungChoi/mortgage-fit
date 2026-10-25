@@ -430,3 +430,8 @@
 - 요청: 리드가 제시한 A(함께 쓰는 목록: 초대 링크 → B 로그인·수락 → 두 계정이 한 목록) 선택. 양쪽 카카오 로그인 필요, 기존 공유 링크는 값 복사 그대로, B 계정 목록은 기본 합치기, 나가기 제공
 - 되돌림: ADR-023 "공유받은 사람은 값만 복사" — 새 초대 방식에 한해 같이 편집으로(기존 공유 링크는 유지)
 - 토론: be 스펙 검토 조건부 통과 → D1~D3 A, 조건 6개 반영([ADR-028](decisions/028-shared-list.md))
+
+## 구현
+
+- AI(be): `0005_households.sql`(households·household_invites·users.household_id·accepted_by·1인 1초대 유니크 인덱스), `server/household/`(범위 SQL·초대·수락·나가기), listings·budget·order·me·카카오 로그인 쿠키 가구 대응. 로컬 AC-0 diff 빔, 혼자 쓰는 사용자 56요청 main과 동일(me의 household:null만 추가), 새 스키마에서 옛 Worker 동일, 동시 수락 5회 한쪽만 성공
+- AI(fe): `#/invite/{token}`·Invite container, [함께 쓰기] 시트, "2명이 함께 쓰는 중 · [나가기]", 함께 쓰는 중일 때만 30초 재조회(혼자는 0건), 드래그 중 순서 반영 보류, deletedInHousehold 안내, StatusPanel·LinkCopyActions 승격
