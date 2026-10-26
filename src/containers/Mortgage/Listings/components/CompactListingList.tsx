@@ -55,15 +55,21 @@ const SCREEN_READER_INSTRUCTIONS = {
     "순서를 바꾸려면 스페이스 키로 들고 위아래 화살표로 옮긴 뒤 스페이스나 엔터 키로 놓습니다. Esc 키로 취소합니다. 터치 화면에서는 길게 눌러 끕니다.",
 };
 
-/** 간단히 보기 목록. 줄을 들어 끌면 순서를 바꾼다(마우스·터치는 꾹 누르기, 키보드는 스페이스). */
+/**
+ * 간단히 보기 목록. 줄을 들어 끌면 순서를 바꾼다(마우스·터치는 꾹 누르기, 키보드는 스페이스).
+ * 든 동안에는 든 순간의 목록을 그대로 그린다. 재조회(함께 쓰는 중 30초·창 포커스)로 순서나 매물이 바뀌어도
+ * 끄는 줄이 밀리지 않게 하고, 놓은 뒤에 반영한다.
+ */
 function CompactListingList({
-  listings,
+  listings: currentListings,
   label,
   canReorder,
   onReorder,
   ...cardProps
 }: CompactListingListProps) {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [draggedListings, setDraggedListings] = useState<Listing[] | null>(null);
+  const listings = draggedListings ?? currentListings;
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: LONG_PRESS }),
     useSensor(TouchSensor, { activationConstraint: LONG_PRESS }),
@@ -94,10 +100,14 @@ function CompactListingList({
       `옮기기를 취소했습니다. '${nameOf(active.id)}' 매물은 ${positionOf(active.id)}번째 자리 그대로입니다.`,
   };
 
-  const handleDragStart = ({ active }: DragStartEvent) => setActiveId(active.id);
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveId(active.id);
+    setDraggedListings(currentListings);
+  };
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveId(null);
+    setDraggedListings(null);
     if (over === null || active.id === over.id) return;
     onReorder(arrayMove(ids, ids.indexOf(String(active.id)), ids.indexOf(String(over.id))));
   };
@@ -109,7 +119,10 @@ function CompactListingList({
       accessibility={{ announcements, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveId(null)}
+      onDragCancel={() => {
+        setActiveId(null);
+        setDraggedListings(null);
+      }}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <ul aria-label={label}>

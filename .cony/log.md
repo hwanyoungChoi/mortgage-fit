@@ -421,3 +421,22 @@
 
 - 되돌림: IBM Plex Sans KR 가독성이 별로 → 리드가 Pretendard(추천)·시스템 폰트 제안, 사용자가 Pretendard 선택
 - AI(리드): `pretendard@1.3.9` 가변 굵기 dynamic subset 자가 호스팅, `@fontsource/ibm-plex-sans-kr` 제거. 메인 CSS 277KB→97KB(gzip 104→23KB), dist 22.9→18MB. 화면에서 Pretendard Variable 적용·외부 폰트 요청 0 확인
+
+# 함께 쓰는 목록(같이 편집)
+
+## 기획
+
+- 요청: 공유하면 같이 편집되게(A가 고치면 B에도 같은 게 보임). 배포 이후 공유건부터 적용
+- 요청: 리드가 제시한 A(함께 쓰는 목록: 초대 링크 → B 로그인·수락 → 두 계정이 한 목록) 선택. 양쪽 카카오 로그인 필요, 기존 공유 링크는 값 복사 그대로, B 계정 목록은 기본 합치기, 나가기 제공
+- 되돌림: ADR-023 "공유받은 사람은 값만 복사" — 새 초대 방식에 한해 같이 편집으로(기존 공유 링크는 유지)
+- 토론: be 스펙 검토 조건부 통과 → D1~D3 A, 조건 6개 반영([ADR-028](decisions/028-shared-list.md))
+
+## 구현
+
+- AI(be): `0005_households.sql`(households·household_invites·users.household_id·accepted_by·1인 1초대 유니크 인덱스), `server/household/`(범위 SQL·초대·수락·나가기), listings·budget·order·me·카카오 로그인 쿠키 가구 대응. 로컬 AC-0 diff 빔, 혼자 쓰는 사용자 56요청 main과 동일(me의 household:null만 추가), 새 스키마에서 옛 Worker 동일, 동시 수락 5회 한쪽만 성공
+- AI(fe): `#/invite/{token}`·Invite container, [함께 쓰기] 시트, "2명이 함께 쓰는 중 · [나가기]", 함께 쓰는 중일 때만 30초 재조회(혼자는 0건), 드래그 중 순서 반영 보류, deletedInHousehold 안내, StatusPanel·LinkCopyActions 승격
+
+## 배포 준비
+
+- 리드: 원격 D1 time-travel bookmark 기록, 0005 적용. AC-0(a) 직전·직후 4개 쿼리 diff 빔(users 2·listings 19·shares 2), household_id NOT NULL 0, 새 객체 5개, 원격 aggregate ORDER BY 지원 확인. 운영 중 옛 Worker 응답 정상
+- 리드: Cloudflare 로그인 만료(7403)와 권한 검사 일시 장애로 한 차례 중단 후 재개

@@ -6,7 +6,7 @@ import type { TabName } from "@/lib/types/route";
 import type { MouseEvent } from "react";
 
 type TabNavProps = {
-  /** null이면 어느 탭도 선택 표시하지 않는다(공유받기 화면) */
+  /** null이면 어느 탭도 선택 표시하지 않는다(공유받기·초대 화면) */
   current: TabName | null;
   /** 탭으로 화면을 바꾸기 직전에 부른다. */
   onNavigate: () => void;

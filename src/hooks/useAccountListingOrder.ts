@@ -16,13 +16,20 @@ const fetchAccountListingOrder = async () => {
   return body.ids;
 };
 
-/** 로그인 상태의 직접 정렬 순서(계정 원본, 없으면 null). 창으로 돌아올 때마다 다시 조회해 다른 기기의 변경을 반영한다. */
-export function useAccountListingOrder({ enabled }: { enabled: boolean }) {
+type AccountListingOrderOptions = {
+  enabled: boolean;
+  /** 함께 쓰는 중이면 주기 조회 간격(`householdRefetchInterval`), 혼자면 false */
+  refetchInterval: number | false;
+};
+
+/** 로그인 상태의 직접 정렬 순서(계정 원본, 없으면 null). 창으로 돌아올 때마다 다시 조회해 다른 기기의 변경을 반영한다. 함께 쓰는 중이면 주기적으로도 조회한다. */
+export function useAccountListingOrder({ enabled, refetchInterval }: AccountListingOrderOptions) {
   return useQuery({
     queryKey: listingOrderQueryKey(),
     queryFn: fetchAccountListingOrder,
     enabled,
     staleTime: 0,
     refetchOnWindowFocus: true,
+    refetchInterval,
   });
 }

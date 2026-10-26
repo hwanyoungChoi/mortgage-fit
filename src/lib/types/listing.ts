@@ -75,7 +75,8 @@ export type ListingListState =
 /**
  * 출처를 거친 쓰기의 실패. 로컬 사유에 더해
  * notReady: 출처가 아직 정해지지 않음(loading·error), unauthorized: 세션 만료(401),
- * deletedElsewhere: 다른 기기에서 삭제됨(404), limit: 계정 매물 상한(500개), network: 연결·서버 오류.
+ * deletedElsewhere: 다른 기기에서 삭제됨(404), deletedInHousehold: 함께 쓰는 중에 404(상대나 다른 기기에서 삭제됨),
+ * limit: 계정 매물 상한(500개), network: 연결·서버 오류.
  */
 export type ListingSourceWriteFailure = {
   ok: false;
@@ -84,6 +85,7 @@ export type ListingSourceWriteFailure = {
     | "notReady"
     | "unauthorized"
     | "deletedElsewhere"
+    | "deletedInHousehold"
     | "limit"
     | "network";
 };

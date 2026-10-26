@@ -5,6 +5,7 @@ import { useImportListingOrder } from "@/hooks/useImportListingOrder";
 import { useMe } from "@/hooks/useMe";
 import { useSaveListingOrder } from "@/hooks/useSaveListingOrder";
 import { ApiRequestError } from "@/lib/api/client";
+import { householdRefetchInterval } from "@/lib/utils/household";
 
 import type { ListingSourceStatus } from "@/lib/types/listing";
 import type {
@@ -66,7 +67,10 @@ export function useListingOrderSource({
   const saveListingOrder = useSaveListingOrder();
   const isImportDone =
     userId !== null && importState?.userId === userId && importState.status === "done";
-  const accountOrder = useAccountListingOrder({ enabled: isImportDone });
+  const accountOrder = useAccountListingOrder({
+    enabled: isImportDone,
+    refetchInterval: householdRefetchInterval(me.data),
+  });
 
   const runImport = useCallback(
     async (targetUserId: string) => {

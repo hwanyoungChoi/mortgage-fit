@@ -17,3 +17,10 @@
   text-decoration: none;
   white-space: nowrap;
 }
+
+/* 화면의 주 동작(초대 수락 전 로그인). 다른 주 버튼과 같은 높이로 줄을 채운다. */
+.wideLink {
+  composes: link;
+  min-height: 48px;
+  font-size: var(--fs-body);
+}

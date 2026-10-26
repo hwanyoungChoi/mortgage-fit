@@ -1,0 +1,96 @@
+/* 공유받기 화면과 같은 틀(폭·여백·버튼 모양) */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-1);
+}
+
+.title {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.description {
+  margin-top: var(--space-1);
+  font-size: var(--fs-body);
+  word-break: keep-all;
+}
+
+/* 수락하면 생기는 일. 권한 고지는 넘겨 읽지 않게 경고색 면으로 둔다(ADR-028 조건 5). */
+.terms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font-size: var(--fs-body);
+  word-break: keep-all;
+}
+
+.warning {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--fs-body);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  word-break: keep-all;
+}
+
+.primaryButton,
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: keep-all;
+}
+
+.primaryButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.secondaryLink {
+  border: 1px solid var(--color-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+}

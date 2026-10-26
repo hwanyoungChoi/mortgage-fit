@@ -3,6 +3,7 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 import TabNav from "@/components/TabNav";
 import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
+import MortgageInvite from "@/containers/Mortgage/Invite/MortgageInvite";
 import MortgageListings from "@/containers/Mortgage/Listings/MortgageListings";
 import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useListingsScrollRestoration";
 import MortgageShare from "@/containers/Mortgage/Share/MortgageShare";
@@ -92,8 +93,10 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     onImported: handleAccountImported,
   });
 
-  /** 공유받은 매물을 추가하면 목록 맨 위로 간다. replace라 뒤로 가기로 공유 화면에 돌아와 또 추가하지 않는다. */
-  const handleSharedListingsAdded = (notice: string) => {
+  /**
+   * 공유받은 매물 추가·함께 쓰기 수락 뒤 목록 맨 위로 간다. replace라 뒤로 가기로 그 화면에 돌아와 또 추가·수락하지 않는다.
+   */
+  const goToListingsWithNotice = (notice: string) => {
     setListingsNotice(notice);
     resetListingsScroll();
     window.location.replace(PATHS.listings());
@@ -108,7 +111,19 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           sessionHintStore={sessionHintStore}
           accountImport={accountImport}
           regulations={regulations}
-          onAdded={handleSharedListingsAdded}
+          onAdded={goToListingsWithNotice}
+        />
+      );
+    }
+    if (route.name === "invite") {
+      return (
+        <MortgageInvite
+          token={route.token}
+          listingStore={listingStore}
+          sessionHintStore={sessionHintStore}
+          accountImport={accountImport}
+          draftStore={draftStore}
+          onAccepted={goToListingsWithNotice}
         />
       );
     }
@@ -152,7 +167,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     <>
       <div inert={textSizeSheet.isOpen}>
         <TabNav
-          current={route.name === "share" ? null : route.name}
+          current={route.name === "share" || route.name === "invite" ? null : route.name}
           onNavigate={resetListingsScroll}
           onTextSizeOpen={(button) => textSizeSheet.open("textSize", button)}
         />

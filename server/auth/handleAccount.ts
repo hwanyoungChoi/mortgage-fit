@@ -1,4 +1,5 @@
 import { deleteSession, expiredSessionCookie, withOptionalSession } from "./session";
+import { readHousehold } from "../household/householdScope";
 import { jsonResponse, noContentResponse } from "../http/response";
 
 import type { MeResponse } from "../../src/lib/types/account";
@@ -11,10 +12,12 @@ export async function logout(request: Request, db: D1Database): Promise<Response
   return response;
 }
 
-/** GET /api/me. 로그인 안 했으면 401 대신 200 `{ user: null }` */
+/** GET /api/me. 로그인 안 했으면 401 대신 200 `{ user: null }`. 혼자 쓰면 `household: null` */
 export function getMe(request: Request, db: D1Database, now: () => Date): Promise<Response> {
   return withOptionalSession(request, db, now, async (userId) => {
-    const body: MeResponse = { user: userId === null ? null : { id: userId } };
+    const body: MeResponse = {
+      user: userId === null ? null : { id: userId, household: await readHousehold(db, userId) },
+    };
     return jsonResponse(200, body, { "Cache-Control": "no-store" });
   });
 }

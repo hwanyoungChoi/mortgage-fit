@@ -3,6 +3,13 @@ import { getMe, logout } from "../server/auth/handleAccount";
 import { finishKakaoLogin, startKakaoLogin } from "../server/auth/handleKakaoAuth";
 import { withSession } from "../server/auth/session";
 import { getBudget, importBudget, putBudget } from "../server/budget/handleBudget";
+import {
+  acceptHouseholdInvite,
+  createHouseholdInvite,
+  getHouseholdInvite,
+  leaveHousehold,
+  revokeHouseholdInvite,
+} from "../server/household/handleHousehold";
 import { routeApi } from "../server/http/router";
 import {
   getListingOrder,
@@ -129,6 +136,37 @@ const API_ROUTES: ApiRoute<Env>[] = [
     methods: {
       POST: (request, env) =>
         withSession(request, env.DB, now, (userId) => importListingOrder(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/household/invites",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) =>
+          createHouseholdInvite(request, env.DB, userId, now),
+        ),
+      DELETE: (request, env) =>
+        withSession(request, env.DB, now, (userId) => revokeHouseholdInvite(env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/household/invites/:token",
+    methods: { GET: (_request, env, { token }) => getHouseholdInvite(token, env.DB, now) },
+  },
+  {
+    path: "/api/household/invites/:token/accept",
+    methods: {
+      POST: (request, env, { token }) =>
+        withSession(request, env.DB, now, (userId) =>
+          acceptHouseholdInvite(token, env.DB, userId, now),
+        ),
+    },
+  },
+  {
+    path: "/api/household/leave",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => leaveHousehold(env.DB, userId)),
     },
   },
 ];

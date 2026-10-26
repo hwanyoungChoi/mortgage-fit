@@ -4,6 +4,7 @@ import KakaoLoginLink from "@/components/KakaoLoginLink";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useLogout } from "@/hooks/useLogout";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
+import { ApiRequestError } from "@/lib/api/client";
 import { PATHS } from "@/lib/constants/paths";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
@@ -16,10 +17,12 @@ import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import HeaderNotices from "./components/HeaderNotices";
+import HouseholdSheet from "./components/HouseholdSheet";
 import { type ListingStatusFailure } from "./components/ListingCard";
 import ListingStatusSheet from "./components/ListingStatusSheet";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
+import { useLeaveHousehold } from "./hooks/useLeaveHousehold";
 import { useListingOrderSource } from "./hooks/useListingOrderSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 
@@ -69,6 +72,9 @@ type MortgageListingsProps = {
   onNoticeChange: (notice: string | null) => void;
 };
 
+/** 함께 쓰는 중 404. 목록을 다시 받아 카드가 사라지므로 카드 안이 아니라 목록 위에 남긴다(AC-5). */
+const DELETED_IN_HOUSEHOLD_MESSAGE = "함께 쓰는 사람이나 다른 기기에서 삭제된 매물입니다";
+
 /**
  * notFound는 다른 탭에서 이미 지운 경우라 목록이 그대로 맞으므로 알리지 않는다.
  * unauthorized는 제목 아래 안내가 "로그인이 끝났습니다"로 알린다. 상한(limit)은 삭제에서 생기지 않는다.
@@ -80,6 +86,7 @@ const DELETE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
   notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
   unauthorized: null,
   deletedElsewhere: "다른 기기에서 삭제된 매물입니다",
+  deletedInHousehold: DELETED_IN_HOUSEHOLD_MESSAGE,
   limit: "삭제하지 못했습니다. 다시 시도해 주세요",
   network: "삭제하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
@@ -102,12 +109,20 @@ const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
   notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
   unauthorized: null,
   deletedElsewhere: "다른 기기에서 삭제된 매물입니다",
+  deletedInHousehold: DELETED_IN_HOUSEHOLD_MESSAGE,
   limit: "상태를 바꾸지 못했습니다. 다시 시도해 주세요",
   network: "상태를 바꾸지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
-/** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기 */
-type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; listing: Listing };
+/** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기, 함께 쓰기 */
+type ListingsSheet =
+  | { name: "share"; target: ShareTarget }
+  | { name: "status"; listing: Listing }
+  | { name: "household" };
+
+/** 나가기 확인(스펙 시나리오 6, ADR-028 조건 5) */
+const LEAVE_CONFIRM_MESSAGE =
+  "함께 쓰기에서 나갈까요? 내가 추가한 매물은 내 목록에, 상대가 추가한 매물은 상대 목록에 남습니다. 함께 쓰는 동안 상대가 지운 매물은 돌아오지 않습니다.";
 
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
@@ -164,7 +179,12 @@ function MortgageListings({
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const sheet = useOpenSheet<ListingsSheet>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
+  const householdButtonRef = useRef<HTMLButtonElement>(null);
   const logout = useLogout(sessionHintStore);
+  const leaveHousehold = useLeaveHousehold();
+  const { household } = source;
+  // 함께 쓰기는 출처가 정해진 뒤에만 보인다(로그아웃이면 시트가 로그인을 안내한다).
+  const canUseHousehold = source.status === "loggedIn" || source.status === "loggedOut";
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
   const [shownNotice, setShownNotice] = useState(notice);
@@ -220,20 +240,31 @@ function MortgageListings({
 
   /**
    * 메모만 바꾼다. 로그인이 끝나(401) 서버 매물 카드가 사라져도 쓰던 메모를 잃지 않게 목록 위에 남긴다.
+   * 함께 쓰는 중 상대가 지운 매물(404)도 카드가 사라지므로 같은 자리에 이유와 함께 남긴다.
    */
   const handleSaveMemo = async (listing: Listing, memo: string) => {
     const result = await source.updateMemo(listing, memo);
     if (!result.ok && result.reason === "unauthorized" && memo !== "") {
       setWriteError(`'${listing.name}' 메모를 저장하지 못했습니다. 쓰던 메모: ${memo}`);
     }
+    if (!result.ok && result.reason === "deletedInHousehold") {
+      const typed = memo === "" ? "" : ` 쓰던 메모: ${memo}`;
+      setWriteError(`'${listing.name}' ${DELETED_IN_HOUSEHOLD_MESSAGE}.${typed}`);
+    }
     return result;
   };
 
-  /** 이름만 바꾼다. 로그인이 끝나(401) 서버 매물 카드가 사라져도 쓰던 이름을 잃지 않게 목록 위에 남긴다. */
+  /**
+   * 이름만 바꾼다. 로그인이 끝나(401) 서버 매물 카드가 사라져도 쓰던 이름을 잃지 않게 목록 위에 남긴다.
+   * 함께 쓰는 중 상대가 지운 매물(404)도 같은 자리에 이유와 함께 남긴다.
+   */
   const handleSaveName = async (listing: Listing, name: string) => {
     const result = await source.updateName(listing, name);
     if (!result.ok && result.reason === "unauthorized") {
       setWriteError(`'${listing.name}' 이름을 바꾸지 못했습니다. 쓰던 이름: ${name}`);
+    }
+    if (!result.ok && result.reason === "deletedInHousehold") {
+      setWriteError(`'${listing.name}' ${DELETED_IN_HOUSEHOLD_MESSAGE}. 쓰던 이름: ${name}`);
     }
     return result;
   };
@@ -256,6 +287,23 @@ function MortgageListings({
     );
   };
 
+  const handleHouseholdOpen = () => {
+    sheet.open({ name: "household" }, householdButtonRef.current);
+  };
+
+  /** 나가면 목록·예산·순서가 각자 것으로 돌아간다(훅이 다시 조회한다). 401은 제목 아래 안내가 알린다. */
+  const handleLeave = () => {
+    if (!window.confirm(LEAVE_CONFIRM_MESSAGE)) return;
+    setWriteError(null);
+    leaveHousehold.mutate(undefined, {
+      onSuccess: () => setShownNotice("함께 쓰기에서 나왔습니다"),
+      onError: (error) => {
+        if (error instanceof ApiRequestError && error.status === 401) source.expireSession();
+        else setWriteError("함께 쓰기에서 나가지 못했습니다. 연결을 확인하고 다시 시도해 주세요");
+      },
+    });
+  };
+
   const handleStatusOpen = (listing: Listing, returnFocusTo: HTMLElement | null) => {
     sheet.open({ name: "status", listing }, returnFocusTo);
   };
@@ -266,6 +314,11 @@ function MortgageListings({
     if ((listing.status ?? null) === status) return;
     setStatusFailure(null);
     const result = await source.updateStatus(listing, status);
+    // 함께 쓰는 중 상대가 지운 매물은 줄이 사라지므로 목록 위에 남긴다.
+    if (!result.ok && result.reason === "deletedInHousehold") {
+      setWriteError(`'${listing.name}' ${DELETED_IN_HOUSEHOLD_MESSAGE}`);
+      return;
+    }
     const message = result.ok ? null : STATUS_FAILURE_MESSAGES[result.reason];
     if (message !== null) setStatusFailure({ listingId: listing.id, message });
   };
@@ -278,6 +331,16 @@ function MortgageListings({
         <ShareSheet
           target={openSheet.target}
           sentShareStore={sentShareStore}
+          onClose={sheet.close}
+        />
+      );
+    }
+    if (openSheet.name === "household") {
+      return (
+        <HouseholdSheet
+          status={source.status}
+          household={household}
+          onUnauthorized={source.expireSession}
           onClose={sheet.close}
         />
       );
@@ -448,6 +511,33 @@ function MortgageListings({
                   </button>
                 </>
               )}
+              {canUseHousehold &&
+                (household === null ? (
+                  <button
+                    ref={householdButtonRef}
+                    type="button"
+                    className={styles.headerButton}
+                    aria-haspopup="dialog"
+                    onClick={handleHouseholdOpen}
+                  >
+                    함께 쓰기
+                  </button>
+                ) : (
+                  <span className={styles.householdGroup}>
+                    <span className={styles.householdStatus}>
+                      {household.memberCount}명이 함께 쓰는 중
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.headerButton}
+                      aria-label="함께 쓰기에서 나가기"
+                      disabled={leaveHousehold.isPending}
+                      onClick={handleLeave}
+                    >
+                      나가기
+                    </button>
+                  </span>
+                ))}
               {source.status === "loggedOut" && <KakaoLoginLink />}
               {source.status === "loggedIn" && (
                 <>

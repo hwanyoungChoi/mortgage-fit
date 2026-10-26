@@ -132,3 +132,23 @@
 {"ts":"2026-10-24T14:08:28.819Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; W=$S/wr-header; rm -rf $W; mkdir -p $W && rsync -a --exclude node_modules -"}
 {"ts":"2026-10-24T14:15:27.383Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T14:16:52.694Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T14:25:43.089Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T14:25:47.735Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T14:26:59.999Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-25T04:45:33.607Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-25T04:45:58.989Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T04:52:08.382Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T04:55:35.541Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
+{"ts":"2026-10-25T04:55:35.541Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-25T04:56:11.603Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T05:05:04.465Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Invite/MortgageInvite.tsx"}
+{"ts":"2026-10-25T05:06:42.835Z","type":"hook","hook":"guard-secrets","decision":"deny","target":".dev.vars"}
+{"ts":"2026-10-25T05:09:11.861Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=$(cat /private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad/be-current-dir); rm -rf $S/state $S/state-main $S/state-ac8 $S/state-f"}
+{"ts":"2026-10-25T05:21:05.212Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-25T06:14:10.925Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-25T06:14:10.963Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-25T06:14:10.987Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-25T06:14:11.022Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-25T06:14:11.044Z","type":"task","task":3,"from":"todo","to":"progress","owner":"리드"}
+{"ts":"2026-10-25T06:14:54.900Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-26T00:20:01.337Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
