@@ -1,1 +1,1 @@
-{ "pm": "build", "fe": "build", "be": "build", "qa": "off" }
+{ "pm": "build", "fe": "build", "be": "build", "qa": "build" }
