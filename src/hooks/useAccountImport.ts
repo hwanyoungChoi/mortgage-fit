@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiRequestError } from "@/lib/api/client";
+import { householdOf } from "@/lib/utils/household";
 import { toListingFields } from "@/lib/utils/listingStore";
 
 import { useImportListings } from "./useImportListings";
@@ -40,7 +41,9 @@ export type AccountImport = {
   retry: () => void;
 };
 
-/** 이 사용자의 이전이 끝났거나 건너뛰기로 정해졌다. 그 전까지 서버 목록을 조회하지 않는다(빈 목록 깜빡임 방지). */
+/**
+ * 이 사용자의 이전이 끝났거나 건너뛰기로 정해졌다(함께 쓰는 중 건너뜀 포함). 그 전까지 서버 목록을 조회하지 않는다(빈 목록 깜빡임 방지).
+ */
 export function isAccountImportSettled(state: AccountImportState | null, userId: string): boolean {
   return state !== null && state.userId === userId && state.status !== "running";
 }
@@ -73,6 +76,8 @@ function toBatches(listings: Listing[]): Listing[][] {
 
 type ImportLocalListingsOptions = {
   userId: string;
+  /** 함께 쓰는 중이면 보내지도 기록하지도 않는다(기기 매물이 함께 쓰는 목록으로 올라가지 않게, ADR-029). */
+  isInHousehold: boolean;
   snapshot: ListingSnapshot;
   accountImportStore: AccountImportStore;
   send: (listings: Listing[]) => Promise<ImportListingsResponse>;
@@ -86,11 +91,13 @@ type ImportLocalListingsOptions = {
  */
 async function importLocalListings({
   userId,
+  isInHousehold,
   snapshot,
   accountImportStore,
   send,
   confirm,
 }: ImportLocalListingsOptions): Promise<AccountImportResult> {
+  if (isInHousehold) return { status: "skipped", reason: "household" };
   if (snapshot.status !== "ok") return { status: "skipped", reason: snapshot.status };
   const imports = accountImportStore.read();
   const importedIds = new Set(imports[userId] ?? []);
@@ -138,6 +145,11 @@ async function importLocalListings({
   return { status: "done", importedCount };
 }
 
+/** 함께 쓰는 중이라 건너뛴 사용자가 나갔다(같은 세션에서 household가 null로 바뀜). 이때 한 번 다시 한다. */
+function shouldRunAfterLeave(state: AccountImportState, isInHousehold: boolean): boolean {
+  return state.status === "skipped" && state.reason === "household" && !isInHousehold;
+}
+
 type AccountImportOptions = {
   /** 로그아웃 상태의 목록 원본. 읽기만 한다. */
   listingStore: ListingStore;
@@ -148,7 +160,7 @@ type AccountImportOptions = {
 
 /**
  * 로그인 확인 직후 이 기기의 로컬 매물을 계정으로 옮긴다. 앱에서 한 번만 부른다(`AppRoutes`).
- * 화면을 오가도 결과가 남고, 실행 중에는 다시 시작하지 않는다.
+ * 화면을 오가도 결과가 남고, 실행 중에는 다시 시작하지 않는다. 함께 쓰는 중이면 건너뛰고, 나가면 그때 한 번 한다.
  */
 export function useAccountImport({
   listingStore,
@@ -158,16 +170,18 @@ export function useAccountImport({
   const me = useMe();
   const userId = me.data?.user?.id ?? null;
   const { mutateAsync: sendImport } = useImportListings();
+  const isInHousehold = householdOf(me.data) !== null;
   const [state, setState] = useState<AccountImportState | null>(null);
   const isRunningRef = useRef(false);
 
   const run = useCallback(
-    async (targetUserId: string) => {
+    async (targetUserId: string, isTargetInHousehold: boolean) => {
       if (isRunningRef.current) return;
       isRunningRef.current = true;
       setState({ userId: targetUserId, status: "running" });
       const result = await importLocalListings({
         userId: targetUserId,
+        isInHousehold: isTargetInHousehold,
         snapshot: listingStore.getSnapshot(),
         accountImportStore,
         send: sendImport,
@@ -183,14 +197,15 @@ export function useAccountImport({
   );
 
   useEffect(() => {
-    if (userId === null || state?.userId === userId) return;
-    void run(userId);
-  }, [userId, state, run]);
+    if (userId === null) return;
+    if (state?.userId === userId && !shouldRunAfterLeave(state, isInHousehold)) return;
+    void run(userId, isInHousehold);
+  }, [userId, isInHousehold, state, run]);
 
   return {
     state,
     retry: () => {
-      if (userId !== null) void run(userId);
+      if (userId !== null) void run(userId, isInHousehold);
     },
   };
 }
