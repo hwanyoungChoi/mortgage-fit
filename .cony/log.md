@@ -435,3 +435,8 @@
 
 - AI(be): `0005_households.sql`(households·household_invites·users.household_id·accepted_by·1인 1초대 유니크 인덱스), `server/household/`(범위 SQL·초대·수락·나가기), listings·budget·order·me·카카오 로그인 쿠키 가구 대응. 로컬 AC-0 diff 빔, 혼자 쓰는 사용자 56요청 main과 동일(me의 household:null만 추가), 새 스키마에서 옛 Worker 동일, 동시 수락 5회 한쪽만 성공
 - AI(fe): `#/invite/{token}`·Invite container, [함께 쓰기] 시트, "2명이 함께 쓰는 중 · [나가기]", 함께 쓰는 중일 때만 30초 재조회(혼자는 0건), 드래그 중 순서 반영 보류, deletedInHousehold 안내, StatusPanel·LinkCopyActions 승격
+
+## 배포 준비
+
+- 리드: 원격 D1 time-travel bookmark 기록, 0005 적용. AC-0(a) 직전·직후 4개 쿼리 diff 빔(users 2·listings 19·shares 2), household_id NOT NULL 0, 새 객체 5개, 원격 aggregate ORDER BY 지원 확인. 운영 중 옛 Worker 응답 정상
+- 리드: Cloudflare 로그인 만료(7403)와 권한 검사 일시 장애로 한 차례 중단 후 재개

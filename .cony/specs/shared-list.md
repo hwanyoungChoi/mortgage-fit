@@ -141,13 +141,13 @@ CREATE INDEX household_invites_inviter_id ON household_invites (inviter_id);
 
 ### 목록
 
-- [ ] 1. 서버: 가구 모델 + 초대·수락·나가기 + 기존 엔드포인트 가구 범위화 (be)
+- [x] 1. 서버: 가구 모델 + 초대·수락·나가기 + 기존 엔드포인트 가구 범위화 (be)
   - [ ] 1-1. 계약 타입 3파일 먼저 커밋(`household.ts`, `MeResponse.user.household`, 새 오류 코드). **fe는 이 커밋 뒤 시작.**
   - [ ] 1-2. `0005_households.sql` 작성, `--local` 적용 후 AC-0(a) 쿼리로 로컬 전후 비교.
   - [ ] 1-3. 가구 범위 SQL 조각으로 listings(조회·POST 상한·PUT·PATCH·DELETE·import), budget·listing-order(+import) 전환. 혼자 쓰는 사용자 응답 동일.
   - [ ] 1-4. 초대 생성·끊기·조회·수락(배치)·나가기(배치), `/api/me` household, 로그인 `?invite=` 쿠키 → 콜백 복귀. `worker/index.ts` 경로 추가.
   - [ ] 1-5. 깨지는 기존 `server/**` 테스트 수정.
-- [ ] 2. 클라이언트: 초대 화면 + 함께 쓰기 시트 + 계정 줄·나가기 + 폴링 (fe)
+- [x] 2. 클라이언트: 초대 화면 + 함께 쓰기 시트 + 계정 줄·나가기 + 폴링 (fe)
   - [ ] 2-1. 라우트 `{ name: "invite"; token }`(파싱·정규화·탭 선택 없음), `Invite` container와 훅(`useHouseholdInvite` GET, `useAcceptHouseholdInvite`).
   - [ ] 2-2. Listings: [함께 쓰기] 시트(`useCreateHouseholdInvite`·`useRevokeHouseholdInvite`, 기존 공유 시트 재사용), 계정 줄 "2명이 함께 쓰는 중 · [나가기]"(`useLeaveHousehold`), 성공 시 관련 queryKey 무효화.
   - [ ] 2-3. me·목록·예산·순서 쿼리에 함께 쓰는 중일 때만 30초 폴링, 드래그 중 순서 반영 보류, 404 사유 문구를 함께 쓰는 중일 때만 교체(Listings·Calculator). 깨지는 기존 테스트 수정.
