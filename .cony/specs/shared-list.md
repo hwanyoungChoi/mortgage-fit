@@ -151,7 +151,7 @@ CREATE INDEX household_invites_inviter_id ON household_invites (inviter_id);
   - [ ] 2-1. 라우트 `{ name: "invite"; token }`(파싱·정규화·탭 선택 없음), `Invite` container와 훅(`useHouseholdInvite` GET, `useAcceptHouseholdInvite`).
   - [ ] 2-2. Listings: [함께 쓰기] 시트(`useCreateHouseholdInvite`·`useRevokeHouseholdInvite`, 기존 공유 시트 재사용), 계정 줄 "2명이 함께 쓰는 중 · [나가기]"(`useLeaveHousehold`), 성공 시 관련 queryKey 무효화.
   - [ ] 2-3. me·목록·예산·순서 쿼리에 함께 쓰는 중일 때만 30초 폴링, 드래그 중 순서 반영 보류, 404 사유 문구를 함께 쓰는 중일 때만 교체(Listings·Calculator). 깨지는 기존 테스트 수정.
-- [ ] 3. 배포·검증 (리드)
+- [x] 3. 배포·검증 (리드)
   - [ ] 3-1. `pnpm wrangler d1 time-travel info mortgage-fit`로 복원 지점 기록(명령은 be가 Cloudflare 문서로 확인해 PR 설명에 적음).
   - [ ] 3-2. AC-0(a) "직전" 덤프 → `pnpm wrangler d1 migrations apply mortgage-fit --remote` → "직후" 덤프·`diff` → AC-8 옛 Worker 확인.
   - [ ] 3-3. **그 다음에** PR 생성(이 프로젝트는 Auto-fix + CI 통과 시 자동 머지라 PR을 열면 곧 배포된다 — 마이그레이션 전에 PR을 열지 않는다). 배포 후 AC-0(b)~(e), AC-1~7, 실기 확인.
