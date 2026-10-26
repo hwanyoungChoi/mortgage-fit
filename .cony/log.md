@@ -440,3 +440,4 @@
 
 - 리드: 원격 D1 time-travel bookmark 기록, 0005 적용. AC-0(a) 직전·직후 4개 쿼리 diff 빔(users 2·listings 19·shares 2), household_id NOT NULL 0, 새 객체 5개, 원격 aggregate ORDER BY 지원 확인. 운영 중 옛 Worker 응답 정상
 - 리드: Cloudflare 로그인 만료(7403)와 권한 검사 일시 장애로 한 차례 중단 후 재개
+- 요청: README 사진 6장을 현재 화면(상태 칩·함께 쓰기·추가 비용·펼친 카드)으로 다시 찍고, 기능·개인정보 문구를 계정 저장·함께 쓰기·공유에 맞게 갱신

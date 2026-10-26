@@ -152,3 +152,7 @@
 {"ts":"2026-10-25T06:14:11.044Z","type":"task","task":3,"from":"todo","to":"progress","owner":"리드"}
 {"ts":"2026-10-25T06:14:54.900Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-26T00:20:01.337Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-26T00:20:13.978Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-26T00:20:23.943Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-26T00:21:41.938Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-26T00:21:41.974Z","type":"status","status":"사용자 대기"}
