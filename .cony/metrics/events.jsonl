@@ -185,3 +185,11 @@
 {"ts":"2026-10-26T08:24:50.691Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-26T08:25:51.461Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
 {"ts":"2026-10-26T08:25:51.461Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-26T08:35:26.692Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-26T08:40:57.633Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Home/components/CreatePlanSheet.tsx"}
+{"ts":"2026-10-26T08:42:32.251Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"group.key"}
+{"ts":"2026-10-26T08:47:12.893Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Home/MortgageHome.tsx"}
+{"ts":"2026-10-26T08:50:01.591Z","type":"hook","hook":"guard-bash","decision":"ask","command":"rm -rf src/__smoke && pnpm lint 2>&1 | tail -3 && pnpm format:check 2>&1 | tail -3 && pnpm test 2>&1 | grep -E \"Test Files|Tests \" && pnpm build 2>&1 | grep -E \"built in|error\" "}
+{"ts":"2026-10-26T08:59:36.655Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-26T09:03:45.577Z","type":"task","task":2,"from":"todo","to":"progress","owner":"be"}
+{"ts":"2026-10-26T09:13:32.768Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c3bc76fb-49bd-4de8-8495-8fcec2f68118/scratchpad && rm -rf $S/seeded && mkdir -p $S/seeded && cp -R .wrangler/state $S/seeded"}
