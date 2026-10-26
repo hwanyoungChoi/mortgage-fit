@@ -1,0 +1,81 @@
+.todos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.title {
+  font-size: var(--fs-section);
+  font-weight: 600;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.groupTitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 누르면 그 항목 시트가 열린다. 줄 높이는 44px 아래로 줄이지 않는다. */
+.entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  font-size: var(--fs-body);
+  text-align: left;
+}
+
+.entryName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entryMeta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.overdue {
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-error-bg);
+  color: var(--color-error-ink);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+}
+
+.moreButton {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}

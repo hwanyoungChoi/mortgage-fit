@@ -1,0 +1,71 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--fs-section);
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.list > li + li {
+  border-top: 1px solid var(--color-rule);
+}
+
+.planLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--row-min-height);
+  padding: var(--space-2) var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.planLink:focus-visible {
+  outline-offset: -2px;
+}
+
+.planName {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.planMeta {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+.createButton {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.createButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.note {
+  color: var(--color-warning-text);
+  font-size: var(--fs-body);
+}

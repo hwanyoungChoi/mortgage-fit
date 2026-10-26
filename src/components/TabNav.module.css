@@ -6,7 +6,7 @@
   background: var(--color-surface);
 }
 
-/* 탭 둘이 폭을 나누고 [가가]는 오른쪽 끝에 고정 폭으로 앉는다. */
+/* 탭 셋이 폭을 나누고 [가가]는 오른쪽 끝에 고정 폭으로 앉는다. */
 .bar {
   display: flex;
   max-width: 480px;

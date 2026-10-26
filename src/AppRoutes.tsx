@@ -3,6 +3,7 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 import TabNav from "@/components/TabNav";
 import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
+import MortgageHome from "@/containers/Mortgage/Home/MortgageHome";
 import MortgageInvite from "@/containers/Mortgage/Invite/MortgageInvite";
 import MortgageListings from "@/containers/Mortgage/Listings/MortgageListings";
 import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useListingsScrollRestoration";
@@ -18,6 +19,7 @@ import { createBudgetImportStore } from "@/lib/utils/budgetImportStorage";
 import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
+import { createInteriorPlanStore } from "@/lib/utils/interiorPlanStorage";
 import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportStorage";
 import { createListingOrderStore } from "@/lib/utils/listingOrderStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
@@ -54,6 +56,11 @@ function createStores(storage: Storage) {
     accountImportStore: createAccountImportStore({ storage }),
     privacyModeStore: createPrivacyModeStore({ storage }),
     textSizeStore: createTextSizeStore({ storage }),
+    interiorPlanStore: createInteriorPlanStore({
+      storage,
+      createId: createRandomId,
+      now: () => new Date().toISOString(),
+    }),
   };
 }
 
@@ -73,6 +80,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       accountImportStore,
       privacyModeStore,
       textSizeStore,
+      interiorPlanStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -127,6 +135,18 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           listingOrderImportStore={listingOrderImportStore}
           draftStore={draftStore}
           onAccepted={goToListingsWithNotice}
+        />
+      );
+    }
+    if (route.name === "home") {
+      // 플랜을 바꾸면(고르기 → 플랜, 뒤로 가기) 화면 상태와 열린 시트를 새로 시작한다.
+      return (
+        <MortgageHome
+          key={route.planId ?? ""}
+          interiorPlanStore={interiorPlanStore}
+          privacyModeStore={privacyModeStore}
+          planId={route.planId}
+          view={route.view ?? "space"}
         />
       );
     }
