@@ -212,7 +212,7 @@ CREATE TABLE interior_plan_items (
 
 ### 목록
 
-- [ ] 0. 선행 안전망 (작고 먼저) — AC-10, AC-0(f)(g)의 하네스
+- [x] 0. 선행 안전망 (작고 먼저) — AC-10, AC-0(f)(g)의 하네스
   - [ ] 0-1. 함께 쓰는 중이면 매물·예산·순서 자동 이전을 보내지도 기록하지도 않고 `skipped`(사유 household)로 둠, `skipped`이고 `household === null`이면 한 번 다시 실행, 예산·순서는 `skipped`여도 계정 조회를 켬 ("동기화·이전 규칙") (fe)
   - [ ] 0-2. 세 훅(`useAccountImport`·`useBudgetSource`·`useListingOrderSource`) 각각의 테스트(가구면 `send` 0회·기록 0회·settled 참, null로 바뀌면 `send` 1회, 두 번째 전환 중복 없음, 가구 상태의 `retry` 0회, 혼자 쓰는 흐름 그대로) + 세 훅 모두 변이 확인 (qa)
   - [ ] 0-3. 서버 D1 하네스 도입: 패키지는 **`@cloudflare/vitest-plugin`**(`@cloudflare/vitest-pool-workers`는 vitest 5 미지원). 실제 `migrations/0001~` 전부를 순서대로 적용한 D1로 `worker/index.ts` 경로(또는 핸들러)를 호출. `test.projects`로 기존 jsdom·node 테스트와 D1 프로젝트를 분리하고(D1 프로젝트는 Testing Library `setupFiles`를 상속하지 않음), **전환 전후 699 통과 + 1 todo가 같다**. **수락 조건: `rm -rf dist && pnpm test` 통과**(이 프로젝트의 `wrangler.jsonc`로 확인). 세부(타입 설정, `nodejs_compat` 주의, PR 설명에 근거·베타 miniflare 의존·버전 고정)는 qa 검토 `reviews/20261026-1622-qa-spec-interior-planner.md`의 "0-3 하네스" 1~6을 따른다. (qa)
