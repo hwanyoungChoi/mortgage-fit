@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 /**
  * 브라우저 OCR 엔진 파일을 같은 출처의 /ocr/에서 서빙한다(ADR-021). 받는 쪽 경로는 src/lib/utils/ocrSession.ts와 맞춘다.
@@ -39,7 +39,18 @@ export default defineConfig({
     proxy: { "/api": "http://localhost:8788" },
   },
   test: {
-    // 기본 환경은 node. 화면 테스트 파일만 첫 줄에 `// @vitest-environment jsdom`을 적는다(ADR-008).
-    setupFiles: ["./src/test/setup.ts"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "app",
+          // 기본 환경은 node. 화면 테스트 파일만 첫 줄에 `// @vitest-environment jsdom`을 적는다(ADR-008).
+          setupFiles: ["./src/test/setup.ts"],
+          // 서버 D1 테스트는 workerd에서 돈다(vitest.d1.config.ts, 스펙 interior-planner 태스크 0-3).
+          exclude: [...configDefaults.exclude, "**/*.d1.test.ts"],
+        },
+      },
+      "./vitest.d1.config.ts",
+    ],
   },
 });
