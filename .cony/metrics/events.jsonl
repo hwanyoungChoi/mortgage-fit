@@ -182,3 +182,6 @@
 {"ts":"2026-10-26T08:19:19.558Z","type":"hook","hook":"guard-bash","decision":"ask","command":"git add src/test/fakeAccountApi.tsx src/hooks/useAccountImport.test.tsx src/containers/Mortgage/Listings/hooks/useBudgetSource.test.tsx src/containers/Mortgage/Listings/hooks/useListingOrderSource.tes"}
 {"ts":"2026-10-26T08:22:02.988Z","type":"task","task":0,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-26T08:22:23.219Z","type":"hook","hook":"guard-bash","decision":"ask","command":"cat >> .cony/log.md <<'EOF'\n- 토론: be·fe·qa 스펙 검토(전원 조건부 찬성) → [ADR-029](decisions/029-interior-planner.md) D1 C·D2 A·D3 A·D4 A·D5 A + 구현 필수 조건 13개. be 제안 import 409 `inHousehold` 채택, fe 같은 항목 동시 편집은 클"}
+{"ts":"2026-10-26T08:24:50.691Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-26T08:25:51.461Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
+{"ts":"2026-10-26T08:25:51.461Z","type":"status","status":"진행 중"}
