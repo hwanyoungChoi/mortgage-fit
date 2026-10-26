@@ -162,3 +162,5 @@
 {"ts":"2026-10-26T06:40:09.773Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-26T06:40:48.295Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-26T06:47:21.373Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-26T06:49:07.288Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-26T06:52:37.649Z","type":"status","status":"진행 중"}

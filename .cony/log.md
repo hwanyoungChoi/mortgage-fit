@@ -448,3 +448,4 @@
 - AI(be): `0006_hidden_listings.sql`(listings.hidden_household_id, households.inviter_id 추가만), 범위 SQL `LISTING_SCOPE_SQL`(숨김 제외), 수락 시 B 매물 숨김·A 값으로 가구 생성, 나가기 시 숨김 해제·B 원래 users 값 유지·A만 가구 값. 로컬: 0006 전후 diff 빔, 혼자 쓰는 사용자 35요청 main과 동일, 같은 id 충돌 없음, 동시 수락·나가기
 - AI(fe): 수락·초대 시트·나가기 문구를 숨기기 규칙으로, 수락 시 기기 매물·예산·순서 이전 기록을 완료로 표시해 가구로 올라가지 않게
 - AI(리드): 나간 뒤 B 매물이 500을 넘을 수 있는 경계는 그대로 둠(데이터 손실 없음). householdLimit 문구를 서버와 맞춤
+- 요청(사용자 승인): 원격 D1 0006 적용. bookmark 000000b8-…f1f2502b, 직전·직후 diff 빔(users 2·listings 28·shares 3), households 0·숨긴 행 0
