@@ -205,3 +205,7 @@ CREATE INDEX household_invites_inviter_id ON household_invites (inviter_id);
 ## 검토 반영 (ADR-028)
 
 D1~D3 모두 A로 결정([ADR-028](../decisions/028-shared-list.md)). be 검토 조건 1~6을 구현 필수로 한다(수락 batch 가드 `accepted_by`, 가구 import·POST 단일 문장 상한, 순서 병합은 실제 id만 500 이하, 초대 쿠키 정리 규칙, 수락·나가기 고지 문구, 초대 생성 batch와 유니크 인덱스). 혼자 쓰는 사용자 응답은 `ORDER BY user_id, id`로 배포 전후 같게, 주기 요청 0건. 수락 성공 시 fe는 편집 중인 매물(editingId)을 해제한다. 계정별 import 기록 때문에 가구에서 지운 매물이 다른 기기의 로컬 이전으로 되살아날 수 있음은 알려진 한계로 둔다.
+
+## 개정 (2026-10-26, 사용자 되돌림)
+
+수락하면 B의 기존 계정 매물을 합치지 않고 숨긴다(`listings.hidden_household_id`, `0006`). 함께 쓰는 목록은 초대한 사람(A)의 매물·예산·순서로 시작한다. 나가면 숨긴 매물과 B의 원래 예산·순서가 돌아오고, 함께 쓰는 동안 B가 넣은 매물도 B에게 간다. 초대한 사람은 가구 값을 가진다(`households.inviter_id`). 위 API 계약·AC-3의 "합치기" 설명은 이 개정으로 대체한다. 롤백은 가구 0개·숨긴 행 0개일 때만 안전.

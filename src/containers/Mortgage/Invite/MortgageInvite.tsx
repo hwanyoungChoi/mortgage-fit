@@ -1,6 +1,7 @@
 import KakaoLoginLink from "@/components/KakaoLoginLink";
 import StatusPanel from "@/components/StatusPanel";
 import { useListingSource, type ListingSource } from "@/hooks/useListingSource";
+import { useMe } from "@/hooks/useMe";
 import { ApiRequestError } from "@/lib/api/client";
 import { HOUSEHOLD_INVITE_TOKEN_PATTERN } from "@/lib/constants/household";
 import { PATHS } from "@/lib/constants/paths";
@@ -9,10 +10,14 @@ import styles from "./MortgageInvite.module.css";
 import { acceptProblemOf, type AcceptProblem } from "./acceptProblem";
 import { useAcceptHouseholdInvite } from "./hooks/useAcceptHouseholdInvite";
 import { useHouseholdInvite } from "./hooks/useHouseholdInvite";
+import { markDeviceImportsDone } from "./markDeviceImportsDone";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
+import type { AccountImportStore } from "@/lib/types/accountImport";
+import type { BudgetImportStore } from "@/lib/types/budget";
 import type { DraftStore } from "@/lib/types/draft";
 import type { ListingStore } from "@/lib/types/listing";
+import type { ListingOrderImportStore } from "@/lib/types/listingOrder";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
 
 type MortgageInviteProps = {
@@ -21,9 +26,13 @@ type MortgageInviteProps = {
   /** 로그아웃 상태의 목록 원본 */
   listingStore: ListingStore;
   sessionHintStore: SessionHintStore;
-  /** 로그인 직후 이 기기 매물의 이전. 끝나야 수락할 수 있다(옮긴 매물까지 합쳐지게). */
+  /** 로그인 직후 이 기기 매물의 이전. 끝나야 수락할 수 있다(옮긴 매물도 내 목록과 함께 숨겨지게). */
   accountImport: AccountImport;
-  /** 수락하면 편집 중인 매물 연결을 푼다(합칠 때 id가 바뀔 수 있다, ADR-028). */
+  /** 수락하면 이 기기의 매물·예산·순서 이전을 끝난 것으로 기록한다(함께 쓰는 목록으로 올라가지 않게, ADR-028 개정). */
+  accountImportStore: AccountImportStore;
+  budgetImportStore: BudgetImportStore;
+  listingOrderImportStore: ListingOrderImportStore;
+  /** 수락하면 편집 중인 매물 연결을 푼다(내 목록이 숨겨진다, ADR-028 개정). */
   draftStore: DraftStore;
   /** 수락에 성공하면 저장 목록에 보일 알림과 함께 부른다. 이동은 부르는 쪽이 replace로 한다. */
   onAccepted: (notice: string) => void;
@@ -36,7 +45,7 @@ const ACCEPT_ERROR_MESSAGES: Record<AcceptProblem, string | null> = {
   alreadyInHousehold: null,
   unauthorized: null,
   householdFull: "이미 2명이 함께 쓰고 있는 목록입니다",
-  householdLimit: "합치면 500개를 넘어 함께 쓸 수 없습니다",
+  householdLimit: "초대한 사람의 목록이 500개를 넘어 함께 쓸 수 없습니다",
   network: "함께 쓰기를 시작하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
@@ -61,16 +70,9 @@ function GonePanel() {
 
 /**
  * 함께 쓰는 목록 초대 `#/invite/{token}`. 초대가 살아 있는지 먼저 묻고, 로그인 전이면 로그인(뒤 이 화면으로 복귀),
- * 로그인했으면 합쳐지는 내용과 권한을 알린 뒤 [함께 쓰기 시작]으로 수락한다.
+ * 로그인했으면 숨겨지는 내 목록과 권한을 알린 뒤 [함께 쓰기 시작]으로 수락한다.
  */
-function MortgageInvite({
-  token,
-  listingStore,
-  sessionHintStore,
-  accountImport,
-  draftStore,
-  onAccepted,
-}: MortgageInviteProps) {
+function MortgageInvite({ token, ...viewProps }: MortgageInviteProps) {
   const isTokenValid = HOUSEHOLD_INVITE_TOKEN_PATTERN.test(token);
   const invite = useHouseholdInvite(token, { enabled: isTokenValid });
 
@@ -92,22 +94,13 @@ function MortgageInvite({
         </StatusPanel>
       );
     }
-    return (
-      <InviteView
-        token={token}
-        listingStore={listingStore}
-        sessionHintStore={sessionHintStore}
-        accountImport={accountImport}
-        draftStore={draftStore}
-        onAccepted={onAccepted}
-      />
-    );
+    return <InviteView token={token} {...viewProps} />;
   };
 
   return <div className={styles.page}>{renderBody()}</div>;
 }
 
-/** 합쳐지는 목록 수. 로그인해 서버 목록을 받기 전에는 수를 쓰지 않는다. */
+/** 수락하면 숨겨지는 내 목록 수. 로그인해 서버 목록을 받기 전에는 수를 쓰지 않는다. */
 function myListCountOf(source: ListingSource): number | null {
   return source.status === "loggedIn" && source.list.status === "ok"
     ? source.list.listings.length
@@ -119,11 +112,28 @@ function InviteView({
   listingStore,
   sessionHintStore,
   accountImport,
+  accountImportStore,
+  budgetImportStore,
+  listingOrderImportStore,
   draftStore,
   onAccepted,
 }: MortgageInviteProps) {
   const source = useListingSource({ listingStore, sessionHintStore, accountImport });
-  const accept = useAcceptHouseholdInvite();
+  const userId = useMe().data?.user?.id ?? null;
+  const accept = useAcceptHouseholdInvite({
+    onAccepted: () => {
+      if (userId === null) return;
+      markDeviceImportsDone({
+        userId,
+        listingSnapshot: listingStore.getSnapshot(),
+        accountImportStore,
+        budgetImportStore,
+        listingOrderImportStore,
+      });
+      // 수락 전 이전이 실패했으면 기록이 바뀌었으니 결과를 다시 낸다(보낼 매물이 없어 실패 안내가 사라진다).
+      if (accountImport.state?.status === "failed") accountImport.retry();
+    },
+  });
   const problem = accept.isError ? acceptProblemOf(accept.error) : null;
   // 성공 뒤 이 화면을 떠날 때까지(받아 둔 me에 가구가 먼저 들어간다) "이미 함께 쓰는 중"으로 바뀌지 않게 한다.
   const isAccepting = accept.isPending || accept.isSuccess;
@@ -263,12 +273,12 @@ function InviteView({
       </header>
       <section className={styles.terms} aria-label="수락하면">
         <p>
-          수락하면 내 저장 목록{myListCount === null ? "" : `(${myListCount}개)`}이 초대한 사람의
-          목록과 합쳐집니다. 예산·순서는 초대한 사람 것을 함께 씁니다.
+          수락하면 내 목록은 숨겨지고(나가면 돌아와요) 초대한 사람의 목록·예산·순서를 함께 씁니다.
         </p>
+        {myListCount !== null && myListCount > 0 && <p>숨겨질 내 목록 {myListCount}개</p>}
         <p className={styles.warning}>
-          초대한 사람이 내 저장 목록 전부를 보고 수정·삭제할 수 있습니다. 나가도 상대가 이미 본
-          내용은 되돌릴 수 없습니다.
+          함께 쓰는 동안 내가 넣은 매물은 초대한 사람도 보고 수정·삭제할 수 있습니다. 나가도 상대가
+          지운 매물과 이미 본 내용은 되돌릴 수 없습니다.
         </p>
       </section>
       <div className={styles.actions}>

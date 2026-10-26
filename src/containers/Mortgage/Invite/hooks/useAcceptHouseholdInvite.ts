@@ -12,15 +12,21 @@ import type { AcceptHouseholdInviteResponse } from "@/lib/types/household";
 const acceptHouseholdInvite = (token: string) =>
   apiClient.post<AcceptHouseholdInviteResponse>(`/api/household/invites/${token}/accept`);
 
+type AcceptHouseholdInviteOptions = {
+  /** 수락에 성공하면 캐시를 바꾸기 전에 부른다. 화면을 먼저 떠나도 불린다(훅 단위 콜백). */
+  onAccepted: () => void;
+};
+
 /**
  * 초대 수락. 성공하면 me에 가구를 바로 넣고(저장 목록 머리글이 곧바로 "함께 쓰는 중"), 목록·예산·순서는
  * 가구 단위로 바뀌었으므로 다시 조회한다.
  */
-export function useAcceptHouseholdInvite() {
+export function useAcceptHouseholdInvite({ onAccepted }: AcceptHouseholdInviteOptions) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: acceptHouseholdInvite,
     onSuccess: ({ household }) => {
+      onAccepted();
       queryClient.setQueryData<MeResponse>(meQueryKey(), (me) =>
         me?.user ? { user: { ...me.user, household } } : me,
       );
