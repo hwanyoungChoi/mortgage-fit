@@ -6,5 +6,5 @@
     "types": ["node"]
   },
   "include": ["server/**/*.test.ts"],
-  "exclude": []
+  "exclude": ["server/**/*.d1.test.ts"]
 }

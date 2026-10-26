@@ -5,7 +5,7 @@ import { useImportListingOrder } from "@/hooks/useImportListingOrder";
 import { useMe } from "@/hooks/useMe";
 import { useSaveListingOrder } from "@/hooks/useSaveListingOrder";
 import { ApiRequestError } from "@/lib/api/client";
-import { householdRefetchInterval } from "@/lib/utils/household";
+import { householdOf, householdRefetchInterval } from "@/lib/utils/household";
 
 import type { ListingSourceStatus } from "@/lib/types/listing";
 import type {
@@ -35,7 +35,15 @@ export type ListingOrderSource = {
 };
 
 /** 이 사용자의 첫 로그인 순서 이전. 화면에 들어올 때마다 기록을 보고 끝난 사용자는 건너뛴다. */
-type OrderImportState = { userId: string; status: "running" | "done" | "failed" };
+type OrderImportState = { userId: string; status: "running" | "done" | "failed" | "skipped" };
+
+/**
+ * skipped: 함께 쓰는 중이라 보내지도 기록하지도 않았다(ADR-029). 끝난 것으로 보아 계정 값을 조회하고,
+ * 같은 세션에서 나가면(household가 null로 바뀜) 한 번 다시 한다.
+ */
+function shouldRunAfterLeave(importState: OrderImportState, isInHousehold: boolean): boolean {
+  return importState.status === "skipped" && !isInHousehold;
+}
 
 const NOT_READY: ListingOrderSaveFailure = { ok: false, reason: "notReady" };
 
@@ -61,24 +69,29 @@ export function useListingOrderSource({
   );
   const me = useMe();
   const userId = status === "loggedIn" ? (me.data?.user?.id ?? null) : null;
+  const isInHousehold = householdOf(me.data) !== null;
   const [importState, setImportState] = useState<OrderImportState | null>(null);
   const isImportRunningRef = useRef(false);
   const { mutateAsync: sendImport } = useImportListingOrder();
   const saveListingOrder = useSaveListingOrder();
-  const isImportDone =
-    userId !== null && importState?.userId === userId && importState.status === "done";
+  const isImportSettled =
+    userId !== null &&
+    importState?.userId === userId &&
+    (importState.status === "done" || importState.status === "skipped");
   const accountOrder = useAccountListingOrder({
-    enabled: isImportDone,
+    enabled: isImportSettled,
     refetchInterval: householdRefetchInterval(me.data),
   });
 
   const runImport = useCallback(
-    async (targetUserId: string) => {
+    async (targetUserId: string, isTargetInHousehold: boolean) => {
       if (isImportRunningRef.current) return;
       isImportRunningRef.current = true;
       setImportState({ userId: targetUserId, status: "running" });
       let nextStatus: OrderImportState["status"] = "done";
-      if (!listingOrderImportStore.has(targetUserId)) {
+      if (isTargetInHousehold) {
+        nextStatus = "skipped";
+      } else if (!listingOrderImportStore.has(targetUserId)) {
         const ids = listingOrderStore.getSnapshot();
         try {
           // 응답(계정의 현재 값)은 훅이 캐시에 넣는다. 기기 순서가 없으면 올리지 않고 기록만 남긴다.
@@ -96,9 +109,10 @@ export function useListingOrderSource({
   );
 
   useEffect(() => {
-    if (userId === null || importState?.userId === userId) return;
-    void runImport(userId);
-  }, [userId, importState, runImport]);
+    if (userId === null) return;
+    if (importState?.userId === userId && !shouldRunAfterLeave(importState, isInHousehold)) return;
+    void runImport(userId, isInHousehold);
+  }, [userId, isInHousehold, importState, runImport]);
 
   // 창 포커스 재조회에서 세션이 끝난 것을 알게 되는 경우
   const isOrderUnauthorized = isUnauthorized(accountOrder.error);
@@ -141,7 +155,7 @@ export function useListingOrderSource({
     save,
     retry: () => {
       if (userId === null) return;
-      if (importState?.status === "failed") void runImport(userId);
+      if (importState?.status === "failed") void runImport(userId, isInHousehold);
       else void accountOrder.refetch();
     },
     isRetrying: importState?.status === "running" || accountOrder.isFetching,

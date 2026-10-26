@@ -1,0 +1,11 @@
+{
+  // 서버 D1 테스트(*.d1.test.ts, server/test/)는 workerd에서 돈다(vitest.d1.config.ts). node 타입 대신
+  // workers 타입 + 플러그인의 `cloudflare:test` 타입을 쓴다(tsconfig.server-test.json과 전역이 겹쳐 따로 둔다).
+  "extends": "./tsconfig.worker.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server-d1-test.tsbuildinfo",
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types"]
+  },
+  "include": ["server/**/*.d1.test.ts", "server/test"],
+  "exclude": []
+}

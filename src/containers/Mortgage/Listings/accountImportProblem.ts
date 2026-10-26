@@ -9,11 +9,13 @@ const FAILURE_REASONS: Record<AccountImportFailureReason, string> = {
   network: "연결을 확인하고 다시 시도해 주세요",
 };
 
-const SKIP_MESSAGES: Record<AccountImportSkipReason, string> = {
+/** null이면 알리지 않는다(함께 쓰는 중 건너뛰기는 문제가 아니다). */
+const SKIP_MESSAGES: Record<AccountImportSkipReason, string | null> = {
   corrupt:
     "이 기기의 저장 목록이 손상되어 계정으로 옮기지 못했습니다. 로그아웃하면 손상된 원문을 복사할 수 있습니다",
   unavailable:
     "이 브라우저에서는 저장소를 사용할 수 없어 이 기기의 매물을 계정으로 옮기지 못했습니다",
+  household: null,
 };
 
 /**
@@ -29,6 +31,7 @@ export function accountImportProblem(
       canRetry: true,
     };
   }
-  if (state?.status === "skipped") return { message: SKIP_MESSAGES[state.reason], canRetry: false };
-  return null;
+  if (state?.status !== "skipped") return null;
+  const message = SKIP_MESSAGES[state.reason];
+  return message === null ? null : { message, canRetry: false };
 }

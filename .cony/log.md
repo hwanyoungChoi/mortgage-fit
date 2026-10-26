@@ -449,3 +449,23 @@
 - AI(fe): 수락·초대 시트·나가기 문구를 숨기기 규칙으로, 수락 시 기기 매물·예산·순서 이전 기록을 완료로 표시해 가구로 올라가지 않게
 - AI(리드): 나간 뒤 B 매물이 500을 넘을 수 있는 경계는 그대로 둠(데이터 손실 없음). householdLimit 문구를 서버와 맞춤
 - 요청(사용자 승인): 원격 D1 0006 적용. bookmark 000000b8-…f1f2502b, 직전·직후 diff 빔(users 2·listings 28·shares 3), households 0·숨긴 행 0
+- 요청: team.json qa off → build(사용자 요청, Cony 하네스 세션 전달). 다음 태스크부터 qa 투입, 첫 호출에 catchup 검토(reviews/{시각}-qa-catchup.md), DONE 전에 qa-task 기록 필요
+- 요청: 사용자가 운영에서 함께 쓰기 수락·숨기기·같이 편집 정상 확인(AC 운영 통과)
+
+# 인테리어 공정·예산 플래너 (계약 후)
+
+## 기획
+
+- 요청: 앱을 종합 임장·부동산 계약 서비스로 키우고 싶음. 메인은 대출 계산기, 지금은 목록에 힘이 많이 실림
+- 요청: 계약은 끝났고, 인테리어를 턴키 없이 방마다·부위마다 따로 업체에 연락해 진행할 계획 → 예산·계획을 쉽게 세울 수 있게. 기존 기능은 살림
+- 요청(이전 전달): qa build로 투입 — 이번 사이클 첫 호출에 catchup
+- AI(qa catchup): 699 통과, 서버 listings·household·budget·order·shares·auth와 기기 이전 훅에 테스트 0. 결함 D1: 가구 중 B가 로그아웃 상태 저장 매물이 다음 로그인 때 가구로 이전돼 A에게 보임 → 리드가 pm 스펙에 태스크 0(가구 중 자동 이전 건너뛰기, 제안 기본값)으로 추가 지시. D1 테스트 하네스 도입 승인(qa 태스크)
+- 토론: be·fe·qa 스펙 검토(전원 조건부 찬성) → [ADR-029](decisions/029-interior-planner.md) D1 C·D2 A·D3 A·D4 A·D5 A + 구현 필수 조건 13개. be 제안 import 409 `inHousehold` 채택, fe 같은 항목 동시 편집은 클라이언트 `updatedAt` 경고만(서버 409는 다음 단계). qa: 하네스는 `@cloudflare/vitest-plugin`(pool-workers는 vitest 5 미지원), "앞으로 낼 돈" 정의를 가르는 기대값 추가
+- AI(pm): ADR-029를 스펙에 반영, P fixture 재계산 모두 일치. U11(카드 링크 배치)·U12(나갈 때 항목 귀속 안내) 추가
+
+## 태스크 0. 선행 안전망
+
+- AI(fe) 0-1: 세 훅(매물·예산·순서) 가구면 `skipped`(보내지도 기록하지도 않음), 같은 userId에서 household null 전환 시 한 번 재실행, 예산·순서는 skipped여도 계정 조회. 기존 키 무변경
+- AI(qa) 0-3·0-4: `@cloudflare/vitest-plugin` 1.4.7 고정, vitest projects(app·d1), `.dev.vars`를 바인딩으로 읽지 않게 설정 경로 미전달. 서버 테스트 63개(목록·범위·수락·나가기·라우터·골든), 변이 15개 중 13 실패(2개는 동등 변이). 제품 결함 없음
+- AI(qa) 0-2: 세 훅 테스트 21개, 지정 변이 6개 + 추가 변이 모두 실패 확인. 783 통과 + 1 todo
+- AI(리드): 검증 4개 통과(`rm -rf dist` 후 test 포함). 미검증: 브라우저 실기 AC-10 종단, CI(ubuntu)의 D1 하네스
