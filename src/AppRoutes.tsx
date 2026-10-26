@@ -122,6 +122,9 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           listingStore={listingStore}
           sessionHintStore={sessionHintStore}
           accountImport={accountImport}
+          accountImportStore={accountImportStore}
+          budgetImportStore={budgetImportStore}
+          listingOrderImportStore={listingOrderImportStore}
           draftStore={draftStore}
           onAccepted={goToListingsWithNotice}
         />

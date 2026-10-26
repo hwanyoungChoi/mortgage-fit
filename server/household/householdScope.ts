@@ -13,10 +13,18 @@ export const HOUSEHOLD_LISTINGS_MAX = 500;
 /**
  * 요청자(바인딩 `?1`)의 구성원 id 집합. 가구가 있으면 같은 `household_id`의 users, 없으면 요청자 하나.
  * 혼자 쓰는 사용자는 `household_id = NULL`이 거짓이라 `{요청자}`가 되어 기존 `user_id = ?1`과 결과가 같다.
- * 쓰는 쪽은 `user_id IN (${MEMBER_IDS_SQL})`처럼 넣는다.
+ * 매물 범위는 이 집합에 숨김 조건을 더한 `LISTING_SCOPE_SQL`을 쓴다.
  */
 export const MEMBER_IDS_SQL =
   "SELECT id FROM users WHERE id = ?1 OR household_id = (SELECT household_id FROM users WHERE id = ?1)";
+
+/**
+ * 요청자(바인딩 `?1`)가 보고 쓸 수 있는 `listings` 행의 조건. 구성원 매물 중 숨기지 않은 행만이다.
+ * 수락 때 숨긴 B의 매물(`hidden_household_id` = 가구)은 A 매물과 id가 같아도 조회·쓰기·상한·중복 id 검사에 들어가지 않는다.
+ * 혼자 쓰는 사용자의 행은 모두 NULL이라(0006 이전 행, 나가기로 되돌린 행) 기존 `user_id = ?1`과 결과가 같다.
+ * 쓰는 쪽은 `FROM listings WHERE ${LISTING_SCOPE_SQL} AND …`처럼 넣는다(listings 별칭 없이).
+ */
+export const LISTING_SCOPE_SQL = `user_id IN (${MEMBER_IDS_SQL}) AND hidden_household_id IS NULL`;
 
 /** 예산·순서처럼 구성원이 함께 쓰는 값. 같은 이름의 컬럼이 `users`와 `households`에 있다. */
 export type SharedColumn = "budget" | "listing_order";

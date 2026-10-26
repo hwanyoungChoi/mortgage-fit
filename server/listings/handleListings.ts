@@ -1,6 +1,6 @@
 // 로그인 사용자의 저장 목록(ADR-023 D3·D4). 행마다 `data`에 ListingInput JSON을 둔다.
 // POST·PUT·PATCH의 updatedAt은 서버 시각, import는 넘어온 시각을 그대로 쓴다.
-// 함께 쓰는 중이면 구성원 매물 전체가 범위다(ADR-028, `MEMBER_IDS_SQL`). 행의 `user_id`는 계속 "넣은 사람"이다.
+// 함께 쓰는 중이면 구성원 매물 중 숨기지 않은 행이 범위다(ADR-028, `LISTING_SCOPE_SQL`). 행의 `user_id`는 계속 "넣은 사람"이다.
 import {
   parseImportRequest,
   parseListingPatchRequest,
@@ -8,7 +8,7 @@ import {
 } from "./parseListingRequests";
 import { createRandomId } from "../../src/lib/utils/createRandomId";
 import { isListingId } from "../../src/lib/utils/validateListingFields";
-import { HOUSEHOLD_LISTINGS_MAX, MEMBER_IDS_SQL } from "../household/householdScope";
+import { HOUSEHOLD_LISTINGS_MAX, LISTING_SCOPE_SQL } from "../household/householdScope";
 import { readJsonBody } from "../http/readJsonBody";
 import { errorResponse, jsonResponse, noContentResponse } from "../http/response";
 
@@ -51,7 +51,7 @@ export async function listListings(db: D1Database, userId: string): Promise<Resp
   const { results } = await db
     .prepare(
       `SELECT id, data, created_at, updated_at FROM listings
-       WHERE user_id IN (${MEMBER_IDS_SQL})
+       WHERE ${LISTING_SCOPE_SQL}
        ORDER BY user_id, id`,
     )
     .bind(userId)
@@ -84,7 +84,7 @@ export async function createListing(
     .prepare(
       `INSERT INTO listings (user_id, id, data, created_at, updated_at)
        SELECT ?1, ?2, ?3, ?4, ?4
-       WHERE (SELECT COUNT(*) FROM listings WHERE user_id IN (${MEMBER_IDS_SQL})) < ?5`,
+       WHERE (SELECT COUNT(*) FROM listings WHERE ${LISTING_SCOPE_SQL}) < ?5`,
     )
     .bind(userId, listing.id, JSON.stringify(parsed.value), createdAt, HOUSEHOLD_LISTINGS_MAX)
     .run();
@@ -124,7 +124,7 @@ export async function replaceListing(
              )
            ),
            updated_at = ?4
-       WHERE user_id IN (${MEMBER_IDS_SQL}) AND id = ?2
+       WHERE ${LISTING_SCOPE_SQL} AND id = ?2
        RETURNING id, data, created_at, updated_at`,
     )
     .bind(userId, id, JSON.stringify(fields), now().toISOString())
@@ -154,7 +154,7 @@ export async function updateListingFields(
       `UPDATE listings
        SET data = json_patch(data, ?3),
            updated_at = ?4
-       WHERE user_id IN (${MEMBER_IDS_SQL}) AND id = ?2
+       WHERE ${LISTING_SCOPE_SQL} AND id = ?2
        RETURNING id, data, created_at, updated_at`,
     )
     .bind(userId, id, JSON.stringify(parsed.value), now().toISOString())
@@ -166,7 +166,7 @@ export async function updateListingFields(
 export async function deleteListing(id: string, db: D1Database, userId: string): Promise<Response> {
   if (!isListingId(id)) return invalidId();
   const deleted = await db
-    .prepare(`DELETE FROM listings WHERE user_id IN (${MEMBER_IDS_SQL}) AND id = ?2`)
+    .prepare(`DELETE FROM listings WHERE ${LISTING_SCOPE_SQL} AND id = ?2`)
     .bind(userId, id)
     .run();
   return deleted.meta.changes === 0 ? listingNotFound() : noContentResponse();
@@ -174,10 +174,10 @@ export async function deleteListing(id: string, db: D1Database, userId: string):
 
 /** import 본문(`?2`, JSON 배열) 중 범위에 아직 없는 서로 다른 id를 더한 범위 합계가 상한(`?3`)을 넘는가 */
 const IMPORT_OVER_LIMIT_SQL = `
-  (SELECT COUNT(*) FROM listings WHERE user_id IN (${MEMBER_IDS_SQL}))
+  (SELECT COUNT(*) FROM listings WHERE ${LISTING_SCOPE_SQL})
   + (SELECT COUNT(DISTINCT json_extract(value, '$.id')) FROM json_each(?2))
   - (SELECT COUNT(*) FROM listings
-      WHERE user_id IN (${MEMBER_IDS_SQL})
+      WHERE ${LISTING_SCOPE_SQL}
         AND id IN (SELECT json_extract(value, '$.id') FROM json_each(?2)))
   > ?3`;
 
@@ -185,6 +185,7 @@ const IMPORT_OVER_LIMIT_SQL = `
  * POST /api/listings/import. 범위(가구면 구성원 전체)에 이미 있는 id(같은 요청 안의 뒤쪽 중복 포함)는 건너뛰어
  * 다시 보내도 중복이 없다. 상한은 "요청 중 아직 없는 id 수"만 더해 본다(이미 옮긴 id의 재시도는 막지 않음).
  * 넘으면 아무것도 넣지 않고 400.
+ * 함께 쓰는 B가 숨긴 자기 매물과 같은 id를 보내면 PK(user_id, id) 충돌로 건너뛴다(`skipped`). 숨긴 행이 나가기 때 돌아온다.
  * 상한·없는 id 검사와 넣기를 한 문장으로 해서 두 구성원이 동시에 넣어도 상한을 넘거나 가구 안에 같은 id가
  * 생기지 않는다(ADR-028 조건 2). SQLite는 넣는 테이블을 읽는 INSERT … SELECT의 결과를 먼저 다 구한 뒤 넣는다.
  * 0개가 들어갔을 때 상한 때문인지는 같은 batch(한 트랜잭션)의 다음 문장으로 같은 식을 다시 본다.
@@ -212,7 +213,7 @@ export async function importListings(
          FROM json_each(?2)
          WHERE NOT EXISTS (
                  SELECT 1 FROM listings
-                 WHERE user_id IN (${MEMBER_IDS_SQL}) AND id = json_extract(value, '$.id')
+                 WHERE ${LISTING_SCOPE_SQL} AND id = json_extract(value, '$.id')
                )
            AND NOT (${IMPORT_OVER_LIMIT_SQL})
          ORDER BY key

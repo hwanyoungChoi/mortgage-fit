@@ -441,3 +441,10 @@
 - 리드: 원격 D1 time-travel bookmark 기록, 0005 적용. AC-0(a) 직전·직후 4개 쿼리 diff 빔(users 2·listings 19·shares 2), household_id NOT NULL 0, 새 객체 5개, 원격 aggregate ORDER BY 지원 확인. 운영 중 옛 Worker 응답 정상
 - 리드: Cloudflare 로그인 만료(7403)와 권한 검사 일시 장애로 한 차례 중단 후 재개
 - 요청: README 사진 6장을 현재 화면(상태 칩·함께 쓰기·추가 비용·펼친 카드)으로 다시 찍고, 기능·개인정보 문구를 계정 저장·함께 쓰기·공유에 맞게 갱신
+
+# 함께 쓰기 수락 시 B 목록 숨기기
+
+- 되돌림: U1 "수락 시 합치기" → 수락하면 B 목록은 숨기고 초대한 사람 목록으로 덮어 보이게(사용자). 리드가 숨기기(복원 가능)·완전 삭제(복구 불가) 중 확인, 사용자가 숨기기 선택. U3 나가기 시 B는 원래 목록·예산·순서 복원
+- AI(be): `0006_hidden_listings.sql`(listings.hidden_household_id, households.inviter_id 추가만), 범위 SQL `LISTING_SCOPE_SQL`(숨김 제외), 수락 시 B 매물 숨김·A 값으로 가구 생성, 나가기 시 숨김 해제·B 원래 users 값 유지·A만 가구 값. 로컬: 0006 전후 diff 빔, 혼자 쓰는 사용자 35요청 main과 동일, 같은 id 충돌 없음, 동시 수락·나가기
+- AI(fe): 수락·초대 시트·나가기 문구를 숨기기 규칙으로, 수락 시 기기 매물·예산·순서 이전 기록을 완료로 표시해 가구로 올라가지 않게
+- AI(리드): 나간 뒤 B 매물이 500을 넘을 수 있는 경계는 그대로 둠(데이터 손실 없음). householdLimit 문구를 서버와 맞춤

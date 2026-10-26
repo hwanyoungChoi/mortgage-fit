@@ -1,6 +1,6 @@
 # 함께 쓰는 목록(같이 편집)
 
-> 상태: 사용자 대기 · 마지막 업데이트: 2026-10-26 09:21
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-26 15:40
 
 ## 태스크
 
@@ -19,7 +19,7 @@
 
 ## 지금 하는 일
 
-함께 쓰는 목록(#31) 머지. 운영에서 초대·수락·같이 편집 실기 확인 대기
+함께 쓰기 수락 시 B 목록 숨기기 구현 중 (브랜치 cony/shared-list-replace)
 
 ## 최근 결정
 
@@ -36,7 +36,7 @@
 
 ## PR
 
-[#31](https://github.com/hwanyoungChoi/mortgage-fit/pull/31) 머지
+[#32](https://github.com/hwanyoungChoi/mortgage-fit/pull/32) 머지
 
 <!-- spec: specs/shared-list.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->

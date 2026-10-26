@@ -73,8 +73,8 @@ function HouseholdSheet({ status, household, onUnauthorized, onClose }: Househol
           초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록 하나를 함께 씁니다.
         </p>
         <p className={styles.hint}>
-          받은 사람의 저장 목록도 합쳐지고, 둘 다 모든 매물을 보고 고치고 지울 수 있습니다. 새로
-          만들면 전에 만든 초대 링크는 끊깁니다.
+          받은 사람의 원래 목록은 숨겨지고 내 목록·예산·순서를 함께 씁니다. 둘 다 함께 쓰는 매물을
+          보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.
         </p>
         {createInvite.isError && !isUnauthorized && (
           <p role="alert" className={styles.error}>

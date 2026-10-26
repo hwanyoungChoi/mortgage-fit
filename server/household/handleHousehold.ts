@@ -101,39 +101,15 @@ export async function getHouseholdInvite(
 
 /**
  * 수락 batch ①의 조건. 바인딩: ?1 수락자(B), ?2 token_hash, ?3 지금(unix 초), ?4 초대자(A), ?5 매물 상한.
- * 쓸 수 있는 초대 · 자기 초대 아님 · 두 사람 모두 혼자 쓰는 중(2명 가구라 초대자도 혼자여야 한다) · 합계 상한 이하.
- * B의 id가 A와 겹치면 지우지 않고 새 id로 바꾸므로 합계는 그대로다.
+ * 쓸 수 있는 초대 · 자기 초대 아님 · 두 사람 모두 혼자 쓰는 중(2명 가구라 초대자도 혼자여야 한다) · A 매물 수 상한 이하.
+ * B 매물은 숨기므로(개정 2026-10-26) 함께 쓰는 목록에 보이는 것은 A의 숨기지 않은 매물뿐이다.
  */
 const ACCEPT_GUARD_SQL = `
   token_hash = ?2 AND used_at IS NULL AND expires_at > ?3
   AND inviter_id = ?4 AND inviter_id <> ?1
   AND (SELECT household_id FROM users WHERE id = ?1) IS NULL
   AND (SELECT household_id FROM users WHERE id = ?4) IS NULL
-  AND (SELECT COUNT(*) FROM listings WHERE user_id IN (?1, ?4)) <= ?5`;
-
-/**
- * 합친 순서(U2·조건 3): A 순서 다음에 (B 순서 − A 순서). 두 사람 매물에 실제 있는 id만 남기므로 상한 이하다.
- * 둘 다 순서가 없으면 NULL. B 매물 중 id를 새로 받는 것은 순서에 없어 맨 위에 온다(ADR-026 규칙, 의도한 동작).
- * 바인딩: ?1 B, ?4 A. 이름 바꾸기(③)보다 먼저 계산해야 겹친 id가 A 매물을 가리킨다.
- */
-const MERGED_ORDER_SQL = `
-  CASE
-    WHEN (SELECT listing_order FROM users WHERE id = ?4) IS NULL
-     AND (SELECT listing_order FROM users WHERE id = ?1) IS NULL THEN NULL
-    ELSE (
-      SELECT json_group_array(value ORDER BY part, position) FROM (
-        SELECT value, 0 AS part, key AS position
-        FROM json_each((SELECT listing_order FROM users WHERE id = ?4))
-        UNION ALL
-        SELECT value, 1, key
-        FROM json_each((SELECT listing_order FROM users WHERE id = ?1))
-        WHERE value NOT IN (
-          SELECT value FROM json_each(COALESCE((SELECT listing_order FROM users WHERE id = ?4), '[]'))
-        )
-      )
-      WHERE value IN (SELECT id FROM listings WHERE user_id IN (?1, ?4))
-    )
-  END`;
+  AND (SELECT COUNT(*) FROM listings WHERE user_id = ?4 AND hidden_household_id IS NULL) <= ?5`;
 
 /**
  * 수락이 왜 안 됐는지. batch가 아무것도 바꾸지 않은 뒤에만 부른다(성공 판정에는 쓰지 않음).
@@ -150,7 +126,8 @@ async function describeAcceptFailure(
       `SELECT i.inviter_id, i.used_at, i.expires_at,
               (SELECT household_id FROM users WHERE id = ?1) AS acceptor_household,
               (SELECT household_id FROM users WHERE id = i.inviter_id) AS inviter_household,
-              (SELECT COUNT(*) FROM listings WHERE user_id IN (?1, i.inviter_id)) AS total
+              (SELECT COUNT(*) FROM listings
+                WHERE user_id = i.inviter_id AND hidden_household_id IS NULL) AS total
        FROM household_invites i WHERE i.token_hash = ?2`,
     )
     .bind(userId, tokenHash)
@@ -175,17 +152,19 @@ async function describeAcceptFailure(
     return errorResponse(
       409,
       "householdLimit",
-      `합치면 ${HOUSEHOLD_LISTINGS_MAX}개를 넘어 함께 쓸 수 없습니다`,
+      `초대한 사람의 목록이 ${HOUSEHOLD_LISTINGS_MAX}개를 넘어 함께 쓸 수 없습니다`,
     );
   }
-  // 그 사이 상태가 바뀐 경합(예: 상대가 매물을 지움). 아무것도 바뀌지 않았으니 다시 시도하면 된다.
+  // 그 사이 상태가 바뀐 경합(예: 초대자가 그 사이 매물을 지움). 아무것도 바뀌지 않았으니 다시 시도하면 된다.
   throw new Error("household accept guard failed without cause");
 }
 
 /**
  * POST /api/household/invites/{token}/accept → 200 `{ household: { memberCount } }`. batch 한 번:
- * ① 초대를 쓴 것으로 표시(조건 전부 `ACCEPT_GUARD_SQL`) ② 가구 만들기(예산 A 우선, 순서 병합)
- * ③ B 매물 중 A와 id가 겹치는 행에 새 id ④ 두 사람의 미사용 초대 삭제 ⑤ 두 사람 `household_id` 설정.
+ * ① 초대를 쓴 것으로 표시(조건 전부 `ACCEPT_GUARD_SQL`) ② 가구 만들기(초대자 A의 예산·순서를 복사, `inviter_id` = A)
+ * ③ B의 보이는 매물 전부를 숨김(`hidden_household_id` = 가구) ④ 두 사람의 미사용 초대 삭제 ⑤ 두 사람 `household_id` 설정.
+ * B의 `users.budget`·`listing_order`는 건드리지 않는다(나가기 때 B의 원래 값으로 쓴다). A·B 매물 id가 같아도 B 쪽은
+ * 숨긴 행이라 가구 범위(`LISTING_SCOPE_SQL`)에 섞이지 않으므로 id를 바꾸지 않는다.
  * ②는 ①이 이 사용자로 표시한 초대가 있을 때만, ③~⑤는 이 요청이 만든 가구 행(새 id)이 있을 때만 행을 바꾼다.
  * 성공은 ⑤가 바꾼 행 수(2)로 판정한다. 검사는 ①에만 있어 실패하면 아무것도 바뀌지 않는다.
  */
@@ -217,12 +196,10 @@ export async function acceptHouseholdInvite(
       .bind(userId, tokenHash, nowSeconds, inviterId, HOUSEHOLD_LISTINGS_MAX),
     db
       .prepare(
-        `INSERT INTO households (id, budget, listing_order, created_at)
-         SELECT ?5,
-                COALESCE((SELECT budget FROM users WHERE id = ?4), (SELECT budget FROM users WHERE id = ?1)),
-                ${MERGED_ORDER_SQL},
-                ?6
-         WHERE EXISTS (
+        `INSERT INTO households (id, inviter_id, budget, listing_order, created_at)
+         SELECT ?5, ?4, budget, listing_order, ?6
+         FROM users WHERE id = ?4
+           AND EXISTS (
                  SELECT 1 FROM household_invites
                  WHERE token_hash = ?2 AND accepted_by = ?1 AND used_at = ?3
                )
@@ -232,8 +209,8 @@ export async function acceptHouseholdInvite(
       .bind(userId, tokenHash, nowSeconds, inviterId, householdId, nowDate.toISOString()),
     db
       .prepare(
-        `UPDATE listings SET id = lower(hex(randomblob(16)))
-         WHERE user_id = ?1 AND id IN (SELECT id FROM listings WHERE user_id = ?2) AND ${householdExists}`,
+        `UPDATE listings SET hidden_household_id = ?3
+         WHERE user_id = ?1 AND hidden_household_id IS NULL AND ${householdExists}`,
       )
       .bind(userId, inviterId, householdId),
     db
@@ -257,10 +234,15 @@ export async function acceptHouseholdInvite(
 }
 
 /**
- * POST /api/household/leave → 204, 가구가 없으면 404. 2명 가구라 나가기 = 해체(U3), batch 한 번:
- * 구성원 모두에게 가구 예산·순서 복사 → 구성원의 미사용 초대 삭제 → `household_id = NULL` → 가구 행 삭제.
- * 매물 행은 건드리지 않는다(각자 넣은 매물이 각자 목록이 된다). 모든 문장이 읽어 둔 가구 id로 한정돼
- * 두 사람이 동시에 나가도 뒤의 요청은 0행이 되어 404다.
+ * POST /api/household/leave → 204, 가구가 없으면 404. 2명 가구라 누가 나가든 해체(U3)이고 두 사람 모두 혼자 쓰는 상태로
+ * 돌아간다(개정 2026-10-26). batch 한 번:
+ * ① 초대자 A의 `users` 예산·순서에 가구 값 복사(A는 누가 나가든 가구 값을 그대로 가진다)
+ * ② 이 가구에 숨긴 행(수락자 B의 수락 전 매물)을 다시 보이게 한다
+ * ③ 구성원의 미사용 초대 삭제 ④ `household_id = NULL` ⑤ 가구 행 삭제.
+ * 수락자 B의 `users` 예산·순서는 함께 쓰는 동안 쓰지 않았으므로(householdScope는 가구 값만 읽고 씀) 수락 전 값 그대로다.
+ * 함께 쓰는 동안 넣은 매물은 행의 `user_id`(넣은 사람)의 목록이 된다. B에게는 숨겼던 매물 + B가 넣은 매물이 돌아온다.
+ * B의 숨긴 행과 B가 넣은 행은 PK(user_id, id)로 id가 겹칠 수 없다. A가 지운 매물은 돌아오지 않는다.
+ * 모든 문장이 읽어 둔 가구 id로 한정돼 두 사람이 동시에 나가도 뒤의 요청은 0행이 되어 404다.
  */
 export async function leaveHousehold(db: D1Database, userId: string): Promise<Response> {
   const user = await db
@@ -271,14 +253,17 @@ export async function leaveHousehold(db: D1Database, userId: string): Promise<Re
   const householdNotFound = () => errorResponse(404, "notFound", "함께 쓰는 목록이 없습니다");
   if (householdId === null) return householdNotFound();
 
-  const [, , cleared] = await db.batch([
+  const [, , , cleared] = await db.batch([
     db
       .prepare(
         `UPDATE users
          SET budget = (SELECT budget FROM households WHERE id = ?1),
              listing_order = (SELECT listing_order FROM households WHERE id = ?1)
-         WHERE household_id = ?1`,
+         WHERE id = (SELECT inviter_id FROM households WHERE id = ?1) AND household_id = ?1`,
       )
+      .bind(householdId),
+    db
+      .prepare("UPDATE listings SET hidden_household_id = NULL WHERE hidden_household_id = ?1")
       .bind(householdId),
     db
       .prepare(
