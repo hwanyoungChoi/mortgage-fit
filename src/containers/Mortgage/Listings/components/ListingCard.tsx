@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
+import MaskedValue from "@/components/MaskedValue";
 import { PATHS } from "@/lib/constants/paths";
 import { formatManwon, formatManwonOrDash } from "@/lib/utils/amount";
 import { calculateLoan, hasUnconfirmedOwnFunds } from "@/lib/utils/calculateLoan";
@@ -13,7 +14,6 @@ import styles from "./ListingCard.module.css";
 import ListingMemo from "./ListingMemo";
 import ListingNameEditor from "./ListingNameEditor";
 import ListingStatusButton from "./ListingStatusButton";
-import MaskedValue from "./MaskedValue";
 import MemoEditor from "./MemoEditor";
 
 import type { Listing, ListingSourceWriteResult } from "@/lib/types/listing";

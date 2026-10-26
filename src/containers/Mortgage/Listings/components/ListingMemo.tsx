@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 
+import MaskedValue from "@/components/MaskedValue";
+
 import styles from "./ListingMemo.module.css";
-import MaskedValue from "./MaskedValue";
 
 type ListingMemoProps = {
   memo: string;

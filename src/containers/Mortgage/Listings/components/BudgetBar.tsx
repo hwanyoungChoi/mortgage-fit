@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import AmountInput from "@/components/AmountInput";
+import MaskedValue from "@/components/MaskedValue";
 import { formatManwon, validateAmount } from "@/lib/utils/amount";
 
 import styles from "./BudgetBar.module.css";
-import MaskedValue from "./MaskedValue";
 
 import type { BudgetSaveFailure, BudgetSaveResult, BudgetState } from "@/lib/types/budget";
 

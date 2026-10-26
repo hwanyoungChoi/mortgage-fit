@@ -1,8 +1,8 @@
+import MaskedValue from "@/components/MaskedValue";
 import { formatManwonOrDash } from "@/lib/utils/amount";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 
 import styles from "./CompactListingSummary.module.css";
-import MaskedValue from "./MaskedValue";
 
 import type { Listing } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";

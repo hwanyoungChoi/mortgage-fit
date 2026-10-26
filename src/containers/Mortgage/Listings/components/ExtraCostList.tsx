@@ -1,11 +1,11 @@
 import { Fragment } from "react";
 
+import MaskedValue from "@/components/MaskedValue";
 import { EXTRA_COST_CATEGORY_LABELS } from "@/lib/constants/extraCosts";
 import { formatManwon } from "@/lib/utils/amount";
 import { groupExtraCosts, sumExtraCosts } from "@/lib/utils/extraCosts";
 
 import styles from "./ListingCard.module.css";
-import MaskedValue from "./MaskedValue";
 
 import type { ExtraCost } from "@/lib/types/extraCost";
 
