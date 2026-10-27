@@ -1,9 +1,13 @@
-import { WON_PER_MANWON } from "@/lib/constants/interiorPlanTable";
+import { INTERIOR_PLAN_TBD_LABEL, WON_PER_MANWON } from "@/lib/constants/interiorPlanTable";
 
 import { formatThousands } from "./amount";
 import { rowNoteOf } from "./interiorPlanRows";
 
 import type { InteriorPlanRow, InteriorPlanRows } from "./interiorPlanRows";
+import type { InteriorQuote } from "@/lib/types/interiorPlan";
+
+/** 금액 칸 값: 원 단위 금액 / "tbd" 금액 미정(견적은 있고 금액 키가 없음, ADR-033) / undefined 빈칸 */
+export type InteriorPlanTableAmount = number | "tbd" | undefined;
 
 /** 표의 한 줄 = 목록의 한 줄(항목, 견적 한 쌍). 금액은 원 단위(만원 × 10,000) */
 export type InteriorPlanTableRow = {
@@ -11,10 +15,10 @@ export type InteriorPlanTableRow = {
   vendor: string;
   /** 세부내용 = 견적 메모. 없으면 "" (가리기 때 가린다) */
   detail: string;
-  /** 견적 금액(원). 견적 없는 줄은 undefined */
-  quoteWon: number | undefined;
-  /** 확정한 줄의 견적 금액(원). 미확정이면 undefined */
-  confirmedWon: number | undefined;
+  /** 견적 금액(원). 금액 미정이면 "tbd", 견적 없는 줄은 undefined */
+  quoteWon: InteriorPlanTableAmount;
+  /** 확정한 줄의 견적 금액(원, 미정이면 "tbd"). 미확정이면 undefined */
+  confirmedWon: InteriorPlanTableAmount;
   /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산. 없으면 "" (가리기 때 통째로 가린다) */
   note: string;
 };
@@ -32,15 +36,31 @@ function toWon(manwon: number): number {
 
 const formatWon = (manwon: number) => `${formatThousands(toWon(manwon))}원`;
 
+/** 견적 → 금액 칸. 견적 없음 / 미정 / 금액을 여기서만 나눈다 */
+function amountOf(quote: InteriorQuote | null): InteriorPlanTableAmount {
+  if (quote === null) return undefined;
+  return quote.amount === undefined ? "tbd" : toWon(quote.amount);
+}
+
 function toRow(row: InteriorPlanRow): InteriorPlanTableRow {
   const { quote } = row;
+  const quoteWon = amountOf(quote);
   return {
     vendor: quote?.vendor ?? "",
     detail: quote?.memo ?? "",
-    quoteWon: quote === null ? undefined : toWon(quote.amount),
-    confirmedWon: quote !== null && row.isConfirmed ? toWon(quote.amount) : undefined,
+    quoteWon,
+    confirmedWon: row.isConfirmed ? quoteWon : undefined,
     note: rowNoteOf(row, formatWon),
   };
+}
+
+/** 금액 칸의 글자(화면·인쇄·CSV 공통). 원 금액은 부르는 쪽이 정한 형식(화면은 천 단위 쉼표, CSV는 숫자만), 빈칸은 "" */
+export function tableAmountText(
+  amount: InteriorPlanTableAmount,
+  formatAmount: (won: number) => string,
+): string {
+  if (amount === undefined) return "";
+  return amount === "tbd" ? INTERIOR_PLAN_TBD_LABEL : formatAmount(amount);
 }
 
 /**

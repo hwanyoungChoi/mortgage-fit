@@ -173,3 +173,38 @@ export const LEGACY_L_CSV_LINES = [
 /** CSV 파일 전체: 맨 앞 BOM(U+FEFF) 하나, 모든 줄 끝(마지막 줄 포함) CRLF */
 export const toCsvFile = (lines: string[]) =>
   "\uFEFF" + lines.map((line) => `${line}\r\n`).join("");
+
+// 스펙 interior-tbd-amount "수용 기준"의 예시 P⁺: P의 R1~R5 뒤에 금액 미정 줄 R6·R7을 이 순서로 더한다(총 예산 1,000).
+
+/** 금액 미정 줄 = 견적 1개 항목, 견적에 `amount` 키가 없다(ADR-033). 세부내용이 null이면 `memo` 키도 없다 */
+function tbdRow(
+  index: number,
+  trade: string,
+  vendor: string,
+  detail: string | null,
+  isConfirmed: boolean,
+): InteriorItem {
+  const quoteId = `rq${index}`;
+  return {
+    id: `r${index}`,
+    spaceId: "sp-whole",
+    trade,
+    quotes: [{ id: quoteId, vendor, ...(detail !== null && { memo: detail }) }],
+    ...(isConfirmed && { confirmedQuoteId: quoteId }),
+    status: "planned",
+    createdAt: simpleTime(index),
+    updatedAt: simpleTime(index),
+  };
+}
+
+/** R6 조명·빛나라조명·거실 매입등·금액 없음 ✓ */
+export const r6 = () => tbdRow(6, "조명", "빛나라조명", "거실 매입등", true);
+/** R7 도배·한솔도배·세부내용 없음·금액 없음(미확정) */
+export const r7 = () => tbdRow(7, "도배", "한솔도배", null, false);
+
+/** 계획 P⁺ = P + R6·R7. 부를 때마다 새 객체다 */
+export function makeSimplePlanPPlus(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return makeSimplePlanP({ items: [r1(), r2(), r3(), r4(), r5(), r6(), r7()], ...overrides });
+}

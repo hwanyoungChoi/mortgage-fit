@@ -37,7 +37,8 @@ export function toInteriorLineDraft({
   return {
     trade: item.trade,
     vendor: quote?.vendor ?? "",
-    amount: quote === null ? "" : String(quote.amount),
+    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게)
+    amount: quote?.amount === undefined ? "" : String(quote.amount),
     detail: quote?.memo ?? "",
     note: item.memo ?? "",
     isConfirmed,

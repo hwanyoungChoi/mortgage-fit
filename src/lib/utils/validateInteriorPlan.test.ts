@@ -369,9 +369,37 @@ describe("금액: 만원 정수 1~999,999,999 (ADR-029 조건 2·11)", () => {
     else expect(result).toBeNull();
   });
 
-  it("견적·지급 금액은 필수", () => {
-    expect(itemFields({ quotes: [quote({ amount: undefined })] })).toBeNull();
+  it("지급 금액은 필수", () => {
     expect(itemFields({ payments: [payment({ amount: undefined })] })).toBeNull();
+  });
+
+  // ADR-033 의도된 반전: 견적 금액은 선택 필드다(키 없음·undefined = 금액 미정).
+  it("견적 금액 키 없음·undefined → 통과, 결과에 amount 키 없음 (ADR-033)", () => {
+    const withUndefined = itemFields({ quotes: [quote({ amount: undefined })] });
+    expect(withUndefined?.quotes?.[0]).toStrictEqual({ id: "q1", vendor: "가나 인테리어" });
+    expect(Object.hasOwn(withUndefined?.quotes?.[0] ?? {}, "amount")).toBe(false);
+
+    const { amount, ...quoteWithoutAmount } = quote();
+    void amount;
+    const withoutKey = itemFields({ quotes: [quoteWithoutAmount] });
+    expect(withoutKey?.quotes?.[0]).toStrictEqual({ id: "q1", vendor: "가나 인테리어" });
+    expect(Object.hasOwn(withoutKey?.quotes?.[0] ?? {}, "amount")).toBe(false);
+  });
+
+  it.each([
+    ["null", null],
+    ["빈 문자열", ""],
+    ['"100"', "100"],
+    ["0", 0],
+    ["1.5", 1.5],
+    ["1,000,000,000", 1_000_000_000],
+  ])("견적 금액 %s는 미정이 아니라 거부 (ADR-033)", (_, amount) => {
+    expect(itemFields({ quotes: [quote({ amount })] })).toBeNull();
+  });
+
+  it.each([1, 999_999_999])("견적 금액 %s는 통과하고 그대로 돌려준다 (ADR-033)", (amount) => {
+    const result = itemFields({ quotes: [quote({ amount })] });
+    expect(result?.quotes?.[0]).toStrictEqual({ id: "q1", vendor: "가나 인테리어", amount });
   });
 });
 

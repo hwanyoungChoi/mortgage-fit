@@ -1,6 +1,7 @@
 import { useId } from "react";
 
 import MaskedValue from "@/components/MaskedValue";
+import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 import { formatManwon } from "@/lib/utils/amount";
 import { rowNoteOf } from "@/lib/utils/interiorPlanRows";
 
@@ -23,6 +24,22 @@ type LineRowProps = {
 function nameOf(trade: string, row: InteriorPlanRow, isMasked: boolean): string {
   const detail = isMasked ? "" : (row.quote?.memo ?? "");
   return [trade, row.quote?.vendor ?? "", detail].filter((part) => part !== "").join(" ");
+}
+
+/** 금액 자리. 금액 키가 없으면 흐린 "미정"이다(ADR-033). 둘 다 금액처럼 가리고, 가리는 중에는 색도 금액과 같다 */
+function LineAmount({ amount, isMasked }: { amount: number | undefined; isMasked: boolean }) {
+  if (amount === undefined) {
+    return (
+      <span className={isMasked ? styles.amount : styles.tbdAmount}>
+        <MaskedValue isMasked={isMasked}>{INTERIOR_PLAN_TBD_LABEL}</MaskedValue>
+      </span>
+    );
+  }
+  return (
+    <span className={styles.amount}>
+      <MaskedValue isMasked={isMasked}>{formatManwon(amount)}</MaskedValue>
+    </span>
+  );
 }
 
 /**
@@ -74,11 +91,7 @@ function LineRow({ trade, row, isMasked, isSaving, onOpen, onConfirmChange }: Li
             </span>
           )}
         </span>
-        {quote !== null && (
-          <span className={styles.amount}>
-            <MaskedValue isMasked={isMasked}>{formatManwon(quote.amount)}</MaskedValue>
-          </span>
-        )}
+        {quote !== null && <LineAmount amount={quote.amount} isMasked={isMasked} />}
       </button>
       <label className={styles.confirm}>
         <input

@@ -34,7 +34,8 @@ export type InteriorQuote = {
   vendor: string;
   /** 자유 문자열 1~30자 */
   contact?: string;
-  amount: number;
+  /** 키 없음 = 금액 미정(ADR-033) */
+  amount?: number;
   /** 1~200자 */
   memo?: string;
 };

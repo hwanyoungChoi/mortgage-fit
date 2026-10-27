@@ -144,17 +144,19 @@ export function parseInteriorSpaces(value: unknown): InteriorSpace[] | null {
   return hasUniqueIds(spaces) ? spaces : null;
 }
 
+/** 견적 금액은 선택이다. 키 없음 = 금액 미정(ADR-033) */
 function parseQuote(value: unknown): InteriorQuote | null {
-  if (!isRecord(value) || !isInteriorId(value.id) || !isInteriorAmount(value.amount)) return null;
+  if (!isRecord(value) || !isInteriorId(value.id)) return null;
   const vendor = parseRequiredText(value.vendor, INTERIOR_VENDOR_MAX_LENGTH);
   const contact = parseOptionalText(value, "contact", INTERIOR_CONTACT_MAX_LENGTH);
+  const amount = parseOptional(value, "amount", isInteriorAmount);
   const memo = parseOptionalText(value, "memo", INTERIOR_QUOTE_MEMO_MAX_LENGTH);
-  if (vendor === null || contact === null || memo === null) return null;
+  if (vendor === null || contact === null || amount === null || memo === null) return null;
   return {
     id: value.id,
     vendor,
     ...(contact !== undefined && { contact }),
-    amount: value.amount,
+    ...(amount !== undefined && { amount }),
     ...(memo !== undefined && { memo }),
   };
 }
