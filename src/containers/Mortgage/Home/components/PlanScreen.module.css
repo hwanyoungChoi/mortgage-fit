@@ -52,29 +52,3 @@
   background: var(--color-primary);
   color: var(--color-on-primary);
 }
-
-.addRow {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.addButton {
-  min-height: 48px;
-  padding: 0 var(--space-4);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: 600;
-}
-
-.addButton:disabled {
-  background: var(--color-raised);
-  color: var(--color-text-muted);
-}
-
-.limitNote {
-  color: var(--color-warning-text);
-  font-size: var(--fs-body);
-}

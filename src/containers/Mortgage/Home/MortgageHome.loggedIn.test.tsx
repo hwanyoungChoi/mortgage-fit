@@ -63,7 +63,7 @@ describe("로그인 상태 [우리 집] — 서버 출처", () => {
     const local = makePlanP({ id: "local-only", name: "기기 계획" });
     const { storage, api } = renderLoggedIn({ localPlans: [local], isInHousehold: true });
     const before = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
-    expect(await screen.findByRole("button", { name: "욕실1 타일 열기" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "타일 C타일 열기" })).toBeInTheDocument();
     expect(screen.queryByText("기기 계획")).not.toBeInTheDocument();
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(before);
     // 가구라 이전은 건너뜀
@@ -80,7 +80,7 @@ describe("로그인 상태 [우리 집] — 서버 출처", () => {
     expect(await screen.findByText("인테리어 계획을 불러오지 못했습니다")).toBeInTheDocument();
     api.server.respond = undefined;
     await user.click(screen.getByRole("button", { name: "다시 시도" }));
-    expect(await screen.findByRole("button", { name: "욕실1 타일 열기" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "타일 C타일 열기" })).toBeInTheDocument();
     expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
   });
 
@@ -111,7 +111,7 @@ describe("로그인 상태 [우리 집] — 서버 출처", () => {
   it("로그인 이전: 가구면 알림 없음, import 0건, 목록이 불러오는 중에 멈추지 않는다", async () => {
     const local = makePlanP({ id: "local-plan", name: "기기 계획", items: [] });
     const { api } = renderLoggedIn({ isInHousehold: true, localPlans: [local] });
-    expect(await screen.findByRole("button", { name: "욕실1 타일 열기" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "타일 C타일 열기" })).toBeInTheDocument();
     expect(screen.queryByText(MOVED_NOTICE)).not.toBeInTheDocument();
     expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument();
     expect(api.callsTo("POST", `${PLANS_PATH}/import`)).toHaveLength(0);
@@ -122,7 +122,7 @@ describe("같은 항목 동시 편집(AC-9 클라이언트)", () => {
   it("시트를 연 뒤 상대가 저장 → 재조회로 값이 바뀌어도 입력 유지 → [저장]은 '다른 사람이 고쳤습니다', PUT 0회, 입력 유지 → [최신 값 불러오기] 뒤 저장하면 PUT", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
-    await user.click(await screen.findByRole("button", { name: "욕실1 타일 열기" }));
+    await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
     const dialog = screen.getByRole("dialog", { name: "항목" });
     expect(budgetInput(dialog).value).toBe("600");
     await user.clear(budgetInput(dialog));
@@ -162,7 +162,7 @@ describe("같은 항목 동시 편집(AC-9 클라이언트)", () => {
   it("다른 항목이 바뀐 재조회는 충돌이 아니다: 저장하면 PUT 1회, 둘 다 남는다", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
-    await user.click(await screen.findByRole("button", { name: "욕실1 타일 열기" }));
+    await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
     const dialog = screen.getByRole("dialog", { name: "항목" });
     await user.clear(budgetInput(dialog));
     await user.type(budgetInput(dialog), "610");
@@ -182,7 +182,7 @@ describe("같은 항목 동시 편집(AC-9 클라이언트)", () => {
   it("함께 쓰는 중 상대가 지운 항목을 저장하면(404) '함께 쓰는 사람이 삭제한 항목입니다'", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
-    await user.click(await screen.findByRole("button", { name: "욕실1 타일 열기" }));
+    await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
     const dialog = screen.getByRole("dialog", { name: "항목" });
     await user.clear(budgetInput(dialog));
     await user.type(budgetInput(dialog), "610");

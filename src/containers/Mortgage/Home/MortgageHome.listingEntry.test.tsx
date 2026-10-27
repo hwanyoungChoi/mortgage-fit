@@ -182,8 +182,8 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     expect(screen.getByRole("heading", { level: 1, name: "래미안 84" })).toBeInTheDocument();
     expect(screen.getByText("연결된 매물 · 래미안 84")).toBeInTheDocument();
     expect(detailValue("총 예산")).toBe("1,500만원");
-    expect(screen.getByRole("button", { name: "전체 도배 열기" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "샷시 열기" })).toBeInTheDocument();
     expect(screen.queryByText(/냉장고/)).not.toBeInTheDocument();
     // 매물 원문 그대로
     expect(storage.getItem(LISTINGS_STORAGE_KEY)).toBe(LISTINGS_RAW);
@@ -209,7 +209,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));
     const [plan] = storedPlans(storage);
     expect(plan.items.map((item) => [item.trade, item.budget])).toEqual([[label30, 700]]);
-    expect(screen.getByRole("button", { name: `전체 ${label30} 열기` })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: `${label30} 열기` })).toBeInTheDocument();
   });
 
   it("시트를 취소하고 저장 목록에서 같은 카드를 다시 누르면 시트가 다시 열린다(계획은 안 생김)", async () => {
@@ -273,7 +273,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     const [plan] = storedPlans(storage);
     expect(plan.items).toEqual([]);
     expect(plan).toMatchObject({ name: "래미안 84", budget: 1500, listingId: RAEMIAN_ID });
-    expect(screen.queryByRole("button", { name: "전체 도배 열기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "도배 열기" })).not.toBeInTheDocument();
   });
 
   it("인테리어 줄이 없는 매물(가전만): 가져오기 체크가 없고 총 예산은 비어 있다, 만들면 항목 0", async () => {
@@ -396,8 +396,8 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     window.location.hash = `#/home/${plan.id}`;
     expect(await screen.findByText(MISSING_TEXT)).toBeInTheDocument();
     expect(screen.queryByText(/^연결된 매물 · /)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 도배 열기" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "샷시 열기" })).toBeInTheDocument();
     expect(storedPlans(storage)[0]).toMatchObject({ id: plan.id, listingId: RAEMIAN_ID });
     expect(storedPlans(storage)[0].items).toHaveLength(2);
 

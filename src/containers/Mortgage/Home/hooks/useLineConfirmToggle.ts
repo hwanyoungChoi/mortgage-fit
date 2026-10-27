@@ -1,0 +1,63 @@
+import { useRef, useState } from "react";
+
+import { releasesOtherConfirm } from "@/lib/utils/interiorLineWrites";
+
+import {
+  CONFIRM_CONFLICT_MESSAGE,
+  OTHER_CONFIRM_RELEASED_MESSAGE,
+  planWriteFailureMessage,
+} from "../planWriteFailure";
+
+import type { InteriorItem } from "@/lib/types/interiorPlan";
+import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
+import type { InteriorPlanRow } from "@/lib/utils/interiorPlanRows";
+
+/** 목록 위 한 줄. error는 저장하지 못한 이유, info는 저장은 됐고 알릴 것이 있을 때 */
+export type LineConfirmNotice = { kind: "error" | "info"; message: string };
+
+/**
+ * 목록의 [확정] 체크(U4: 시트 없이 바로 저장). 체크·요약은 저장된 값에서만 그린다(낙관적 갱신 없음).
+ * 저장 중에는 같은 항목의 모든 줄 체크를 잠근다: 형제 줄 연타가 앞선 변경을 덮거나 거짓 충돌을 내지 않게.
+ * `write`는 그 줄 항목의 `updatedAt`으로 쓴다(낡았으면 conflict, A7).
+ */
+export function useLineConfirmToggle(
+  write: (
+    item: InteriorItem,
+    quoteId: string,
+    isConfirmed: boolean,
+  ) => Promise<InteriorPlanSourceWriteResult>,
+) {
+  const [savingItemIds, setSavingItemIds] = useState<ReadonlySet<string>>(() => new Set());
+  // 같은 이벤트 안의 두 번째 호출도 막는다(상태는 다음 렌더에 보인다)
+  const savingRef = useRef(new Set<string>());
+  const [notice, setNotice] = useState<LineConfirmNotice | null>(null);
+
+  const setSaving = (itemId: string, isSaving: boolean) => {
+    if (isSaving) savingRef.current.add(itemId);
+    else savingRef.current.delete(itemId);
+    setSavingItemIds(new Set(savingRef.current));
+  };
+
+  const toggle = async (row: InteriorPlanRow, isConfirmed: boolean) => {
+    const itemId = row.item.id;
+    // 견적 없는 줄은 확정할 것이 없다(체크는 비활성이고, 강제로 불려도 쓰지 않는다)
+    if (row.quote === null || savingRef.current.has(itemId)) return;
+    const releasesOther = releasesOtherConfirm(row.item, row.quote.id, isConfirmed);
+    setSaving(itemId, true);
+    const result = await write(row.item, row.quote.id, isConfirmed);
+    setSaving(itemId, false);
+    if (!result.ok) {
+      setNotice({
+        kind: "error",
+        message:
+          result.reason === "conflict"
+            ? CONFIRM_CONFLICT_MESSAGE
+            : planWriteFailureMessage(result.reason),
+      });
+      return;
+    }
+    setNotice(releasesOther ? { kind: "info", message: OTHER_CONFIRM_RELEASED_MESSAGE } : null);
+  };
+
+  return { savingItemIds, notice, toggle };
+}

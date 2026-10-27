@@ -5,6 +5,8 @@ import StatusPanel from "@/components/StatusPanel";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
+import { toggleLineConfirmInput } from "@/lib/utils/interiorLineWrites";
+import { buildInteriorPlanRows } from "@/lib/utils/interiorPlanRows";
 
 import styles from "./MortgageHome.module.css";
 import CorruptPlansNotice from "./components/CorruptPlansNotice";
@@ -15,8 +17,6 @@ import ItemSheet from "./components/ItemSheet";
 import PlanPicker from "./components/PlanPicker";
 import PlanScreen from "./components/PlanScreen";
 import PlanSettingsSheet from "./components/PlanSettingsSheet";
-import ProcessSheet from "./components/ProcessSheet";
-import SpacesSheet from "./components/SpacesSheet";
 import { useInteriorPlanSource } from "./hooks/useInteriorPlanSource";
 import { interiorPlanImportProblem } from "./interiorPlanImportProblem";
 import { linkedListingOf } from "./linkedListing";
@@ -57,10 +57,9 @@ type MortgageHomeProps = {
 type HomeSheet =
   /** `listing`: 매물 카드에서 왔으면 그 매물(이름·추가 비용 인테리어 줄을 채운다) */
   | { name: "create"; listing: Listing | null }
-  | { name: "spaces"; planId: string }
-  | { name: "process" }
   | { name: "settings"; planId: string; isBudget: boolean }
-  | { name: "item"; planId: string; itemId: string | null; spaceId: string | null };
+  /** 줄 시트. `rowKey`는 고칠 줄(`item.id:quote.id`), null이면 새 줄이고 `trade`로 구분을 채운다 */
+  | { name: "line"; planId: string; rowKey: string | null; trade: string };
 
 const UNAVAILABLE_MESSAGE =
   "이 브라우저에서는 저장소를 사용할 수 없어 인테리어 계획을 쓸 수 없습니다";
@@ -88,8 +87,8 @@ function MissingSheet({ message, onClose }: { message: string; onClose: () => vo
 }
 
 /**
- * 우리 집: 계약한 집의 인테리어 예산·견적·지급(스펙 interior-planner). 합계·할 일은 저장하지 않고 매번 계산한다(ADR-007).
- * `#/home`은 플랜 0개면 빈 상태, 1개면 그 플랜, 2~3개면 고르기다. 공간별·공종별·표 보기는 주소(`?view=trade`·`?view=table`)에 둔다.
+ * 우리 집: 공정별 업체 견적 줄과 확정 합계(스펙 interior-simple). 합계는 저장하지 않고 매번 계산한다(ADR-007).
+ * `#/home`은 플랜 0개면 빈 상태, 1개면 그 플랜, 2~3개면 고르기다. 표 보기는 주소(`?view=table`)에 둔다.
  * `#/home?listing={id}`(매물 카드)는 그 매물에 연결된 플랜이 있으면 `#/home/{planId}`로 replace하고, 없으면 그 매물로 채운
  * 만들기 시트를 연 뒤 주소에서 `listing`을 지운다(replace). 매물 쪽에는 아무것도 쓰지 않는다(AC-6).
  */
@@ -118,7 +117,7 @@ function MortgageHome({
     privacyModeStore.getSnapshot,
   );
   const sheet = useOpenSheet<HomeSheet>();
-  // [최신 값 불러오기]: 항목 시트를 지금 값으로 다시 연다(같은 항목 동시 편집 경고 뒤)
+  // [최신 값 불러오기]: 줄 시트를 지금 값으로 다시 연다(같은 항목 동시 편집 경고 뒤)
   const [itemSheetVersion, setItemSheetVersion] = useState(0);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   const [shownNotice, setShownNotice] = useState(notice);
@@ -212,23 +211,9 @@ function MortgageHome({
         />
       );
     }
-    if (openSheet.name === "process") return <ProcessSheet onClose={sheet.close} />;
     const plan = findPlan(openSheet.planId);
     // 다른 탭·기기·함께 쓰는 사람이 플랜을 지웠다. 시트를 닫을 수 있게만 둔다(뒤 화면의 inert가 풀리도록).
     if (plan === null) return <MissingSheet message={missingMessages.plan} onClose={sheet.close} />;
-    if (openSheet.name === "spaces") {
-      return (
-        <SpacesSheet
-          plan={plan}
-          onSave={async (spaces) => {
-            const result = await source.updatePlan(plan.id, { spaces });
-            if (result.ok) sheet.close();
-            return result;
-          }}
-          onClose={sheet.close}
-        />
-      );
-    }
     if (openSheet.name === "settings") {
       return (
         <PlanSettingsSheet
@@ -247,12 +232,15 @@ function MortgageHome({
         />
       );
     }
-    const item =
-      openSheet.itemId === null
+    const row =
+      openSheet.rowKey === null
         ? null
-        : (plan.items.find((candidate) => candidate.id === openSheet.itemId) ?? null);
-    // 고치던 항목을 지웠다. 새 항목으로 저장되지 않게 시트를 바꾼다.
-    if (openSheet.itemId !== null && item === null) {
+        : (buildInteriorPlanRows(plan)
+            .groups.flatMap((group) => group.rows)
+            .find((candidate) => candidate.key === openSheet.rowKey) ?? null);
+    const item = row?.item ?? null;
+    // 고치던 줄을 다른 곳에서 지웠다. 새 줄로 저장되지 않게 시트를 바꾼다.
+    if (openSheet.rowKey !== null && row === null) {
       return <MissingSheet message={missingMessages.item} onClose={sheet.close} />;
     }
     // 폴링으로 item이 바뀌어도 시트는 연 시점의 값에서 시작한 입력을 그대로 둔다(ItemSheet가 열 때 한 번만 읽는다).
@@ -261,7 +249,7 @@ function MortgageHome({
         key={itemSheetVersion}
         plan={plan}
         item={item}
-        initialSpaceId={openSheet.spaceId ?? plan.spaces[0].id}
+        initialSpaceId={plan.spaces[0].id}
         onSave={async (input, openedItem) => {
           const result =
             openedItem === null
@@ -289,16 +277,22 @@ function MortgageHome({
       onViewChange={handleViewChange}
       isPrivacyMode={isPrivacyMode}
       onPrivacyToggle={() => privacyModeStore.set(!isPrivacyMode)}
-      onSpacesOpen={(button) => sheet.open({ name: "spaces", planId: plan.id }, button)}
-      onProcessOpen={(button) => sheet.open({ name: "process" }, button)}
       onSettingsOpen={(button, isBudget) =>
         sheet.open({ name: "settings", planId: plan.id, isBudget }, button)
       }
-      onItemOpen={(itemId, button) =>
-        sheet.open({ name: "item", planId: plan.id, itemId, spaceId: null }, button)
+      onLineOpen={(row, button) =>
+        sheet.open({ name: "line", planId: plan.id, rowKey: row.key, trade: "" }, button)
       }
-      onItemAdd={(spaceId, button) =>
-        sheet.open({ name: "item", planId: plan.id, itemId: null, spaceId }, button)
+      onLineAdd={(trade, button) =>
+        sheet.open({ name: "line", planId: plan.id, rowKey: null, trade: trade ?? "" }, button)
+      }
+      onConfirmWrite={(item, quoteId, isConfirmed) =>
+        source.updateItem(
+          plan.id,
+          item.id,
+          toggleLineConfirmInput(item, quoteId, isConfirmed),
+          item.updatedAt,
+        )
       }
     />
   );

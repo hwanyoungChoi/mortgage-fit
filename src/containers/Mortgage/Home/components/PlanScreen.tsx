@@ -1,19 +1,19 @@
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { INTERIOR_ITEM_MAX_COUNT } from "@/lib/constants/interiorPlan";
-import { summarizeInteriorPlan } from "@/lib/utils/summarizeInteriorPlan";
+import { buildInteriorPlanRows, summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
+import { summarizeInteriorPlan as summarizeForTable } from "@/lib/utils/summarizeInteriorPlan";
 import { toLocalDateString } from "@/lib/utils/toLocalDateString";
 
-import EmptyItems from "./EmptyItems";
-import ItemGroups from "./ItemGroups";
+import PlanLines from "./PlanLines";
 import styles from "./PlanScreen.module.css";
 import PlanSummary from "./PlanSummary";
 import PlanTableView from "./PlanTableView";
-import PlanTodos from "./PlanTodos";
-import { ITEM_LIMIT_MESSAGE } from "../planWriteFailure";
 
 import type { LinkedListing } from "../linkedListing";
-import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
+import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
+import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 import type { HomeView } from "@/lib/types/route";
+import type { InteriorPlanRow } from "@/lib/utils/interiorPlanRows";
 
 type PlanScreenProps = {
   plan: InteriorPlanWithItems;
@@ -23,18 +23,21 @@ type PlanScreenProps = {
   onViewChange: (view: HomeView) => void;
   isPrivacyMode: boolean;
   onPrivacyToggle: () => void;
-  onSpacesOpen: (button: HTMLButtonElement) => void;
-  onProcessOpen: (button: HTMLButtonElement) => void;
   /** `isBudget`면 [총 예산 입력]으로 열었다(예산 칸에서 시작) */
   onSettingsOpen: (button: HTMLButtonElement, isBudget: boolean) => void;
-  onItemOpen: (itemId: string, button: HTMLButtonElement) => void;
-  /** `spaceId`가 null이면 첫 공간으로 채운다 */
-  onItemAdd: (spaceId: string | null, button: HTMLButtonElement) => void;
+  onLineOpen: (row: InteriorPlanRow, button: HTMLButtonElement) => void;
+  /** `trade`가 있으면 그 구분을 채운 새 줄 */
+  onLineAdd: (trade: string | null, button: HTMLButtonElement) => void;
+  /** 목록의 [확정] 체크. 그 줄 항목의 확정만 바꿔 저장한다 */
+  onConfirmWrite: (
+    item: InteriorItem,
+    quoteId: string,
+    isConfirmed: boolean,
+  ) => Promise<InteriorPlanSourceWriteResult>;
 };
 
 const VIEW_OPTIONS: { value: HomeView; label: string }[] = [
-  { value: "space", label: "공간별" },
-  { value: "trade", label: "공종별" },
+  { value: "list", label: "목록" },
   { value: "table", label: "표" },
 ];
 
@@ -50,9 +53,8 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 }
 
 /**
- * 플랜 화면: 머리글(이름 + [공간 편집][공정 순서][가리기][⋯]) → 요약 → 할 일 → [공간별|공종별|표] → [항목 추가] → 묶음 목록.
- * [항목 추가]는 목록 위에 두어 항목 수와 상관없이 같은 자리에 있다. 표 보기는 그 자리부터 표 보기(내보내기 버튼 줄 + 표)다.
- * `now`는 렌더마다 하나만 만들어 요약·표 머리·파일 이름이 같이 쓴다(A14).
+ * 플랜 화면: 머리글(이름 + [가리기][⋯]) → 요약 → [목록|표] → (목록) [줄 추가] + 공정별 목록 / (표) 표 보기.
+ * 체크와 요약은 같은 계획 값에서 매번 계산한다(ADR-007). `now`는 렌더마다 하나만 만들어 표 머리·파일 이름이 같이 쓴다.
  */
 function PlanScreen({
   plan,
@@ -61,16 +63,15 @@ function PlanScreen({
   onViewChange,
   isPrivacyMode,
   onPrivacyToggle,
-  onSpacesOpen,
-  onProcessOpen,
   onSettingsOpen,
-  onItemOpen,
-  onItemAdd,
+  onLineOpen,
+  onLineAdd,
+  onConfirmWrite,
 }: PlanScreenProps) {
   const now = new Date();
-  const summary = summarizeInteriorPlan(plan, now);
-  const groups = view === "space" ? summary.spaceGroups : summary.tradeGroups;
-  const canAddItem = plan.items.length < INTERIOR_ITEM_MAX_COUNT;
+  const summary = summarizeInteriorPlan(plan);
+  const { groups } = buildInteriorPlanRows(plan);
+  const canAddLine = plan.items.length < INTERIOR_ITEM_MAX_COUNT;
 
   return (
     <>
@@ -78,22 +79,6 @@ function PlanScreen({
         <h1 className={styles.title}>{plan.name}</h1>
         <LinkedListingLine linkedListing={linkedListing} />
         <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.headerButton}
-            aria-haspopup="dialog"
-            onClick={(event) => onSpacesOpen(event.currentTarget)}
-          >
-            공간 편집
-          </button>
-          <button
-            type="button"
-            className={styles.headerButton}
-            aria-haspopup="dialog"
-            onClick={(event) => onProcessOpen(event.currentTarget)}
-          >
-            공정 순서
-          </button>
           {/* 켜짐은 aria-pressed와 채운 색으로 보인다(저장 목록의 [가리기]와 같은 설정이다). */}
           <button
             type="button"
@@ -119,7 +104,6 @@ function PlanScreen({
         isMasked={isPrivacyMode}
         onBudgetEdit={(button) => onSettingsOpen(button, true)}
       />
-      <PlanTodos summary={summary} isMasked={isPrivacyMode} onItemOpen={onItemOpen} />
       <ChoiceGroup
         name="interiorPlanView"
         legend="보기"
@@ -131,37 +115,19 @@ function PlanScreen({
       {view === "table" ? (
         <PlanTableView
           planName={plan.name}
-          summary={summary}
+          summary={summarizeForTable(plan, now)}
           today={toLocalDateString(now)}
           isPrivacyMode={isPrivacyMode}
         />
       ) : (
-        <>
-          <div className={styles.addRow}>
-            <button
-              type="button"
-              className={styles.addButton}
-              aria-haspopup="dialog"
-              disabled={!canAddItem}
-              onClick={(event) => onItemAdd(null, event.currentTarget)}
-            >
-              항목 추가
-            </button>
-            {!canAddItem && <p className={styles.limitNote}>{ITEM_LIMIT_MESSAGE}</p>}
-          </div>
-          {groups.length === 0 ? (
-            <EmptyItems message="아직 항목이 없습니다. [항목 추가]로 공간·공종별 예산과 견적을 적어 보세요" />
-          ) : (
-            <ItemGroups
-              groups={groups}
-              view={view}
-              isMasked={isPrivacyMode}
-              onItemOpen={onItemOpen}
-              onAddToSpace={(spaceId, button) => onItemAdd(spaceId, button)}
-              canAddItem={canAddItem}
-            />
-          )}
-        </>
+        <PlanLines
+          groups={groups}
+          isMasked={isPrivacyMode}
+          canAddLine={canAddLine}
+          onLineAdd={onLineAdd}
+          onLineOpen={onLineOpen}
+          onConfirmWrite={onConfirmWrite}
+        />
       )}
     </>
   );

@@ -61,7 +61,7 @@ describe("parseRoute → 정규 경로 (platform-home AC-1)", () => {
     expect(toRoutePath(parseRoute(hash))).toBe(canonical);
   });
 
-  it.each(["#/", "#/calculator", "#/listings", "#/home", "#/home/plan-p?view=trade"])(
+  it.each(["#/", "#/calculator", "#/listings", "#/home", "#/home/plan-p?view=table"])(
     "정규 경로 %s는 다시 파싱해도 같다(replace 루프 없음)",
     (hash) => {
       expect(toRoutePath(parseRoute(hash))).toBe(hash);

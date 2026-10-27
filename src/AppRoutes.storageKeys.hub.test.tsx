@@ -219,7 +219,7 @@ async function expectHomeSettled(mode: Mode) {
     expect(await screen.findByRole("heading", { level: 1, name: "A 계획" })).toBeInTheDocument();
     return;
   }
-  expect(await screen.findByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "샷시 E샷시 열기" })).toBeInTheDocument();
 }
 
 async function expectListingsSettled(mode: Mode) {

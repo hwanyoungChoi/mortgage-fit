@@ -186,7 +186,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     ]);
     expect(JSON.stringify(plan)).not.toContain("냉장고");
     expect(await screen.findByText("연결된 매물 · 래미안 84")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 도배 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
     expect(listingWrites(api)).toEqual([]);
     expect(JSON.stringify(serverListings)).toBe(listingsRawBefore);
   });
@@ -290,7 +290,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
 
     listings.resolve(jsonResponse(200, { listings: [xi] }));
     expect(await screen.findByText(MISSING_TEXT)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "샷시 E샷시 열기" })).toBeInTheDocument();
     expect(api.server.plans[0].items).toHaveLength(4);
   });
 
@@ -311,7 +311,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
 
     window.location.hash = `#/home/${planId}`;
     expect(await screen.findByText(MISSING_TEXT)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "전체 도배 열기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "계획 관리" }));
     await user.click(screen.getByRole("button", { name: "매물 연결 해제" }));

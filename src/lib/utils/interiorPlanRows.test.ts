@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { makePlanP } from "@/test/interiorPlanFixture";
 import { makePlanL, makeSimplePlanP, r1, simpleTime } from "@/test/interiorSimpleFixture";
 
-import { buildInteriorPlanRows, summarizeInteriorPlan } from "./interiorPlanRows";
+import { formatManwon } from "./amount";
+import { buildInteriorPlanRows, rowNoteOf, summarizeInteriorPlan } from "./interiorPlanRows";
 
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 
@@ -240,5 +241,36 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     const { plannedTotal } = summarizeInteriorPlan(makeSimplePlanP({ items }));
     expect(plannedTotal).toBe(99_999_999_900);
     expect(Number.isSafeInteger(plannedTotal)).toBe(true);
+  });
+});
+
+describe("rowNoteOf — 비고 = 항목 메모 · (빈 줄이면) 예산", () => {
+  const notesOf = (plan: InteriorPlanWithItems) =>
+    buildInteriorPlanRows(plan).groups.flatMap((group) =>
+      group.rows.map((row) => rowNoteOf(row, formatManwon)),
+    );
+
+  it("L: 항목 메모는 그 항목의 모든 줄에, 빈 줄은 '예산 200만원', 견적 있는 줄에는 예산 조각이 없다", () => {
+    expect(notesOf(makePlanL())).toEqual(["폐기물 포함", "폐기물 포함", "", "예산 200만원"]);
+  });
+
+  it("빈 줄에 메모와 예산이 둘 다 있으면 ' · '로 잇고, 금액 표기는 부르는 쪽이 정한다", () => {
+    const item: InteriorItem = {
+      id: "a",
+      spaceId: "s0",
+      trade: "에어컨",
+      budget: 150,
+      memo: "추후 구매",
+      status: "planned",
+      createdAt: simpleTime(1),
+      updatedAt: simpleTime(1),
+    };
+    const [row] = buildInteriorPlanRows({ items: [item] }).groups[0].rows;
+    expect(rowNoteOf(row, formatManwon)).toBe("추후 구매 · 예산 150만원");
+    expect(rowNoteOf(row, (manwon) => `${manwon * 10_000}원`)).toBe("추후 구매 · 예산 1500000원");
+  });
+
+  it("P: 메모·예산이 없어 모두 빈 문자열", () => {
+    expect(notesOf(makeSimplePlanP())).toEqual(["", "", "", "", ""]);
   });
 });

@@ -233,10 +233,10 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       ]);
     });
 
-    it("읽기 전용: 표 보기에는 [항목 추가]·묶음 목록이 없고, 줄·칸을 눌러도 항목 시트가 열리지 않는다", async () => {
+    it("읽기 전용: 표 보기에는 [줄 추가]·묶음 목록이 없고, 줄·칸을 눌러도 줄 시트가 열리지 않는다", async () => {
       const user = userEvent.setup();
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
-      expect(screen.queryByRole("button", { name: "항목 추가" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /열기$/ })).not.toBeInTheDocument();
       const table = planTable();
       expect(within(table).queryByRole("button")).not.toBeInTheDocument();
@@ -246,10 +246,10 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       await user.click(within(table).getAllByRole("row")[1]);
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-      // 공간별로 돌아가면 [항목 추가]가 다시 있다
-      await user.click(screen.getByRole("radio", { name: "공간별" }));
+      // 목록으로 돌아가면 [줄 추가]가 다시 있다
+      await user.click(screen.getByRole("radio", { name: "목록" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "줄 추가" })).toBeInTheDocument();
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
     });
   });
@@ -281,8 +281,8 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(planTable()).toBeInTheDocument();
-      await user.click(screen.getByRole("radio", { name: "공종별" }));
-      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=trade"));
+      await user.click(screen.getByRole("radio", { name: "목록" }));
+      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(printSpy).not.toHaveBeenCalled();
@@ -425,7 +425,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       vi.setSystemTime(new Date(2026, 9, 27, 23, 59, 59));
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
       vi.setSystemTime(new Date(2026, 9, 28, 0, 0, 1));
-      await user.click(screen.getByRole("radio", { name: "공간별" }));
+      await user.click(screen.getByRole("radio", { name: "목록" }));
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(screen.getByText(/^2026-10-28 기준 · /)).toBeInTheDocument();
@@ -461,18 +461,18 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(screen.getByRole("radio", { name: "표" })).toBeChecked();
     });
 
-    it("?view=trade는 공종별 그대로, 모르는 view 값은 공간별(표 없음)", async () => {
+    it("옛 ?view=trade·space와 list·빈 값·TABLE·모르는 값은 목록(표 없음), 주소에서 view를 지운다(이력 안 늘어남)", async () => {
       const storage = storageWith([makePlanQ()]);
-      const first = await renderApp(storage, "#/home/plan-q?view=trade");
-      expect(screen.getByRole("radio", { name: "공종별" })).toBeChecked();
-      expect(screen.queryByRole("table")).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeInTheDocument();
-      first.unmount();
-
-      for (const hash of ["#/home/plan-q?view=bogus", "#/home/plan-q?view=TABLE"]) {
-        const view = await renderApp(storage, hash);
-        expect(screen.getByRole("radio", { name: "공간별" })).toBeChecked();
+      for (const query of ["trade", "space", "list", "", "TABLE", "bogus"]) {
+        // 주소를 연 직후(그 이동 자체의 이력)부터 센다
+        window.location.hash = `#/home/plan-q?view=${query}`;
+        const historyBefore = window.history.length;
+        const view = await renderApp(storage, `#/home/plan-q?view=${query}`);
+        await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
+        expect(window.history.length, query).toBe(historyBefore);
+        expect(screen.getByRole("radio", { name: "목록" })).toBeChecked();
         expect(screen.queryByRole("table")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "줄 추가" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "CSV 내려받기" })).not.toBeInTheDocument();
         view.unmount();
       }
@@ -518,7 +518,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       writes.removeItem.mockClear();
       const browserWrites = spyBrowserStorageWrites();
 
-      for (const name of ["공간별", "공종별", "표", "공간별", "표"]) {
+      for (const name of ["목록", "표", "목록", "표"]) {
         await user.click(screen.getByRole("radio", { name }));
       }
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
@@ -578,7 +578,7 @@ describe("표 보기 (로그인 상태)", () => {
     const writes = spyStorageWrites(storage);
     const browserWrites = spyBrowserStorageWrites();
 
-    for (const name of ["공간별", "공종별", "표"]) {
+    for (const name of ["목록", "표"]) {
       await user.click(screen.getByRole("radio", { name }));
     }
     await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));

@@ -4,13 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
-import {
-  INTERIOR_PROCESS_BASE_DATE,
-  INTERIOR_PROCESS_SOURCES,
-  INTERIOR_TRADES,
-} from "@/lib/constants/interiorPlan";
+import { INTERIOR_TRADES } from "@/lib/constants/interiorPlan";
 import { INTERIOR_PLANS_STORAGE_KEY } from "@/lib/utils/interiorPlanStorage";
-import { PRIVACY_MODE_STORAGE_KEY } from "@/lib/utils/privacyModeStorage";
 import { makePlanP, toStoredPlans, withItem } from "@/test/interiorPlanFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 import { renderWithQueryClient } from "@/test/renderWithQueryClient";
@@ -67,48 +62,13 @@ const storedPlans = (storage: Storage) =>
     }
   ).plans;
 
-/** 요약 줄의 큰 값(남은 예산·앞으로 낼 돈) */
+/** 요약 줄의 큰 값(남은 예산·지출 예정) */
 const headlineValue = (label: string) =>
   within(screen.getByRole("region", { name: "요약" })).getByText(label).nextElementSibling
     ?.textContent;
 
-/** 요약 줄의 작은 값(총 예산·예상 총액·확정·지급함) */
-const detailValue = (label: string) =>
-  within(screen.getByRole("region", { name: "요약" })).getByText(label, { selector: "dt" })
-    .nextElementSibling?.textContent;
-
-/** 목록 묶음(공간별·공종별)의 [이름, 제목 줄 글자] */
-function itemGroups() {
-  return screen
-    .getAllByRole("region")
-    .filter((region) => !["요약", "할 일"].includes(region.getAttribute("aria-label") ?? ""))
-    .filter((region) => region.hasAttribute("aria-label"))
-    .map((region) => within(region).getByRole("heading", { level: 3 }).textContent);
-}
-
-/** 할 일 묶음 하나의 줄 글자 */
-function todoEntries(title: RegExp) {
-  const heading = within(screen.getByRole("region", { name: "할 일" })).getByRole("heading", {
-    name: title,
-  });
-  const group = heading.parentElement as HTMLElement;
-  return within(group)
-    .getAllByRole("button")
-    .map((button) => button.textContent);
-}
-
-async function openSpacesSheet(user: User) {
-  await user.click(screen.getByRole("button", { name: "공간 편집" }));
-  return screen.getByRole("dialog", { name: "공간 편집" });
-}
-
-const spaceNamesIn = (dialog: HTMLElement) =>
-  within(dialog)
-    .getAllByRole("textbox")
-    .map((input) => (input as HTMLInputElement).value);
-
 async function openNewItemSheet(user: User) {
-  await user.click(screen.getByRole("button", { name: "항목 추가" }));
+  await user.click(screen.getByRole("button", { name: "줄 추가" }));
   return screen.getByRole("dialog", { name: "항목 추가" });
 }
 
@@ -162,13 +122,13 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual(
         P_DEFAULT_SPACE_NAMES,
       );
-      expect(spaceNamesIn(await openSpacesSheet(user))).toEqual(P_DEFAULT_SPACE_NAMES);
+      const storedRaw = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
 
       // 새로고침: 같은 저장소로 앱을 다시 띄운다
       unmount();
       await renderApp(storage, `#/home/${planId}`);
       expect(screen.getByRole("heading", { level: 1, name: "우리 집" })).toBeInTheDocument();
-      expect(spaceNamesIn(await openSpacesSheet(user))).toEqual(P_DEFAULT_SPACE_NAMES);
+      expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(storedRaw);
     });
 
     it("방 1·욕실 1이면 공간 7개(욕실1·방1만)", async () => {
@@ -190,7 +150,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       );
       await user.click(within(dialog).getByRole("button", { name: "만들기" }));
       await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));
-      expect(spaceNamesIn(await openSpacesSheet(user))).toEqual([
+      expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual([
         "전체",
         "현관",
         "거실",
@@ -202,114 +162,12 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     });
   });
 
-  describe("AC-2·3·4 플랜 P 화면 값 (기기 날짜 2026-11-10)", () => {
-    beforeEach(() => {
-      vi.useFakeTimers({ toFake: ["Date"] });
-      vi.setSystemTime(new Date(2026, 10, 10, 12, 0, 0));
-    });
-
-    it("요약: 남은 예산 370 · 앞으로 낼 돈 1,250 · 총 예산 3,000 · 예상 총액 2,630 · 확정 1,530 · 지급함 280, ③에 50만원 초과", async () => {
-      await renderApp(storageWith([makePlanP()]));
-      expect(headlineValue("남은 예산")).toBe("370만원");
-      expect(headlineValue("앞으로 낼 돈")).toBe("1,250만원");
-      expect(detailValue("총 예산")).toBe("3,000만원");
-      expect(detailValue("예상 총액")).toBe("2,630만원");
-      expect(detailValue("확정")).toBe("1,530만원");
-      expect(detailValue("지급함")).toBe("280만원");
-      expect(screen.getByRole("button", { name: "전체 샷시 열기" })).toHaveTextContent(
-        "1,250만원50만원 초과",
-      );
-      expect(screen.getAllByText(/초과$/)).toHaveLength(1);
-    });
-
-    it("총 예산 2,500 → '예산 초과 130만원'", async () => {
-      await renderApp(storageWith([makePlanP({ budget: 2500 })]));
-      expect(headlineValue("남은 예산")).toBe("예산 초과 130만원");
-    });
-
-    it("총 예산이 없으면 남은 예산 칸 대신 [총 예산 입력], 누르면 계획 관리 시트", async () => {
-      const user = userEvent.setup();
-      const { budget: _budget, ...withoutBudget } = makePlanP();
-      void _budget;
-      await renderApp(storageWith([withoutBudget]));
-      expect(detailValue("총 예산")).toBe("—");
-      await user.click(screen.getByRole("button", { name: "총 예산 입력" }));
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-    });
-
-    it("공간별 묶음은 전체 1,250 · 거실 280 · 주방 500 · 욕실1 600(항목 없는 공간 숨김), [공종별] → ?view=trade, 샷시 → 타일 → 도배 → 주방가구", async () => {
-      const user = userEvent.setup();
-      await renderApp(storageWith([makePlanP()]), "#/home/plan-p");
-      expect(itemGroups()).toEqual(["전체1,250만원", "거실280만원", "주방500만원", "욕실1600만원"]);
-
-      await user.click(screen.getByRole("radio", { name: "공종별" }));
-      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-p?view=trade"));
-      expect(itemGroups()).toEqual([
-        "샷시1,250만원",
-        "타일600만원",
-        "도배280만원",
-        "주방가구500만원",
-      ]);
-      expect(screen.getByRole("radio", { name: "공종별" })).toBeChecked();
-
-      await user.click(screen.getByRole("radio", { name: "공간별" }));
-      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-p"));
-      expect(itemGroups()[0]).toBe("전체1,250만원");
-    });
-
-    it("?view=trade로 열면(새로고침) 공종별 그대로", async () => {
-      await renderApp(storageWith([makePlanP()]), "#/home/plan-p?view=trade");
-      expect(screen.getByRole("radio", { name: "공종별" })).toBeChecked();
-      expect(itemGroups()[0]).toBe("샷시1,250만원");
-    });
-
-    it("할 일: 지급 예정 샷시 잔금 1,000(11/5 지남) → 도배 잔금 250(11/20), 견적 받기 주방가구, 확정하기 타일", async () => {
-      await renderApp(storageWith([makePlanP()]));
-      expect(todoEntries(/^지급 예정/)).toEqual([
-        "전체 · 샷시 잔금1,000만원 · 11/5지남",
-        "거실 · 도배 잔금250만원 · 11/20",
-      ]);
-      expect(todoEntries(/^견적 받기/)).toEqual(["주방 · 주방가구"]);
-      expect(todoEntries(/^확정하기/)).toEqual(["욕실1 · 타일견적 1개"]);
-    });
-
-    it("샷시 잔금을 시트에서 지급함으로 저장 → 지급 예정에서 사라지고 지급함 1,280 · 앞으로 낼 돈 250", async () => {
-      const user = userEvent.setup();
-      await renderApp(storageWith([makePlanP()]));
-      await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
-      const dialog = screen.getByRole("dialog", { name: "항목" });
-      expect(
-        within(dialog).getByText("지급 합계 1,250만원 / 확정 1,250만원 — 0만원 남음"),
-      ).toBeInTheDocument();
-      await user.click(within(dialog).getByRole("checkbox", { name: "지급 2 지급함" }));
-      await user.click(within(dialog).getByRole("button", { name: "저장" }));
-      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-      expect(todoEntries(/^지급 예정/)).toEqual(["거실 · 도배 잔금250만원 · 11/20"]);
-      expect(detailValue("지급함")).toBe("1,280만원");
-      expect(headlineValue("앞으로 낼 돈")).toBe("250만원");
-    });
-
-    it("(a) 시트에서 견적 D로 확정을 옮기면 확정 1,430 · 초과 사라짐 · 앞으로 낼 돈 1,150", async () => {
-      const user = userEvent.setup();
-      await renderApp(storageWith([makePlanP()]));
-      await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
-      const dialog = screen.getByRole("dialog", { name: "항목" });
-      await user.click(within(dialog).getByRole("radio", { name: "견적 1 확정" }));
-      await user.click(within(dialog).getByRole("button", { name: "저장" }));
-      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-      expect(detailValue("확정")).toBe("1,430만원");
-      expect(detailValue("지급함")).toBe("280만원");
-      expect(headlineValue("앞으로 낼 돈")).toBe("1,150만원");
-      expect(screen.queryAllByText(/초과$/)).toHaveLength(0);
-    });
-  });
-
   describe("항목 시트: 확정·상태 전이 (AC-1·AC-4)", () => {
     it("견적 중 항목의 견적을 [확정]하면 상태가 '확정'으로 바뀌고 저장된다", async () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
       await renderApp(storage);
-      await user.click(screen.getByRole("button", { name: "욕실1 타일 열기" }));
+      await user.click(screen.getByRole("button", { name: "타일 C타일 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       const status = within(dialog).getByRole("group", { name: "상태" });
       expect(within(status).getByRole("radio", { name: "견적 중" })).toBeChecked();
@@ -319,7 +177,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
       const tile = storedPlans(storage)[0].items.find((item) => item.id === "item-tile");
       expect([tile?.confirmedQuoteId, tile?.status]).toEqual(["q-c", "confirmed"]);
-      expect(detailValue("확정")).toBe("2,180만원");
+      expect(headlineValue("지출 예정")).toBe("2,180만원");
     });
 
     it("진행 중 항목에서 확정해도 상태는 진행 중 그대로", async () => {
@@ -329,7 +187,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
         status: "inProgress",
       }));
       await renderApp(storageWith([plan]));
-      await user.click(screen.getByRole("button", { name: "욕실1 타일 열기" }));
+      await user.click(screen.getByRole("button", { name: "타일 C타일 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       await user.click(within(dialog).getByRole("radio", { name: "견적 1 확정" }));
       expect(
@@ -343,7 +201,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
       await renderApp(storage);
-      await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
+      await user.click(screen.getByRole("button", { name: "샷시 E샷시 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       expect(within(dialog).getByRole("radio", { name: "견적 2 확정" })).toBeChecked();
       await user.click(within(dialog).getByRole("button", { name: "견적 2 삭제" }));
@@ -354,7 +212,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       const sash = storedPlans(storage)[0].items.find((item) => item.id === "item-sash");
       expect(sash?.quotes?.map((quote) => quote.id)).toEqual(["q-d"]);
       expect(sash !== undefined && "confirmedQuoteId" in sash).toBe(false);
-      expect(detailValue("확정")).toBe("280만원");
+      expect(headlineValue("지출 예정")).toBe("280만원");
     });
   });
 
@@ -485,22 +343,6 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
   });
 
   describe("AC-5 상한", () => {
-    it("항목 99개면 [항목 추가] 활성, 100개면 비활성과 안내(공간 묶음 [추가]도 비활성)", async () => {
-      const bulk = (count: number) =>
-        Array.from({ length: count }, (_, index) => ({
-          ...makePlanP().items[3],
-          id: `bulk${index}`,
-        }));
-      const { unmount } = await renderApp(storageWith([makePlanP({ items: bulk(99) })]));
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeEnabled();
-      unmount();
-
-      await renderApp(storageWith([makePlanP({ items: bulk(100) })]));
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeDisabled();
-      expect(screen.getByText("항목은 계획마다 100개까지 적을 수 있습니다")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "주방에 항목 추가" })).toBeDisabled();
-    });
-
     it("플랜 2개면 고르기에서 [계획 만들기] 활성, 3개면 비활성과 안내", async () => {
       const plan = (id: string, name: string) => makePlanP({ id, name });
       const { unmount } = await renderApp(storageWith([plan("p1", "첫째"), plan("p2", "둘째")]));
@@ -527,139 +369,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     });
   });
 
-  describe("AC-5 공간 삭제 막기", () => {
-    it("항목 있는 공간 삭제 → '이 공간의 항목 n개를 먼저 옮기거나 지우세요', 공간은 남는다. 빈 공간은 지울 수 있다", async () => {
-      const user = userEvent.setup();
-      const plan = makePlanP();
-      const twoInLiving = {
-        ...plan,
-        items: [
-          ...plan.items,
-          {
-            ...plan.items[0],
-            id: "item-living-2",
-            trade: "조명",
-            createdAt: plan.items[3].createdAt,
-          },
-        ],
-      };
-      const storage = storageWith([twoInLiving]);
-      await renderApp(storage);
-      const dialog = await openSpacesSheet(user);
-
-      await user.click(within(dialog).getByRole("button", { name: "거실 삭제" }));
-      expect(within(dialog).getByRole("alert")).toHaveTextContent(
-        "이 공간의 항목 2개를 먼저 옮기거나 지우세요",
-      );
-      expect(spaceNamesIn(dialog)).toContain("거실");
-
-      await user.click(within(dialog).getByRole("button", { name: "주방 삭제" }));
-      expect(within(dialog).getByRole("alert")).toHaveTextContent(
-        "이 공간의 항목 1개를 먼저 옮기거나 지우세요",
-      );
-
-      await user.click(within(dialog).getByRole("button", { name: "현관 삭제" }));
-      expect(spaceNamesIn(dialog)).not.toContain("현관");
-      await user.click(within(dialog).getByRole("button", { name: "저장" }));
-      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-      expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual(
-        P_DEFAULT_SPACE_NAMES.filter((name) => name !== "현관"),
-      );
-    });
-  });
-
-  describe("가리기 (화면 · 반복 사용 불편 방지)", () => {
-    const planWithPrivateText = () =>
-      withItem(makePlanP(), "item-sash", (item) => ({
-        ...item,
-        quotes: item.quotes?.map((quote) => ({
-          ...quote,
-          contact: "010-1234-5678",
-          memo: "현장 실측 완료",
-        })),
-        memo: "베란다 확장 포함",
-      }));
-
-    const pageText = () => document.body.textContent ?? "";
-
-    it("[가리기]를 켜면 금액을 렌더하지 않고(•••), 연락처·메모는 플랜 화면에 없다. 끄면 다시 보인다", async () => {
-      const user = userEvent.setup();
-      const storage = storageWith([planWithPrivateText()]);
-      await renderApp(storage);
-      expect(pageText()).toMatch(/\d만원/);
-
-      await user.click(screen.getByRole("button", { name: "가리기" }));
-      expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-      expect(pageText()).not.toMatch(/\d만원/);
-      // 날짜(11/5)는 금액이 아니라 보인다. 금액 숫자는 단위 없이도 남지 않는다
-      for (const amount of ["370", "1,250", "3,000", "2,630", "1,530", "280", "1,000", "250"]) {
-        expect(pageText()).not.toContain(amount);
-      }
-      expect(screen.getAllByText("•••").length).toBeGreaterThan(0);
-      for (const secret of ["010-1234-5678", "현장 실측 완료", "베란다 확장 포함"]) {
-        expect(pageText()).not.toContain(secret);
-      }
-      // 저장 목록과 같은 설정 키다
-      expect(storage.getItem(PRIVACY_MODE_STORAGE_KEY)).toBe("true");
-
-      await user.click(screen.getByRole("button", { name: "가리기" }));
-      expect(headlineValue("앞으로 낼 돈")).toBe("1,250만원");
-    });
-
-    it("이미 가리기가 켜져 있으면(저장 목록에서 켬) 처음부터 가린다", async () => {
-      await renderApp(storageWith([makePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }));
-      expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-      expect(pageText()).not.toMatch(/\d만원/);
-    });
-  });
-
-  describe("AC-3 공정 순서 시트·공종 칩", () => {
-    it("14단계 · '자료마다 다릅니다' 문구 · 출처 2개 · 기준일", async () => {
-      const user = userEvent.setup();
-      await renderApp(storageWith([makePlanP()]));
-      await user.click(screen.getByRole("button", { name: "공정 순서" }));
-      const dialog = screen.getByRole("dialog", { name: "공정 순서" });
-      const steps = within(within(dialog).getAllByRole("list")[0]).getAllByRole("listitem");
-      expect(steps.map((step) => step.textContent?.replace(/^\d+/, ""))).toEqual([
-        "철거",
-        "샷시",
-        "설비",
-        "전기",
-        "목공",
-        "타일",
-        "욕실",
-        "도장",
-        "필름",
-        "도배",
-        "바닥",
-        "주방가구",
-        "조명",
-        "입주 청소",
-      ]);
-      expect(
-        within(dialog).getByText(
-          "타일과 도장, 도배와 바닥의 앞뒤는 자료마다 다릅니다. 업체와 일정을 맞추세요",
-        ),
-      ).toBeInTheDocument();
-      const sources = within(dialog).getAllByRole("link");
-      expect(sources).toHaveLength(2);
-      expect(sources.map((link) => link.getAttribute("href"))).toEqual(
-        INTERIOR_PROCESS_SOURCES.map((source) => source.url),
-      );
-      expect(sources.map((link) => link.getAttribute("href"))).toEqual([
-        expect.stringContaining("ajd.co.kr"),
-        "https://weolbu.com/community/2470493",
-      ]);
-      expect(within(dialog).getByText(`기준일 ${INTERIOR_PROCESS_BASE_DATE}`)).toBeInTheDocument();
-      expect(INTERIOR_PROCESS_BASE_DATE).toBe("2026-10-26");
-    });
-
+  describe("항목 시트 공종 칩", () => {
     it("항목 시트의 공종 칩 순서가 공정 순서 상수와 같다", async () => {
       const user = userEvent.setup();
       await renderApp(storageWith([makePlanP()]));

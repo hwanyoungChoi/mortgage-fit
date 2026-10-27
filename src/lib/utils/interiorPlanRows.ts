@@ -80,6 +80,19 @@ export function buildInteriorPlanRows(
   };
 }
 
+/** 비고 조각을 잇는 구분자(앞뒤 공백 포함 가운뎃점) */
+const NOTE_SEPARATOR = " · ";
+
+/**
+ * 줄의 비고 = 항목 메모 · (빈 줄이면) "예산 {금액}". 금액 표기는 부르는 쪽이 정한다(목록은 만원, 표·CSV·인쇄는 원).
+ * 표시용이라 저장하지 않는다. 시트의 비고 칸은 `item.memo`만 쓴다(합성 비고 미저장).
+ */
+export function rowNoteOf(row: InteriorPlanRow, formatBudget: (manwon: number) => string): string {
+  const memo = row.item.memo ?? "";
+  const pieces = [memo, row.budgetNote === null ? "" : `예산 ${formatBudget(row.budgetNote)}`];
+  return pieces.filter((piece) => piece !== "").join(NOTE_SEPARATOR);
+}
+
 /** 요약(총 예산·지출 예정·남은 예산). 저장하지 않고 매번 계산한다(ADR-007). 날짜에 의존하지 않는다 */
 export function summarizeInteriorPlan(plan: InteriorPlanWithItems): InteriorPlanSummary {
   const { plannedTotal } = buildInteriorPlanRows(plan);
