@@ -509,10 +509,10 @@ describe("AC-1 가리기 (A8·A10)", () => {
     fireEvent.click(open);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    // 체크 토글은 가리기 중에도 된다. 떠 있는 [줄 추가]는 가리기 중에 숨긴다(스펙 interior-tbd-amount 추가 요청)
+    // 체크 토글·[줄 추가]는 가리기 중에도 된다
     await user.click(check("욕실 욕실나라 확정"));
     await waitFor(() => expect(check("욕실 욕실나라 확정")).toBeChecked());
-    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
 
     await user.click(screen.getByRole("button", { name: "가리기" }));
     expect(headlineValue("지출 예정")).toBe("1,200만원");
@@ -619,7 +619,7 @@ describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", (
     expect(add).toHaveFocus();
   });
 
-  it("표 보기와 가리기 중에는 없다", async () => {
+  it("표 보기에는 없고, 가리기 중에는 있다(묶음 끝 버튼처럼 가리기 중에도 줄 추가)", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makeSimplePlanP()]));
     await user.click(screen.getByRole("radio", { name: "표" }));
@@ -629,6 +629,6 @@ describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", (
     await user.click(screen.getByRole("radio", { name: "목록" }));
     expect(await screen.findByRole("button", { name: "줄 추가" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
 });
