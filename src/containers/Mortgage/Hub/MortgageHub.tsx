@@ -17,6 +17,7 @@ import HouseholdSheet from "./components/HouseholdSheet";
 import HubAccount from "./components/HubAccount";
 import HubCard from "./components/HubCard";
 import HubNotices, { type HubResult } from "./components/HubNotices";
+import HubSummaryPair from "./components/HubSummaryPair";
 import { useLeaveHousehold } from "./hooks/useLeaveHousehold";
 import { useLogout } from "./hooks/useLogout";
 import { summarizeHub } from "./summarizeHub";
@@ -225,10 +226,16 @@ function MortgageHub({
               intro="매매가와 KB시세로 예상 한도와 필요한 자기자금을 계산합니다"
               summary={summary.calculator}
               renderSummary={(salePrice) => (
-                <>
-                  작성 중 · 매매가{" "}
-                  <MaskedValue isMasked={isPrivacyMode}>{formatManwon(salePrice)}</MaskedValue>
-                </>
+                <HubSummaryPair
+                  label="작성 중"
+                  mark="·"
+                  figure={
+                    <span>
+                      매매가{" "}
+                      <MaskedValue isMasked={isPrivacyMode}>{formatManwon(salePrice)}</MaskedValue>
+                    </span>
+                  }
+                />
               )}
               isPrimary
             />
@@ -240,7 +247,11 @@ function MortgageHub({
               intro="본 매물을 저장해 자기자금·추가 비용을 비교합니다"
               summary={summary.listings}
               renderSummary={({ count, isHousehold }) =>
-                isHousehold ? `함께 쓰는 목록 · 매물 ${count}개` : `저장한 매물 ${count}개`
+                isHousehold ? (
+                  <HubSummaryPair label="함께 쓰는 목록" mark="·" figure={`매물 ${count}개`} />
+                ) : (
+                  <HubSummaryPair label="저장한 매물" figure={`${count}개`} />
+                )
               }
               onClick={onListingsNavigate}
             />
@@ -254,9 +265,17 @@ function MortgageHub({
               renderSummary={(lines) =>
                 lines.map((line) => (
                   <span key={line.id} className={styles.planLine}>
-                    {line.name} · 지출 예정 {formatWon(line.plannedTotalWon)}
-                    {/* 확정 미정 줄 수 */}
-                    {line.tbdCount > 0 && ` · ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`}
+                    <HubSummaryPair
+                      label={line.name}
+                      mark="·"
+                      figure={`지출 예정 ${formatWon(line.plannedTotalWon)}`}
+                      // 확정 미정 줄 수
+                      tail={
+                        line.tbdCount > 0
+                          ? `· ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`
+                          : undefined
+                      }
+                    />
                   </span>
                 ))
               }

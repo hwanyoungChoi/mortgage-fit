@@ -1,4 +1,5 @@
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -10,15 +11,16 @@
   text-decoration: none;
 }
 
-/* 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 한 단계 크게, 여백 넓게) 둔다. */
+/* 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 22px, 위아래 여백 32px) 둔다. */
 .primaryCard {
   composes: card;
-  gap: var(--space-2);
-  padding: var(--space-5) calc(var(--space-4) + var(--space-1));
+  gap: var(--space-3);
+  padding: calc(var(--space-5) + var(--space-2)) calc(var(--space-4) + var(--space-1));
 }
 
-/* 카드 제목 20px 700. 대출 계산 카드는 한 단계 더 크게 */
+/* 카드 제목 20px 700(오른쪽 위 chevron 자리를 비운다). 대출 계산 카드는 22px */
 .title {
+  padding-right: var(--space-5);
   font-size: var(--fs-figure);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -26,7 +28,19 @@
 }
 
 .primaryCard .title {
-  font-size: var(--fs-title);
+  font-size: calc(var(--fs-figure) + 2px);
+}
+
+/* 오른쪽 위 회색 chevron: 제목 첫 줄 높이에 맞춘다 */
+.chevron {
+  position: absolute;
+  top: calc(var(--space-4) + var(--space-1) + 3px);
+  right: calc(var(--space-4) + var(--space-1));
+  color: var(--color-text-muted);
+}
+
+.primaryCard .chevron {
+  top: calc(var(--space-5) + var(--space-2) + 4px);
 }
 
 /* 요약 줄(소개·내 현황·불러오는 중·실패·손상). 모든 상태가 같은 최소 높이(한 줄)를 써서 상태가 바뀌어도
@@ -38,9 +52,9 @@
   line-height: 1.5;
 }
 
-/* 내 현황(작성 중·저장한 매물 수·계획 지출 예정): 소개 문구와 달리 숫자가 읽히게 잉크 600 */
+/* 내 현황(작성 중·저장한 매물 수·계획 지출 예정): 라벨·숫자 두 줄(HubSummaryPair)이 글자 모양을 정한다 */
 .summaryLine {
   composes: description;
+  margin-top: var(--space-1);
   color: var(--color-text);
-  font-weight: 600;
 }

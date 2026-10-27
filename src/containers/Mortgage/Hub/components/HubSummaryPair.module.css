@@ -1,0 +1,53 @@
+/*
+ * 첫 줄: 라벨(왼쪽)·덧말(오른쪽) 흐린 15px, 둘째 줄: 숫자(--fs-figure 700 tabular 잉크).
+ * 숫자는 감싸지 않은 글자라(이름 없는 grid 칸) 줄 요소가 숫자 모양을 갖고, 라벨·덧말이 덮어쓴다.
+ * 한 열 grid: 라벨·덧말은 첫 줄 한 칸에 겹쳐 두고(덧말은 오른쪽 끝), 숫자는 다음 빈 칸(둘째 줄)으로 자동 배치된다.
+ */
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 2px;
+  color: var(--color-text);
+  font-size: var(--fs-figure);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.label,
+.tail {
+  grid-row: 1;
+  grid-column: 1;
+  color: var(--color-text-muted);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+.label {
+  justify-self: start;
+  min-width: 0;
+}
+
+/* 덧말("· 미정 n건")이 있으면 이름이 그 밑으로 들어가지 않게 오른쪽 자리를 비운다 */
+.pair:has(.tail) .label {
+  padding-right: 6em;
+}
+
+.tail {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+/* 줄바꿈이 구분 기호를 대신한다. 보조기기 설명에는 남는다. */
+.mark {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -27,7 +27,11 @@
   gap: var(--space-3);
 }
 
-/* 우리 집 카드의 계획 한 줄(계획마다 줄을 바꾼다) */
+/* 우리 집 카드의 계획 한 묶음(계획마다 두 줄씩 쌓는다) */
 .planLine {
   display: block;
+}
+
+.planLine + .planLine {
+  margin-top: var(--space-2);
 }

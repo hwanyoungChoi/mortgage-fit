@@ -1,3 +1,4 @@
+import ChevronRight from "lucide-react/icons/chevron-right";
 import { useId } from "react";
 
 import styles from "./HubCard.module.css";
@@ -59,6 +60,8 @@ function HubCard<T>({
       <span id={titleId} className={styles.title}>
         {title}
       </span>
+      {/* 누르는 카드라는 신호. 링크 이름·설명에는 들어가지 않는다 */}
+      <ChevronRight className={styles.chevron} size={20} aria-hidden="true" />
       <span
         id={descriptionId}
         className={summary.kind === "summary" ? styles.summaryLine : styles.description}
