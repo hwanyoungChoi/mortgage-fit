@@ -25,6 +25,7 @@ const API_ERROR_VIEWS: Record<ApiError["error"], TradesErrorView> = {
   alreadyInHousehold: { message: LOAD_FAILED, canRetry: true },
   householdFull: { message: LOAD_FAILED, canRetry: true },
   householdLimit: { message: LOAD_FAILED, canRetry: true },
+  inHousehold: { message: LOAD_FAILED, canRetry: true },
   internal: { message: LOAD_FAILED, canRetry: true },
 };
 

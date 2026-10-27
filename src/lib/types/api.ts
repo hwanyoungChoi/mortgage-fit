@@ -13,6 +13,7 @@ export type ApiError = {
     | "alreadyInHousehold"
     | "householdFull"
     | "householdLimit"
+    | "inHousehold"
     | "notConfigured"
     | "quotaExceeded"
     | "rateLimited"
