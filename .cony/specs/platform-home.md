@@ -155,7 +155,7 @@ DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, 
   - 로그아웃: 이 기기 데이터. 로그인: 서버 데이터(로컬 매물·계획은 세지 않음). 로그인 직후 이전 중이면 로딩.
   - 로딩(계정 확인·이전·조회 중): 요약 자리에 "불러오는 중"(`aria-busy="true"`). 로딩 중에는 로컬 값을 먼저 그렸다 바꾸지 않는다(우리 집 화면 규칙과 같음). 로딩을 끝낸 뒤에야 값이 나온다.
   - 불러오기 실패: "불러오지 못했습니다"(U9). 계정 확인 실패는 기존 `selectAccountSourceStatus`를 **그대로** 쓴다(로그인 기록 `session-hint`가 있는 브라우저만 error, 없으면 로컬 값). 다시 시도는 그 화면에서.
-  - 세션 만료(401, `isSessionExpired`)·재조회 실패(`isRefreshFailed`, 받아 둔 목록은 있음): 받아 둔 값을 유지하고 오류 문구는 쓰지 않는다. 받아 둔 값이 없으면 error.
+  - 세션 만료(401, `isSessionExpired`): 출처가 로그아웃 상태가 되어(`useEndSession`이 서버 캐시를 지움) 저장 목록·우리 집 화면과 같게 이 기기 값을 보이고, 오류 문구는 쓰지 않는다. 재조회 실패(`isRefreshFailed`, 받아 둔 목록은 있음): 받아 둔 값을 유지하고 오류 문구는 쓰지 않는다. 받아 둔 값이 없으면 error.
   - 손상(로컬 원문이 깨짐): "저장 데이터를 확인해 주세요". 홈은 초기화하지 않고 저장소에 쓰지 않는다. 매물·계획에만 해당.
   - 저장소를 쓸 수 없음: 소개 문구.
   - 함께 쓰는 중: 저장 목록·우리 집 화면이 보이는 것과 같은 수·값(가구 범위). 가구 계획 조회는 홈에 있는 동안 30초 폴링.
@@ -237,7 +237,7 @@ DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, 
   | 11  | 저장소 접근 불가 Storage             | 소개                        | 소개                        | 소개              |
   - (a) 행 4·5의 시드: 로그인 AC-0과 같은 이전 끝남 상태(서버 매물 2개·로컬 매물 5개) → "저장한 매물 2개"(AC-6의 로컬 3과 구분됨). 행 10에서 가구 0개 매물은 "함께 쓰는 목록 · 매물 0개".
   - (b) 로딩 플래시 판정: `/api/me`를 deferred promise로 두고, 첫 렌더 직후 로컬 매물 개수 텍스트가 DOM에 **없고**(`aria-busy="true"`, 카드 링크는 동작), resolve 뒤에야 서버 값이 나타난다. 최종 상태만 보는 테스트는 인정하지 않는다.
-  - (c) 401 만료·재조회 실패 + 받아 둔 목록이 있으면 받아 둔 값을 유지하고 오류 문구가 없다. 받아 둔 목록이 없으면 error.
+  - (c) 401 만료면 로그아웃 상태로 이 기기 값을 보이고 오류 문구가 없다. 재조회 실패 + 받아 둔 목록이 있으면 받아 둔 값을 유지하고 오류 문구가 없다. 받아 둔 목록이 없으면 error.
   - (d) `vi.useFakeTimers`로 가구가 홈에 있을 때 30초 뒤 두 번째 `GET /api/interior-plans`가 온다.
   - (e) `listings` 원문 `"{"`일 때 홈에 초기화 버튼이 없고 원문이 그대로다.
 
@@ -253,7 +253,7 @@ be 없음(서버·DB·API 변경 없음).
     - 측정 기록: (b) 전후 `pnpm test` 소요 시간과 `pnpm build` 메인 청크 크기를 기록한다. 눈에 띄게 늘면 `import { House } from "lucide-react"` 배럴 대신 `lucide-react/icons/*` 깊은 경로 import로 바꾼다.
   - [ ] 1-2. (qa) 시작 시 `git diff $(git merge-base main HEAD) -- '*.test.ts' '*.test.tsx'`에서 삭제된 `expect` 줄 수를 센다(0이어야 함. 1-1에서 기계적 변경 밖의 수정은 되돌리고 이유를 요구). `MortgageCalculator.test.tsx`의 "알 수 없는 해시 → 계산" 테스트(AC-8c)는 의미가 뒤집히므로 `AppRoutes` 홈 테스트(AC-1 표)로 옮긴다. `storageKeys.loggedIn`의 `callsTo("GET", "/api/listings")` 대기는 "홈 로딩 끝"을 기다리도록 고친다. 라우트 규칙표·AppRoutes 기존 링크 통합 표·탭·[가가]·홈 소개 카드·스파이 Storage(AC-0 두 갈래·체크포인트) 테스트. **변이 확인**: 알 수 없는 해시 → calculator로 되돌리기, `toRoutePath`의 hub가 `#/calculator`를 돌려줌(replace 루프), `hub`를 `aria-current` 계산에서 빼기, `aria-current` 조건 바꾸기, 탭 순서 뒤섞기, `onNavigate` 미전달, 머리 줄 [가가] 이중 렌더(탭에도 남김), 카드 push → replace, [매물 모으기] 카드의 `onNavigate` 제거(스크롤 초기화 누락), 공유·초대 "취소"를 `PATHS.calculator`로 되돌리기. → AC-0(a)(b)(c)·1·2·4·5
   - [ ] 1-3. (리드) 360×780 화면 확인 AC-3(겹침 측정값·인쇄 미리보기 둘·가로 스크롤)과 AC-5(대출 계산 카드 크기 수치), 최대·최소 글자 크기에서 탭 라벨 한 줄. 측정값을 기록에 남긴다.
-- [ ] 2. **홈 내 현황 요약** — 태스크 1의 카드에 요약 줄을 얹는다
+- [x] 2. **홈 내 현황 요약** — 태스크 1의 카드에 요약 줄을 얹는다
   - [ ] 2-1. (fe) 계획 출처의 읽기 부분을 `src/hooks/`로 분리(D5 B). 분리선(fe 검토): 읽기 쪽으로 `useMe`·`selectAccountSourceStatus`·`household`·`useInteriorPlanList`·`useEndSession`·`isSessionExpired` 상태·`expireSession`·`storage` 이벤트 effect·`localSnapshot`·`selectList`·`isRefreshFailed`·`retry`·`isRetrying`(예: `src/hooks/useInteriorPlanListSource.ts`가 `{ status, household, list, isRefreshFailed, isSessionExpired, expireSession, retry, isRetrying }`를 돌려줌). 쓰기 훅 6개·`readLatestPlans`·`writeServer`·`writeBySource`는 `Home/hooks/useInteriorPlanSource`에 남고, 읽기 훅 위에 쓰기를 얹어 지금과 같은 `InteriorPlanSource`를 돌려준다. **`useInteriorPlanSource.test.tsx`와 `MortgageHome*.test.tsx`는 한 줄도 수정하지 않고(diff 0) 통과**해야 한다. 요약 순수 함수는 `containers/Mortgage/Hub/` 옆(판별 유니온 출력, `validateAmount`·`formatManwon`·`summarizeInteriorPlan` 재사용). 카드에 요약·로딩·실패·손상·가구 표시, 요약 줄 최소 높이, `MaskedValue` 적용, 계정 확인 실패는 기존 `selectAccountSourceStatus` 그대로. → AC-6·7
   - [ ] 2-2. (qa) 순수 함수 상태표(AC-7 11행) + 화면 테스트(로그아웃·로그인·가구·실패·손상·접근 불가·deferred 로딩 판정·401/재조회 실패 유지·30초 폴링), 금액 경계표, AC-0(a) 로그인 두 갈래 재확인, 우리 집 기존 테스트 전부 통과(diff 0 확인), 홈 container import `grep` 기록. **변이 확인**: `MaskedValue`를 `isMasked` false 고정(AC-6 `innerHTML` 단언이 실패하는지), 로그인에서 로컬 개수를 세기, 로딩 중 로컬 값을 그리기, 우리 집 카드가 `reset()` 같은 쓰기 함수를 호출(AC-0 쓰기 0회가 잡는지), 앞으로 낼 돈을 "전체 합계"로 계산.
 - [ ] 3. **배포 후 실기기 확인** (리드, qa 기록)
@@ -263,6 +263,8 @@ be 없음(서버·DB·API 변경 없음).
 
 ## 다음 단계 후보
 
+- (fe) 홈·`useInteriorPlanListSource`가 받는 스토어 prop을 `Pick<…, "getSnapshot" | "subscribe" | "notify">`로 좁혀 쓰기 금지를 타입으로도 막기(qa 태스크 2 기록)
+- 우리 집 카드 계획 3줄·40자 이름 줄바꿈 모양 화면 확인
 - (be, 별도 PR) 간헐 실패 고치기: `server/household/handleHousehold.d1.test.ts` "POST /api/household/leave" `expectRestored` 기대값을 `"id:이름"` 문자열 정렬이 아니라 서버와 같은 `user_id, id` 기준으로 정렬(무작위 id가 `b1`로 시작하면 실패, 실행당 약 1/128, qa 태스크 1 기록)
 - 계약 단계 기능(계약·잔금·이사 체크리스트)과 홈 카드 — "찾기→계산→계약→인테리어"의 빈 칸
 - 마지막 탭 기억(새 키 필요) — `#/` 북마크로 오는 사람이 계산까지 한 번 더 누르는 불편 피드백이 반복되면(ADR-031: D1 B 재검토 조건)

@@ -544,3 +544,10 @@
 - AI(qa) 1-2: 새 테스트 96개(1650 → 1746 + 1 todo, 파일 6개 신규·2개 보강, 지운 단언 0), 변이 23건 모두 실패, 결함 0 ([기록](reviews/20261027-1610-qa-task-1.md)). 스펙 AC-1 예시 `#/home/ZZ`는 올바른 id라 `#/home/a.b`로 고침
 - `놓침` 간헐 실패 원인 확정(qa): `handleHousehold.d1.test.ts` 기대값 정렬이 서버 `ORDER BY user_id, id`와 다름(무작위 id `b1…`일 때). 이 PR은 server diff 0 조건이라 손대지 않고 다음 단계 후보(be 별도 PR)로
 - AI(리드) code-review-fe(main..HEAD 제품 코드): 컨벤션 위반 없음. `AppHeader`는 `TabNav`와 같은 앱 크롬이라 `src/components/`
+
+## 태스크 2. 홈 내 현황 요약
+
+- AI(fe) 2-1: 3537e4f(읽기 훅 `src/hooks/useInteriorPlanListSource` 분리, 기존 우리 집 테스트 diff 0) · 78dc3bf(요약 줄, `Hub/summarizeHub.ts` 판별 유니온). `MortgageHub.test.tsx`에 로딩 끝 대기 한 줄 추가(단언 무변경, qa 확인 요청). 401 뒤에는 출처가 loggedOut이 되어 로컬 값을 보이는 것을 "받아 둔 값 유지"로 해석
+- AI(리드) 2 화면 확인(dev 5199, 360×780, 로그아웃 기존 데이터): "작성 중 · 매매가 9억원", 매물 0개 → 소개 문구, "우리 집 · 앞으로 낼 돈 750만원". 카드 높이 108/80/80이 3초 동안 불변, 소개 문구 3개 모두 한 줄 → fe가 우려한 요약 줄 1줄 최소 높이 흔들림 없음(변경 안 함). 가리기 켜면 홈 금액 •••·innerHTML에 금액 없음, 홈 토글 없음, 확인 뒤 가리기 원래대로(false)
+- AI(qa) 2-2: 새 테스트 77개(1746 → 1823 + 1 todo), 변이 39개 모두 실패, 결함 0 ([기록](reviews/20261027-1637-qa-task-2.md)). fe의 `waitFor` 대기 한 줄은 약화 아님으로 판정
+- AI(리드): qa 지적대로 스펙 AC-7(c)·상태 목록의 401 문구를 실제 동작(로그아웃 상태로 이 기기 값, 저장 목록·우리 집과 같음)으로 정정. 스토어 prop 좁히기는 다음 단계 후보로
