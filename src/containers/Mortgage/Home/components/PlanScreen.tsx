@@ -50,7 +50,7 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 }
 
 /**
- * 플랜 화면: 머리글(이름 + [⋯]) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
+ * 플랜 화면: 머리글(이름과 같은 줄 오른쪽 [⋯], 아래 연결 매물) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
  * 체크와 요약은 같은 계획 값에서 매번 계산한다(ADR-007). `now`는 렌더마다 하나만 만들어 표 머리·파일 이름이 같이 쓴다.
  */
 function PlanScreen({
@@ -71,9 +71,8 @@ function PlanScreen({
   return (
     <>
       <header className={styles.header}>
-        <h1 className={styles.title}>{plan.name}</h1>
-        <LinkedListingLine linkedListing={linkedListing} />
-        <div className={styles.headerActions}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>{plan.name}</h1>
           <button
             type="button"
             className={styles.headerButton}
@@ -84,6 +83,7 @@ function PlanScreen({
             ⋯
           </button>
         </div>
+        <LinkedListingLine linkedListing={linkedListing} />
       </header>
       <PlanSummary summary={summary} onBudgetEdit={(button) => onSettingsOpen(button, true)} />
       <ChoiceGroup
