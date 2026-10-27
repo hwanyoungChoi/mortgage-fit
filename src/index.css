@@ -1,24 +1,29 @@
 /* 전역 CSS는 리셋·변수와 인쇄 영역 규칙만 둔다. 화면 스타일은 CSS Modules. */
 :root {
   /*
-   * 장부(achromatic ledger) 팔레트: 크롬에는 색을 쓰지 않는다. 돈은 잉크, 주 동작은 거의 검정,
-   * 색은 데이터 신호에만 둔다(예산 남음 = 강조 파랑, 예산 초과 = 오류 빨강).
+   * 소비자 금융 앱 팔레트(스펙 ui-refresh, pastel-consumer): 회색 바탕 위 흰 카드, 테두리 대신 면 한 단계, 채운 입력칸,
+   * 코발트 주 동작. 코발트는 주 동작과 주 데이터 한 가지(남은 예산·예상 한도)에만 둔다. 상태색(오류·경고)은 그대로다.
+   * 글자색은 바탕(--color-bg)과 흰 면 모두에서 4.5:1 이상이다(muted 바탕 5.6:1·흰 면 6.1:1, 코발트 위 흰 글자 5.7:1).
    */
-  --color-text: #0a0a0a;
-  --color-text-muted: #636363;
-  /* 바탕: 장부 종이 같은 옅은 청회색. 카드는 흰색으로 한 단계 띄운다. */
-  --color-bg: #f2f4f7;
+  --color-text: #191f28;
+  --color-text-muted: #5b636e;
+  /* 바탕: 옅은 회색. 카드는 흰 면으로 한 단계 띄운다(테두리·그림자 없음). */
+  --color-bg: #f3f5f7;
   --color-surface: #fff;
-  /* 흰 면 위의 보조 버튼·중립 배지 */
-  --color-raised: #ededed;
+  /* 흰 면 위의 채운 입력칸·보조 버튼·선택 안 된 칩 */
+  --color-raised: #f2f4f6;
   /* 바탕(--color-bg) 위의 작은 보조 버튼(화면 머리글) */
-  --color-raised-on-bg: #e5e5e5;
-  --color-border: #e3e5e8;
-  --color-rule: #eef0f2;
+  --color-raised-on-bg: #e8ebef;
+  /* 테두리는 표·구분선에만 쓴다. */
+  --color-border: #e5e8eb;
+  --color-rule: #f2f4f6;
   --color-control: #d0d3d8;
-  --color-primary: #141414;
+  --color-primary: #1d5fd6;
   --color-on-primary: #fff;
-  --color-accent: #1d5fbf;
+  --color-accent: #1d5fd6;
+  /* 선택된 칩·세그먼트: 옅은 코발트 면 + 진한 코발트 글자(9.4:1) */
+  --color-accent-soft: #e3efff;
+  --color-accent-ink: #0a3a80;
   --color-error: #c4242a;
   --color-error-bg: #ffedea;
   --color-error-ink: #831c1e;
@@ -28,12 +33,15 @@
   --color-badge-text: #3d3d3d;
   --color-scrim: rgb(10 10 10 / 45%);
 
-  /* 그림자는 떠 있는 것(끌고 있는 줄)에만 쓴다. 쉬는 면에는 쓰지 않는다. */
+  /* 그림자는 떠 있는 것(끌고 있는 줄, 떠 있는 [+])에만 쓴다. 쉬는 면에는 쓰지 않는다. */
   --shadow-lifted: 0 8px 24px rgb(10 10 10 / 14%), 0 2px 6px rgb(10 10 10 / 10%);
 
-  --radius-sheet: 12px;
-  --radius-card: 8px;
-  --radius-control: 6px;
+  /* 시트는 위쪽 모서리에만 쓴다. */
+  --radius-sheet: 24px;
+  --radius-card: 20px;
+  --radius-control: 12px;
+  /* 배지·작은 칩 */
+  --radius-chip: 8px;
   --radius-pill: 999px;
 
   --space-1: 4px;
@@ -42,12 +50,15 @@
   --space-4: 16px;
   --space-5: 24px;
 
-  /* 글자 크기: 큰 것 하나(답), 작은 것 몇 개 */
-  --fs-title: 22px;
-  --fs-answer: 28px;
-  --fs-figure: 18px;
-  --fs-section: 16px;
-  --fs-body: 14px;
+  /*
+   * 글자 크기: 큰 것 하나(답 = 돈), 작은 것 몇 개. 굵기는 쓰는 자리에서 정한다(제목 700 -0.02em, 답·금액 700 tabular,
+   * 구역 제목 600).
+   */
+  --fs-title: 24px;
+  --fs-answer: 30px;
+  --fs-figure: 20px;
+  --fs-section: 18px;
+  --fs-body: 15px;
   --fs-small: 13px;
   --fs-tiny: 12px;
   /* 화면 기본 글자(따로 정하지 않은 글자). 글자 크기 설정이 함께 줄인다. */
@@ -94,14 +105,14 @@
 
 /*
  * 글자 크기 설정(이 기기, `<html data-text-size>`). 글자를 한두 단계, 여백·간격을 조금 줄여 한 화면에 더 많이 보이게 한다.
- * 버튼 높이(40~44px)와 입력칸 글자(--fs-input)는 그대로다.
+ * 기본 크기와의 비율은 개편 전과 같다(작게 약 0.9, 더 작게 약 0.8). 버튼·입력 높이와 입력칸 글자(--fs-input)는 그대로다.
  */
 :root[data-text-size="small"] {
-  --fs-title: 20px;
-  --fs-answer: 25px;
-  --fs-figure: 16px;
-  --fs-section: 15px;
-  --fs-body: 13px;
+  --fs-title: 22px;
+  --fs-answer: 27px;
+  --fs-figure: 18px;
+  --fs-section: 17px;
+  --fs-body: 14px;
   --fs-small: 12px;
   --fs-tiny: 11px;
   --fs-base: 15px;
@@ -114,11 +125,11 @@
 }
 
 :root[data-text-size="smaller"] {
-  --fs-title: 18px;
-  --fs-answer: 22px;
-  --fs-figure: 15px;
-  --fs-section: 14px;
-  --fs-body: 12px;
+  --fs-title: 20px;
+  --fs-answer: 24px;
+  --fs-figure: 17px;
+  --fs-section: 16px;
+  --fs-body: 13px;
   --fs-small: 11px;
   --fs-tiny: 11px;
   --fs-base: 14px;
