@@ -100,17 +100,25 @@ describe("생성·수정·삭제 왕복", () => {
     expect(plansOf(createStore(storage).getSnapshot())).toEqual([created.plan]);
   });
 
-  it("만들 때 items(가져오기)는 id·시각을 붙여 같이 저장한다", () => {
+  it("만들 때 items(가져오기)는 id·시각(기준 + i ms, 서버 POST와 같음)을 붙여 같이 저장한다", () => {
     const storage = createMemoryStorage();
     const created = createStore(storage).createPlan({
       ...planInput(),
       items: [itemInput({ trade: "도배", budget: 300 }), itemInput()],
     });
     if (!created.ok) throw new Error("만들기 실패");
-    expect(created.plan.items.map(({ id, trade, createdAt }) => [id, trade, createdAt])).toEqual([
-      ["id2", "도배", pTime(11)],
-      ["id3", "샷시", pTime(11)],
+    expect(
+      created.plan.items.map(({ id, trade, createdAt, updatedAt }) => [
+        id,
+        trade,
+        createdAt,
+        updatedAt,
+      ]),
+    ).toEqual([
+      ["id2", "도배", "2026-10-26T00:11:00.000Z", "2026-10-26T00:11:00.000Z"],
+      ["id3", "샷시", "2026-10-26T00:11:00.001Z", "2026-10-26T00:11:00.001Z"],
     ]);
+    expect(created.plan.createdAt).toBe(pTime(11));
     expect(stored(storage).plans[0].items).toHaveLength(2);
   });
 

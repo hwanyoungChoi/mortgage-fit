@@ -196,17 +196,17 @@ export function createInteriorPlanStore({
         itemFields.push(item);
       }
       const timestamp = now();
+      const baseTime = Date.parse(timestamp);
       const plan: InteriorPlanWithItems = {
         id: createId(),
         ...fields,
         createdAt: timestamp,
         updatedAt: timestamp,
-        items: itemFields.map((item) => ({
-          id: createId(),
-          ...item,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        })),
+        // 항목 i는 기준 시각 + i ms(서버 POST와 같다). 로그인 이전 뒤 서버 GET(`created_at, id`)에서도 입력 순서가 된다.
+        items: itemFields.map((item, index) => {
+          const itemTime = new Date(baseTime + index).toISOString();
+          return { id: createId(), ...item, createdAt: itemTime, updatedAt: itemTime };
+        }),
       };
       const result = commit([...current.plans, plan]);
       return result.ok ? { ok: true, plan } : result;
