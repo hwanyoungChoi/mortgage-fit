@@ -99,7 +99,7 @@ type InteriorItem = {
 ### 브라우저 저장소 (새 키 2개만, 기존 12개 키는 이름·형식·값 그대로)
 
 - `loan-calculator/interior-plans`: `{ plans: (InteriorPlan & { items: InteriorItem[] })[] }` — 로그아웃 상태의 원본. 스토어는 쓰기 직전에 저장소를 다시 읽어 바뀐 부분만 반영한다(탭 둘이 열려 있어도 서로 통째로 덮지 않게).
-- `loan-calculator/interior-plan-imports`: **`Record<userId, planId[]>`** (`account-imports`와 같은 형태, `userIdRecordStorage` 재사용). 이전을 끝낸 플랜 id를 기록하므로 로그인 뒤 로그아웃 상태에서 새로 만든 플랜도 다음 로그인에 올라간다.
+- `loan-calculator/interior-plan-imports`: **`Record<userId, planId[]>`** (`account-imports`와 같은 형태, `account-imports`와 공용 `idsByUserStorage` 사용). 이전을 끝낸 플랜 id를 기록하므로 로그인 뒤 로그아웃 상태에서 새로 만든 플랜도 다음 로그인에 올라간다.
 - 기존 키(코드 기준 12개: account-imports·budget·budget-imports·draft·listing-order·listing-order-imports·listings·privacy-mode·sent-shares·session-hint·text-size·trade-lookup)는 **읽기 경로에서 `setItem`·`removeItem`·`clear` 0회**(앱 시작·탭 이동·[우리 집] 사용·로그인·함께 쓰는 중 이전 건너뛰기 모두). 기존 키에 쓰는 것은 사용자가 그 기능을 직접 조작할 때뿐이다(지금과 같음).
 
 ### `migrations/0007_interior_plans.sql` (추가만, 기존 테이블·행을 읽거나 고치지 않음)
@@ -217,7 +217,7 @@ CREATE TABLE interior_plan_items (
   - [ ] 0-2. 세 훅(`useAccountImport`·`useBudgetSource`·`useListingOrderSource`) 각각의 테스트(가구면 `send` 0회·기록 0회·settled 참, null로 바뀌면 `send` 1회, 두 번째 전환 중복 없음, 가구 상태의 `retry` 0회, 혼자 쓰는 흐름 그대로) + 세 훅 모두 변이 확인 (qa)
   - [ ] 0-3. 서버 D1 하네스 도입: 패키지는 **`@cloudflare/vitest-plugin`**(`@cloudflare/vitest-pool-workers`는 vitest 5 미지원). 실제 `migrations/0001~` 전부를 순서대로 적용한 D1로 `worker/index.ts` 경로(또는 핸들러)를 호출. `test.projects`로 기존 jsdom·node 테스트와 D1 프로젝트를 분리하고(D1 프로젝트는 Testing Library `setupFiles`를 상속하지 않음), **전환 전후 699 통과 + 1 todo가 같다**. **수락 조건: `rm -rf dist && pnpm test` 통과**(이 프로젝트의 `wrangler.jsonc`로 확인). 세부(타입 설정, `nodejs_compat` 주의, PR 설명에 근거·베타 miniflare 의존·버전 고정)는 qa 검토 `reviews/20261026-1622-qa-spec-interior-planner.md`의 "0-3 하네스" 1~6을 따른다. (qa)
   - [ ] 0-4. 최소 서버 테스트: `LISTING_SCOPE_SQL`(혼자 = `user_id = ?1`과 같은 결과, 숨긴 행 제외), listings GET·POST(500 상한 한 문장)·PUT(memo·status 보존)·PATCH(다른 필드 불변)·DELETE·import(중복 id 건너뛰기·상한·재시도), 가구 수락(B 매물 숨김·가구 생성·동시 수락 하나만 200·`ownInvite`·`alreadyInHousehold`)·나가기(숨김 해제·A 예산·순서 = 가구 값·B 원래 값·동시 나가기 뒤 404). 401·403 각 1건. **보완 범위**: `/api/me`·`/api/listings`·`/api/budget`·`/api/listing-order` 골든 응답을 0001~0006과 0001~0007 두 번, 수락 실패 분기(없는·만료·사용된 토큰, A 매물 501개 → 409 `householdLimit`, 실패 시 아무것도 안 바뀜), 동시 나가기·수락은 `db`를 Proxy로 감싼 경쟁 재현, 라우터 경로 순서·405, 중요 가드 변이 확인(`[, , , cleared]` 인덱스 이동, `householdExists` 가드 삭제). 세부는 qa 검토의 "0-4"를 따른다. 2-1 머지 전에 0-4가 통과한 커밋을 기록해 둔다. (qa)
-- [ ] 1. 로컬로 끝까지 되는 플래너 (엔드투엔드 최소) — AC-1~5, AC-0(c)(g)
+- [x] 1. 로컬로 끝까지 되는 플래너 (엔드투엔드 최소) — AC-1~5, AC-0(c)(g)
   - [ ] 1-1. 계약 3파일(타입·상수·검증) 먼저 커밋. **fe·be 다음 작업은 이 커밋 뒤**. `src/lib/utils/validateInteriorPlan.ts`가 `tsconfig.worker.json` 빌드에 포함되는지 `pnpm build`로 확인 (be)
   - [ ] 1-2. 로컬 스토어(새 키, 쓰기 직전 재읽기, 손상·접근 불가 처리), `summarizeInteriorPlan`(요약·그룹 합계·할 일, `now` 주입)과 계획용 순수 함수(공간 기본값, 공종 정렬, 상태 전이, 확정 견적 삭제 시 확정 해제), 라우트 `home`(`?view=`)·탭·`TAB_ORDER` 파생, `MaskedValue` 승격, `Home` container(빈 상태·만들기·공간 편집·항목 시트·요약·공간별/공종별·할 일·공정 순서 시트·가리기) (fe)
   - [ ] 1-3. 검증 함수 경계표(최소 플랜 통과·각 상한 바로 안팎·소수 거부·공종 30자·id 유일성·시각 형식)·요약(P 값, AC-4 구분 값 두 개)·스토어(허용 목록 밖 키 `setItem` 0회)·라우트 파싱(`view`)·화면 테스트 (qa)
