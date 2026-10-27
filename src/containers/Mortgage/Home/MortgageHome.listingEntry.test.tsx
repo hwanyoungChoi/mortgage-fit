@@ -228,6 +228,36 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     await waitFor(() => expect(window.location.hash).toBe("#/home"));
   });
 
+  it("회귀(0761b34): 시트 [취소] 뒤 같은 탭에서 같은 ?listing= 주소를 다시 열면(화면 마운트 유지) 시트가 다시 열리고 주소 #/home", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith();
+    renderApp(storage, `#/home?listing=${RAEMIAN_ID}`);
+    await user.click(within(await createSheet()).getByRole("button", { name: "취소" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(window.location.hash).toBe("#/home");
+
+    // 주소창·북마크처럼 같은 문서 안 해시 이동(탭을 거치지 않아 [우리 집]이 그대로 마운트돼 있다)
+    window.location.hash = `#/home?listing=${RAEMIAN_ID}`;
+    const sheet = await createSheet();
+    expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");
+    await waitFor(() => expect(window.location.hash).toBe("#/home"));
+    expect(screen.queryByText("매물을 확인하는 중")).not.toBeInTheDocument();
+    expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBeNull();
+  });
+
+  it("회귀(0761b34): 없는 매물 안내 뒤 같은 탭에서 같은 주소를 다시 열어도 다시 처리한다(멈추지 않음)", async () => {
+    const storage = storageWith();
+    renderApp(storage, "#/home?listing=no-such-listing");
+    expect(await screen.findByText(LISTING_ENTRY_NOTICES.listingMissing)).toBeInTheDocument();
+    expect(window.location.hash).toBe("#/home");
+
+    window.location.hash = "#/home?listing=no-such-listing";
+    await waitFor(() => expect(window.location.hash).toBe("#/home"));
+    expect(screen.queryByText("매물을 확인하는 중")).not.toBeInTheDocument();
+    expect(screen.getByText(LISTING_ENTRY_NOTICES.listingMissing)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "계획 만들기" })).toBeInTheDocument();
+  });
+
   it("체크를 풀고 만들면 항목이 없다(이름·총 예산·listingId는 들어감)", async () => {
     const user = userEvent.setup();
     const storage = storageWith();
