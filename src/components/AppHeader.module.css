@@ -1,0 +1,49 @@
+/* 머리 줄 높이는 [가가]의 누르는 자리(44px)가 정한다. 높이 값은 이 파일의 버튼에만 둔다. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--space-2) 0 var(--space-4);
+}
+
+.brand {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+/* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼 */
+.textSizeButton {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-section);
+  font-weight: 600;
+  line-height: 44px;
+}
+
+.textSizeButton:focus-visible {
+  outline-offset: -2px;
+}
+
+.smallGlyph {
+  font-size: var(--fs-tiny);
+}
+
+/* 화면 도구라 인쇄하지 않는다(표 보기가 아닌 화면은 인쇄 허용 목록이 걸리지 않는다). */
+@media print {
+  .header {
+    display: none;
+  }
+}

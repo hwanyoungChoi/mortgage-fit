@@ -11,12 +11,12 @@ import type { TabName } from "@/lib/types/route";
 
 function renderTabNav(current: TabName | null) {
   const onNavigate = vi.fn();
-  render(<TabNav current={current} onNavigate={onNavigate} onTextSizeOpen={vi.fn()} />);
+  render(<TabNav current={current} onNavigate={onNavigate} />);
   const nav = screen.getByRole("navigation", { name: "화면" });
   return { nav, onNavigate };
 }
 
-describe("상단 탭 (AC-1)", () => {
+describe("하단 탭 (AC-1)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });

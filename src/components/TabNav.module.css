@@ -1,73 +1,74 @@
+/*
+ * 화면 아래 고정 탭. 높이는 `--bottom-tab-offset`(탭 56px + safe-area, index.css)이고 safe-area는 이 줄만 가진다.
+ * 바탕 띠는 창 너비, 탭은 본문 열(480px) 가운데(SummaryBar와 같은 방식). 시트(z 10)가 이 줄을 덮는다.
+ * 키보드가 떠도 따라 올라오지 않는다(요약 줄과 같은 규칙, 스펙 platform-home).
+ */
 .nav {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 5;
-  border-bottom: 1px solid var(--color-border);
+  height: var(--bottom-tab-offset);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
 
-/* 탭 셋이 폭을 나누고 [가가]는 오른쪽 끝에 고정 폭으로 앉는다. */
-.bar {
+.tabs {
   display: flex;
   max-width: 480px;
+  height: 100%;
   margin: 0 auto;
 }
 
-.tabs {
+.item {
   display: flex;
   flex: 1;
   min-width: 0;
 }
 
-.item {
-  flex: 1;
-}
-
-/* 선택 표시는 탭 아래 2px 잉크 줄. 아래 테두리 위에 겹쳐 앉는다. */
+/* 선택 표시는 색만으로 하지 않는다: 잉크색 아이콘 + 아이콘 뒤 옅은 알약 + 굵은 라벨. */
 .tab {
   display: flex;
+  flex: 1;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: var(--tab-nav-height);
-  margin-bottom: -1px;
-  border-bottom: 2px solid transparent;
+  gap: 2px;
+  min-height: 44px;
   color: var(--color-text-muted);
-  font-size: var(--fs-section);
-  font-weight: 600;
+  font-size: var(--fs-tiny);
+  font-weight: 500;
+  line-height: 1.4;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .tab[aria-current="page"] {
-  border-bottom-color: var(--color-text);
   color: var(--color-text);
+  font-weight: 700;
 }
 
 .tab:focus-visible {
   outline-offset: -2px;
 }
 
-/* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼. 탭과 같은 높이다. */
-.textSizeButton {
+.indicator {
   display: flex;
-  flex: none;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
-  gap: 1px;
-  min-width: var(--tab-nav-height);
-  min-height: var(--tab-nav-height);
-  padding: 0 var(--space-3);
-  border: 0;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: var(--fs-section);
-  font-weight: 600;
-  line-height: var(--tab-nav-height);
+  width: 56px;
+  height: 28px;
+  border-radius: var(--radius-pill);
 }
 
-.textSizeButton:focus-visible {
-  outline-offset: -2px;
+.tab[aria-current="page"] .indicator {
+  background: var(--color-raised);
 }
 
-.smallGlyph {
-  font-size: var(--fs-tiny);
+@media print {
+  .nav {
+    display: none;
+  }
 }

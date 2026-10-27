@@ -1,5 +1,6 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 
+import AppHeader from "@/components/AppHeader";
 import TabNav from "@/components/TabNav";
 import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
@@ -90,7 +91,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
   const textSize = useSyncExternalStore(textSizeStore.subscribe, textSizeStore.getSnapshot);
-  // 글자 크기 시트는 모든 화면 위에 뜬다. 열린 동안 탭과 화면은 inert다(aria-modal이 약속하는 동작).
+  // 글자 크기 시트는 모든 화면 위에 뜬다. 열린 동안 머리 줄·화면·탭은 inert다(aria-modal이 약속하는 동작).
   const textSizeSheet = useOpenSheet<"textSize">();
   // 저장 시트 이름 제안. 목록의 "복사"가 채우고 계산 화면이 쓰므로 두 화면 위에 둔다.
   const [suggestedName, setSuggestedName] = useState("");
@@ -209,16 +210,17 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     );
   };
 
+  // DOM 순서 = 보이는 순서: 머리 줄(main 바깥) → 화면 → 하단 탭.
   // 탭으로 들어온 목록은 맨 위에서 시작한다. 스크롤 복원은 카드 → 계산 → 뒤로 가기에서만 일어난다.
   return (
     <>
       <div inert={textSizeSheet.isOpen}>
+        <AppHeader onTextSizeOpen={(button) => textSizeSheet.open("textSize", button)} />
+        <main>{renderScreen()}</main>
         <TabNav
           current={route.name === "share" || route.name === "invite" ? null : route.name}
           onNavigate={resetListingsScroll}
-          onTextSizeOpen={(button) => textSizeSheet.open("textSize", button)}
         />
-        {renderScreen()}
       </div>
       {textSizeSheet.isOpen && (
         <TextSizeSheet
