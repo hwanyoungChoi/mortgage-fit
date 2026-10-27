@@ -630,3 +630,17 @@
 
 - 요청: "함께쓰는 중 표시도 이제 인테리어 메뉴도 생겼으니 매물 메뉴에만 있기보다 홈으로 옮겨두는게 낫지않나" / "함께쓰기/나가기, 로그인/로그아웃 도 홈에 있어야지" / "가리기는 목록에만있거 인테리어에선 없애주"
 - AI(리드): 금액 미정 2단계(게이트 대기)와 별개로 main에서 `cony/hub-account` 브랜치, 별도 PR. 보드는 금액 미정 태스크 2가 게이트에 걸려 있어 다시 만들지 않고 "지금 하는 일"로 적는다(PR #39와 같은 방식)
+
+# 견적 금액 미정 태스크 2(2단계)
+
+- 요청(게이트 답, 2026-10-27): "2단계는 네, 없음" — 두 분 모두 각 기기의 우리 집 탭을 닫거나 새로고침함, 로그인 없이 만들어 옮기지 않은 로컬 계획 없음. ADR-033 조건 1 충족(1단계 배포 3c0bdc2 · 2026-10-27 21:37)
+- AI(리드): 홈 계정 작업(`cony/hub-account`)은 pm 스펙까지만 진행하고, 구현은 2단계 머지 뒤(같은 Home container의 가리기를 건드리므로 순서대로). 2단계 브랜치 `cony/interior-tbd-amount-2`
+- AI(pm): 스펙 hub-account(태스크 3개, AC-0~7, D1 로그인 복귀 주소·D2 함께 쓰기 코드 위치·D3 MaskedValue 위치, U1~U9). fe·be·qa 검토 중
+- AI(리드): fe 2-1 진행 중 중간 상태로 tsc 1건(`MortgageHome.wonSheets.test.tsx`가 지운 `manwonInputOfWon`을 import) — 종료 전 hook 3회 차단. fe에 먼저 정리하도록 전달, 완료 조건(lint·format·test·build 통과)에 포함
+- 토론: [ADR-035](decisions/035-hub-account.md) D1 A(로그인 복귀 홈), D2 A(함께 쓰기 Hub로, 공용 조각 전역 승격), D3 B(`MaskedValue` 전역 유지 — 홈 계산 카드 매매가는 계속 가림). be·fe·qa 조건부 찬성, 반대 없음. 제품 기본값 U3·U6 사용자 확인 전. pm이 스펙 반영 중
+- AI(fe) 2-1: d544acb(`AmountInput` `unit` 레지스트리 manwon/won, 억·만 힌트 `formatWonKorean`, 1만원 미만 "원 단위입니다") · d70ece0(줄·계획 관리·만들기 시트 원 입력, 빈칸 = 미정, 0원, `editedQuote` 2단계 규칙, `manwonInputOfWon` 삭제 R) · d157162(확정 안내 "줄을 열어 업체를 적으세요"). 2271 → 2313 + 1 todo, diff 가드(validate·types·server) 0줄, 버그 되살리기 4가지 모두 잡힘
+- AI(리드): 추가 비용 줄 항목 `budget`(만원)은 저장 형식 그대로 둠(항목 원 키는 types 변경이 필요해 범위 밖) 승인. `extraCostsToInteriorItems.ts`의 `WON_PER_MANWON`은 매물 추가 비용(만원) → 계획 총 예산(원) 변환이라 ADR-034 조건 2 허용 목록에 추가. 스펙 AC-2 2단계 경계 문장을 0원·원 상한에 맞게 정정
+- AI(리드) 태스크 2 화면 확인(dev 5199, 360×780, 로그아웃, 예시 M): 육문수 시트 "견적(비우면 미정)" 8,000,000원·힌트 800만원 → 비우고 저장 → 견적 `{id, vendor}`만(두 금액 키 없음), 목록 미정·"금액 미정 2건 제외"·지출 예정 2,469,500원. 한빛전기 999 → "원 단위입니다" 안내, 0 → 안내 없음·힌트 0원 → 저장 `amountWon: 0`, 목록 "0원", 미정 1건. 계획 관리 총 예산 10,000,000원(옛 `budget: 1000`)·힌트 1,000만원 → 12345000 저장 → `budgetWon: 12345000`, `budget` 키 없음
+- AI(qa) 2-2: 새 테스트 191개(2313 → 2504 + 1 todo, 3f4475f), 감사 X 0·storage 단언 줄 수 3c0bdc2와 같음, diff 가드 0줄, 옛 파서(3c0bdc2) 2단계 쓰기 원문 전부 ok·`toStrictEqual`(cc056a4 대조는 corrupt), 변이 23종 모두 잡힘, 결함 0 ([기록](reviews/20261027-2205-qa-task-2.md))
+- 놓침(리드): 2단계 게이트를 "사용자 확인이면 바로, 늦으면 24시간"으로 잘못 읽어 log·board·사용자 안내를 고쳤음. 스펙 AC-0(e) 3은 "배포 후 최소 24시간(확인이 늦어도 이보다 일찍 머지하지 않는다)" — 확인과 24시간 **둘 다** 필수(qa 2-2 지적). 정정: 태스크 2는 2026-10-28 21:37 이후 머지. PR은 먼저 열어 CI만 확인
+- AI(리드) code-review-fe(3c0bdc2..HEAD 제품 코드): 컨벤션 위반 없음. 단위 규칙은 `AmountInput`의 `Record<AmountUnit, UnitRule>` 한 곳, 금액 키 규칙은 `editedQuote`·`budgetMergePatch` 그대로
