@@ -100,7 +100,7 @@ function LineRow({ trade, row, isMasked, isSaving, onOpen, onConfirmChange }: Li
         <span aria-hidden="true">확정</span>
         {quote === null && (
           <span id={noQuoteId} className={styles.screenReaderOnly}>
-            견적이 없어 확정할 수 없습니다. 줄을 열어 업체와 견적을 적으세요
+            견적이 없어 확정할 수 없습니다. 줄을 열어 업체를 적으세요
           </span>
         )}
       </label>

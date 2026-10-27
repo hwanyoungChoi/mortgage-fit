@@ -37,7 +37,7 @@ const IMPORT_LABEL = "추가 비용 인테리어 2줄 가져오기";
 const IMPORT_NOTE =
   "줄 이름은 구분, 금액은 비고의 예산으로 넣습니다. 그 뒤로 매물의 추가 비용과는 따로 관리돼요";
 const HOME_INTRO = "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다";
-const NO_QUOTE_DESCRIPTION = "견적이 없어 확정할 수 없습니다. 줄을 열어 업체와 견적을 적으세요";
+const NO_QUOTE_DESCRIPTION = "견적이 없어 확정할 수 없습니다. 줄을 열어 업체를 적으세요";
 
 /** AC-7 예시 매물: 인테리어/도배 300, 인테리어/조명 120, 가전/냉장고 400(가져오지 않음) */
 const listingAc7 = makeListing({
