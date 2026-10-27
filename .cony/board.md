@@ -1,6 +1,6 @@
 # 인테리어 공정·예산 플래너
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-27 14:42
+> 상태: 사용자 대기 · 마지막 업데이트: 2026-10-27 14:45
 
 ## 태스크
 
@@ -35,7 +35,7 @@
 
 ## 지금 하는 일
 
-태스크 5 테스트·리뷰 통과. 검증 4종 후 PR 생성
+표 내보내기(태스크 5) PR #36 CI 통과 후 머지. 남은 것: 배포 후 5-3(실제 인쇄 창·엑셀·모바일 Safari·카카오톡 인앱), 태스크 4 운영 확인(리드)
 
 ## 최근 결정
 
@@ -53,7 +53,7 @@
 
 ## PR
 
-[#35](https://github.com/hwanyoungChoi/mortgage-fit/pull/35) · 머지됨
+[#36](https://github.com/hwanyoungChoi/mortgage-fit/pull/36) · CI 통과 · squash 머지
 
 <!-- spec: specs/interior-planner.md -->
 <!-- lead: local_51da21d1-feb8-494a-ad25-68c1758826ee -->

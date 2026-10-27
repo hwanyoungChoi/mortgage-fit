@@ -214,3 +214,4 @@
 {"ts":"2026-10-27T05:19:06.329Z","type":"task","task":5,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-27T05:29:09.407Z","type":"task","task":5,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-27T05:42:57.500Z","type":"task","task":5,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T05:45:33.065Z","type":"status","status":"사용자 대기"}
