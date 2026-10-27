@@ -211,3 +211,5 @@
 {"ts":"2026-10-27T04:40:09.265Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-27T04:46:34.877Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-27T05:03:30.887Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-27T05:19:06.329Z","type":"task","task":5,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T05:29:09.407Z","type":"task","task":5,"from":"progress","to":"review","owner":"리드"}
