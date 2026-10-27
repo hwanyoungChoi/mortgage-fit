@@ -47,11 +47,8 @@ export const INTERIOR_PLAN_TABLE_HEADING = {
 export const INTERIOR_PLAN_EXPORT_FILE_LABEL = "인테리어";
 export const INTERIOR_PLAN_EXPORT_FILE_EXTENSION = ".csv";
 
-/** 표 보기 버튼 줄 아래 안내 한 줄(우선순위: 줄 0개면 없음 → 가리기 → 고정 안내) */
-export const INTERIOR_PLAN_EXPORT_NOTICES = {
-  privacyMode: "가리기를 끄면 내려받기·인쇄할 수 있습니다",
-  browser: "내려받기·인쇄가 안 되면 Safari·Chrome에서 열어 주세요",
-};
+/** 표 보기 버튼 줄 아래 안내 한 줄(줄 0개면 없음, U21) */
+export const INTERIOR_PLAN_EXPORT_NOTICE = "내려받기·인쇄가 안 되면 Safari·Chrome에서 열어 주세요";
 
 /** 표 보기의 줄 0개 안내(표 보기에는 [줄 추가]가 없어 목록 보기로 안내한다) */
 export const INTERIOR_PLAN_TABLE_EMPTY_MESSAGE = "[목록]의 [줄 추가]로 적으면 여기에 표로 보입니다";

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 스펙 interior-simple 화면 "플랜 화면": AC-1(목록·요약·경계·가리기)·AC-2(e)(상한)·AC-3(확정 토글)·AC-4(옛 계획 L 보이기, 확정 옮김).
+// 스펙 interior-simple 화면 "플랜 화면": AC-1(목록·요약·경계)·AC-2(e)(상한)·AC-3(확정 토글)·AC-4(옛 계획 L 보이기, 확정 옮김).
 // 로그아웃(로컬 스토어)과 로그인(서버 출처)을 같이 본다. 줄 시트는 MortgageHome.lineSheet.test.tsx.
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -230,20 +230,10 @@ describe("줄 글자 순서: 첫 줄 세부내용, 그 아래 업체", () => {
     expect(withDetail[1][0]).not.toBe(withDetail[0][0]);
   });
 
-  it("가리기 중에는 업체가 첫 줄이고, 가려진 세부내용은 그 아래 •••다", async () => {
-    const user = userEvent.setup();
-    await renderLoggedOut(storageWith([makeSimplePlanP()]));
-    const [firstLineClass, secondLineClass] = rowLines("도배 육문수 실크 전체 열기").map(
-      ([className]) => className,
-    );
+  it("저장 목록에서 가리기를 켜 둬도(privacy-mode true) 첫 줄은 세부내용·그 아래 업체이고, 머리글에 [가리기]가 없다", async () => {
+    await renderLoggedOut(storageWith([makeSimplePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }));
 
-    await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(rowLines("도배 육문수 열기")).toEqual([
-      [firstLineClass, "육문수"],
-      [secondLineClass, "•••가려짐"],
-    ]);
-
-    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
     expect(rowLines("도배 육문수 실크 전체 열기").map(([, text]) => text)).toEqual([
       "실크 전체",
       "육문수",
@@ -484,63 +474,49 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
   });
 });
 
-describe("AC-1 가리기 (A8·A10)", () => {
-  const SECRETS = [
-    "실크 전체",
-    "합지",
-    "철거·방수",
-    "180",
-    "150",
-    "370",
-    "8,000,000원",
-    "2,000,000원",
-  ];
-
-  it("켜면 세부내용·비고·금액이 DOM(innerHTML·aria-label·title)에 없고 구분·업체는 보인다, 체크 이름은 '{구분} {업체} 확정', 기존 줄 시트는 열리지 않는다", async () => {
+describe("AC-5 우리 집에는 가리기가 없다 (privacy-mode true)", () => {
+  it("세부내용·금액·요약이 보이고 가려짐이 없다, 체크 이름은 '{구분} {업체} {세부내용} 확정', 줄 시트가 열린다, 설정은 그대로", async () => {
     const user = userEvent.setup();
-    const storage = storageWith([makeSimplePlanP()]);
+    const storage = storageWith([makeSimplePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" });
     const { container } = await renderLoggedOut(storage);
-    await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
-    // 저장 목록과 같은 설정 키다
+
+    expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
+    for (const text of ["실크 전체", "철거·방수", "8,000,000원", "2,000,000원"]) {
+      expect(container.innerHTML).toContain(text);
+    }
+    expect(container.innerHTML).not.toContain("가려짐");
+    expect(check(R1_CHECK)).toBeChecked();
+    expect(check(R4_CHECK)).not.toBeChecked();
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
+    expect(headlineValue("남은 예산")).toBe("2,000,000원");
+    expect(detailValue("총 예산")).toBe("10,000,000원");
+
+    const open = screen.getByRole("button", { name: "도배 육문수 실크 전체 열기" });
+    expect(open).toBeEnabled();
+    await user.click(open);
+    expect(screen.getByRole("dialog", { name: "줄" })).toBeInTheDocument();
+    // 저장 목록의 설정은 남는다(우리 집은 읽지도 쓰지도 않는다)
     expect(storage.getItem(PRIVACY_MODE_STORAGE_KEY)).toBe("true");
-    for (const secret of SECRETS) expect(container.innerHTML).not.toContain(secret);
-    expect(screen.getByRole("heading", { level: 3, name: "도배" })).toBeInTheDocument();
-    expect(screen.getAllByText("육문수")).toHaveLength(1);
-    expect(check("도배 육문수 확정")).toBeChecked();
-    expect(check("욕실 욕실나라 확정")).not.toBeChecked();
-    expect(headlineValue("지출 예정")).toBe("•••가려짐");
-    expect(headlineValue("남은 예산")).toBe("•••가려짐");
-    expect(detailValue("총 예산")).toBe("•••가려짐");
-
-    const open = screen.getByRole("button", { name: "도배 육문수 열기" });
-    expect(open).toBeDisabled();
-    fireEvent.click(open);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-
-    // 체크 토글·[줄 추가]는 가리기 중에도 된다
-    await user.click(check("욕실 욕실나라 확정"));
-    await waitFor(() => expect(check("욕실 욕실나라 확정")).toBeChecked());
-    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
-
-    await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(headlineValue("지출 예정")).toBe("12,000,000원");
-    expect(container.innerHTML).toContain("실크 전체");
   });
 
-  it("예산 초과와 빈 줄의 합성 비고도 가린다(L, 이미 켜져 있으면 처음부터)", async () => {
+  it("L(예산 초과)도 처음부터 금액·세부내용이 보이고, 같은 업체 두 줄은 세부내용으로 이름이 갈린다", async () => {
     const { container } = await renderLoggedOut(
       storageWith([makePlanL({ budget: 300 })], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
       L_HASH,
     );
-    expect(headlineValue("남은 예산")).toBe("예산 초과 •••가려짐");
-    for (const secret of ["예산 2,000,000원", "폐기물 포함", "700,000원", "370", "400"]) {
-      expect(container.innerHTML).not.toContain(secret);
-    }
+
+    expect(headlineValue("남은 예산")).toBe("예산 초과 700,000원");
+    expect(container.innerHTML).not.toContain("가려짐");
     expect(check("도배 확정")).toBeDisabled();
-    // 세부내용이 빠져 X의 하루바스와 Z의 하루바스 이름이 같아진다(가리기 중에는 값을 이름에 두지 않는다)
-    const sameName = screen.getAllByRole("checkbox", { name: "욕실 하루바스 확정" });
-    expect(sameName.map((box) => (box as HTMLInputElement).checked)).toEqual([true, false]);
+    expect(screen.getAllByRole("checkbox", { name: X_Q1_CHECK })).toHaveLength(1);
+    expect(check(X_Q1_CHECK)).toBeChecked();
+    expect(check("욕실 하루바스 타일 덧방 확정")).not.toBeChecked();
+  });
+
+  it("[줄 추가]는 privacy-mode가 켜져 있어도 목록 보기에 있다", async () => {
+    await renderLoggedOut(storageWith([makeSimplePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }));
+
+    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
 });
 
@@ -628,7 +604,7 @@ describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", (
     expect(add).toHaveFocus();
   });
 
-  it("표 보기에는 없고, 가리기 중에는 있다(묶음 끝 버튼처럼 가리기 중에도 줄 추가)", async () => {
+  it("표 보기에는 없고 목록 보기에는 있다", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makeSimplePlanP()]));
     await user.click(screen.getByRole("radio", { name: "표" }));
@@ -637,7 +613,5 @@ describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", (
 
     await user.click(screen.getByRole("radio", { name: "목록" }));
     expect(await screen.findByRole("button", { name: "줄 추가" })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
 });

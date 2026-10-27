@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// 스펙 interior-tbd-amount AC-4 허브: 확정 미정 줄이 있으면 "{이름} · 지출 예정 8,000,000원 · 미정 1건", 가리기 중에는
-// 미정 조각을 구분자까지 통째로 뺀다("우리 집 · 지출 예정 •••가려짐"). 로그아웃 로컬 계획으로 본다.
+// 스펙 interior-tbd-amount AC-4 허브: 확정 미정 줄이 있으면 "{이름} · 지출 예정 8,000,000원 · 미정 1건". 저장 목록에서
+// 가리기를 켜 둬도 우리 집 줄은 그대로다(스펙 hub-account U6). 로그아웃 로컬 계획으로 본다.
 // 순수 함수(건수)는 summarizeHub.test.ts가 본다.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -49,14 +49,9 @@ describe("홈 허브 — 금액 미정 (AC-4)", () => {
     await expectHomeDescription(text);
   });
 
-  it("가리기를 켜면 '우리 집 · 지출 예정 •••가려짐'이고 innerHTML에 '미정'이 없다", async () => {
+  it("저장 목록에서 가리기를 켜 둬도 우리 집 줄은 '우리 집 · 지출 예정 8,000,000원 · 미정 1건' 그대로(U6)", async () => {
     renderHub([makeSimplePlanPPlus()], { [PRIVACY_MODE_STORAGE_KEY]: "true" });
-    // 보조기기 설명은 aria-hidden인 •••를 빼고 읽는다. 화면 글자는 요약 줄 요소의 textContent로 본다
-    await expectHomeDescription("우리 집 · 지출 예정 가려짐");
-    const descriptionId = homeCard().getAttribute("aria-describedby") ?? "";
-    expect(document.getElementById(descriptionId)?.textContent).toBe(
-      "우리 집 · 지출 예정 •••가려짐",
-    );
-    expect(screen.getByRole("main").innerHTML).not.toContain("미정");
+    await expectHomeDescription("우리 집 · 지출 예정 8,000,000원 · 미정 1건");
+    expect(homeCard().innerHTML).not.toContain("가려짐");
   });
 });

@@ -20,8 +20,6 @@ type PlanScreenProps = {
   linkedListing: LinkedListing;
   view: HomeView;
   onViewChange: (view: HomeView) => void;
-  isPrivacyMode: boolean;
-  onPrivacyToggle: () => void;
   /** `isBudget`면 [총 예산 입력]으로 열었다(예산 칸에서 시작) */
   onSettingsOpen: (button: HTMLButtonElement, isBudget: boolean) => void;
   onLineOpen: (row: InteriorPlanRow, button: HTMLButtonElement) => void;
@@ -52,7 +50,7 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 }
 
 /**
- * 플랜 화면: 머리글(이름 + [가리기][⋯]) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
+ * 플랜 화면: 머리글(이름 + [⋯]) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
  * 체크와 요약은 같은 계획 값에서 매번 계산한다(ADR-007). `now`는 렌더마다 하나만 만들어 표 머리·파일 이름이 같이 쓴다.
  */
 function PlanScreen({
@@ -60,8 +58,6 @@ function PlanScreen({
   linkedListing,
   view,
   onViewChange,
-  isPrivacyMode,
-  onPrivacyToggle,
   onSettingsOpen,
   onLineOpen,
   onLineAdd,
@@ -78,15 +74,6 @@ function PlanScreen({
         <h1 className={styles.title}>{plan.name}</h1>
         <LinkedListingLine linkedListing={linkedListing} />
         <div className={styles.headerActions}>
-          {/* 켜짐은 aria-pressed와 채운 색으로 보인다(저장 목록의 [가리기]와 같은 설정이다). */}
-          <button
-            type="button"
-            className={styles.privacyButton}
-            aria-pressed={isPrivacyMode}
-            onClick={onPrivacyToggle}
-          >
-            가리기
-          </button>
           <button
             type="button"
             className={styles.headerButton}
@@ -98,11 +85,7 @@ function PlanScreen({
           </button>
         </div>
       </header>
-      <PlanSummary
-        summary={summary}
-        isMasked={isPrivacyMode}
-        onBudgetEdit={(button) => onSettingsOpen(button, true)}
-      />
+      <PlanSummary summary={summary} onBudgetEdit={(button) => onSettingsOpen(button, true)} />
       <ChoiceGroup
         name="interiorPlanView"
         legend="보기"
@@ -117,12 +100,10 @@ function PlanScreen({
           rows={rows}
           summary={summary}
           today={toLocalDateString(now)}
-          isPrivacyMode={isPrivacyMode}
         />
       ) : (
         <PlanLines
           groups={rows.groups}
-          isMasked={isPrivacyMode}
           canAddLine={canAddLine}
           onLineAdd={onLineAdd}
           onLineOpen={onLineOpen}

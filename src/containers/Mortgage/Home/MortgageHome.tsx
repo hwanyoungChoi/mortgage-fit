@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Sheet from "@/components/Sheet";
 import StatusPanel from "@/components/StatusPanel";
@@ -36,7 +36,6 @@ import type {
   InteriorPlanStore,
 } from "@/lib/types/interiorPlanStore";
 import type { Listing, ListingStore } from "@/lib/types/listing";
-import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { HomeView } from "@/lib/types/route";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
 
@@ -46,8 +45,6 @@ type MortgageHomeProps = {
   sessionHintStore: SessionHintStore;
   /** 로그인 직후 이 기기 계획의 이전. 옮기지 못했으면 화면 위에 이유와 [다시 시도]를 보인다 */
   planImport: InteriorPlanImport;
-  /** 저장 목록과 같은 가리기 설정. 켜면 금액·연락처·메모를 그리지 않는다 */
-  privacyModeStore: PrivacyModeStore;
   /** 매물 출처(저장 목록과 같은 `useListingSource`). 읽기만 한다: 연결 매물 이름·삭제 표시와 `?listing=`의 매물 찾기 */
   listingStore: ListingStore;
   accountImport: AccountImport;
@@ -104,7 +101,6 @@ function MortgageHome({
   interiorPlanStore,
   sessionHintStore,
   planImport,
-  privacyModeStore,
   listingStore,
   accountImport,
   planId,
@@ -120,10 +116,6 @@ function MortgageHome({
   });
   const { list } = source;
   const listingSource = useListingSource({ listingStore, sessionHintStore, accountImport });
-  const isPrivacyMode = useSyncExternalStore(
-    privacyModeStore.subscribe,
-    privacyModeStore.getSnapshot,
-  );
   const sheet = useOpenSheet<HomeSheet>();
   // [최신 값 불러오기]: 줄 시트를 지금 값으로 다시 연다(같은 항목 동시 편집 경고 뒤)
   const [itemSheetVersion, setItemSheetVersion] = useState(0);
@@ -301,8 +293,6 @@ function MortgageHome({
       linkedListing={linkedListingOf(plan.listingId, listingSource.list)}
       view={view}
       onViewChange={handleViewChange}
-      isPrivacyMode={isPrivacyMode}
-      onPrivacyToggle={() => privacyModeStore.set(!isPrivacyMode)}
       onSettingsOpen={(button, isBudget) =>
         sheet.open({ name: "settings", planId: plan.id, isBudget }, button)
       }

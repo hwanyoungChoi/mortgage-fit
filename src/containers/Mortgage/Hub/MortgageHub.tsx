@@ -37,7 +37,7 @@ type MortgageHubProps = {
   interiorPlanStore: InteriorPlanStore;
   planImport: InteriorPlanImport;
   draftStore: DraftStore;
-  /** 읽기만 한다. 홈에는 가리기 토글이 없다(U11). */
+  /** 읽기만 한다. 계산 카드 매매가만 가리고 우리 집 줄은 가리지 않는다. 홈에는 가리기 토글이 없다(U11, ADR-035 U6). */
   privacyModeStore: PrivacyModeStore;
   /** [매물 모으기]로 가기 직전에 부른다(저장 목록 스크롤을 맨 위로). */
   onListingsNavigate: () => void;
@@ -254,14 +254,9 @@ function MortgageHub({
               renderSummary={(lines) =>
                 lines.map((line) => (
                   <span key={line.id} className={styles.planLine}>
-                    {line.name} · 지출 예정{" "}
-                    <MaskedValue isMasked={isPrivacyMode}>
-                      {formatWon(line.plannedTotalWon)}
-                    </MaskedValue>
-                    {/* 확정 미정 줄 수. 가리기 중에는 구분자까지 통째로 뺀다(U6) */}
-                    {line.tbdCount > 0 &&
-                      !isPrivacyMode &&
-                      ` · ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`}
+                    {line.name} · 지출 예정 {formatWon(line.plannedTotalWon)}
+                    {/* 확정 미정 줄 수 */}
+                    {line.tbdCount > 0 && ` · ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`}
                   </span>
                 ))
               }

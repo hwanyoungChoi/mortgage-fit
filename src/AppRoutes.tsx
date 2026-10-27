@@ -178,7 +178,6 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           interiorPlanStore={interiorPlanStore}
           sessionHintStore={sessionHintStore}
           planImport={planImport}
-          privacyModeStore={privacyModeStore}
           listingStore={listingStore}
           accountImport={accountImport}
           planId={route.planId}

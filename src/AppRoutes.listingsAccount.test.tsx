@@ -96,6 +96,16 @@ describe("저장 목록 머리에 함께 쓰기·함께 쓰는 중·나가기가
   });
 });
 
+describe("저장 목록 [가리기]의 영향 범위 (AC-3, U7)", () => {
+  it("매물이 있으면 [가리기]·[목록 공유]가 있고 [가리기]는 보조기기 설명 '이 기기에서 저장 목록의 금액과 메모를 가립니다'", async () => {
+    renderApp("loggedOut", "#/listings");
+    const privacy = await screen.findByRole("button", { name: "가리기" });
+
+    expect(privacy).toHaveAccessibleDescription("이 기기에서 저장 목록의 금액과 메모를 가립니다");
+    expect(screen.getByRole("button", { name: "목록 공유" })).toBeInTheDocument();
+  });
+});
+
 describe("다른 화면의 세션 만료 안내에 [홈에서 로그인] (U4)", () => {
   it("저장 목록: 서버 목록 401 → 안내 줄에 #/로 가는 [홈에서 로그인], 누르면 홈", async () => {
     const user = userEvent.setup();

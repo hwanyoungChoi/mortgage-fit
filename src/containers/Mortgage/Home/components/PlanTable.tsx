@@ -1,4 +1,3 @@
-import MaskedValue from "@/components/MaskedValue";
 import {
   INTERIOR_PLAN_TABLE_COLUMN_LABELS,
   INTERIOR_PLAN_TABLE_COLUMNS,
@@ -26,25 +25,19 @@ const COLUMN_CLASS_NAMES: Record<InteriorPlanTableColumn, string> = {
   note: styles.noteCell,
 };
 
-/** 원 단위 금액(천 단위 쉼표) 또는 "미정". 둘 다 금액처럼 가린다. 없으면 빈칸 */
-function AmountCell({ won, isMasked }: { won: InteriorPlanTableAmount; isMasked: boolean }) {
-  const text = tableAmountText(won, formatThousands);
-  return (
-    <td className={styles.amountCell}>
-      {text !== "" && <MaskedValue isMasked={isMasked}>{text}</MaskedValue>}
-    </td>
-  );
+/** 원 단위 금액(천 단위 쉼표) 또는 "미정". 없으면 빈칸 */
+function AmountCell({ won }: { won: InteriorPlanTableAmount }) {
+  return <td className={styles.amountCell}>{tableAmountText(won, formatThousands)}</td>;
 }
 
 type PlanTableRowProps = {
   row: InteriorPlanTableRow;
   /** 구분 묶음의 첫 줄에만 구분 칸을 두고 묶음 줄 수만큼 병합한다 */
   trade: { name: string; rowSpan: number } | null;
-  isMasked: boolean;
 };
 
-/** 줄 하나. 가리기 때 구분·업체는 보이고 세부내용·금액·비고만 가린다 */
-function PlanTableRow({ row, trade, isMasked }: PlanTableRowProps) {
+/** 줄 하나 */
+function PlanTableRow({ row, trade }: PlanTableRowProps) {
   return (
     <tr>
       {trade !== null && (
@@ -53,14 +46,10 @@ function PlanTableRow({ row, trade, isMasked }: PlanTableRowProps) {
         </th>
       )}
       <td className={styles.vendorCell}>{row.vendor}</td>
-      <td className={styles.detailCell}>
-        {row.detail !== "" && <MaskedValue isMasked={isMasked}>{row.detail}</MaskedValue>}
-      </td>
-      <AmountCell won={row.quoteWon} isMasked={isMasked} />
-      <AmountCell won={row.confirmedWon} isMasked={isMasked} />
-      <td className={styles.noteCell}>
-        {row.note !== "" && <MaskedValue isMasked={isMasked}>{row.note}</MaskedValue>}
-      </td>
+      <td className={styles.detailCell}>{row.detail}</td>
+      <AmountCell won={row.quoteWon} />
+      <AmountCell won={row.confirmedWon} />
+      <td className={styles.noteCell}>{row.note}</td>
     </tr>
   );
 }
@@ -69,15 +58,13 @@ type PlanTableProps = {
   table: InteriorPlanTable;
   /** 표의 접근 가능한 이름(표 머리 제목) */
   title: string;
-  isMasked: boolean;
 };
 
 /**
  * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정 칸만, U6).
  * 금액은 이미 원 단위라 천 단위 쉼표만 붙이고 다시 곱하지 않는다. 빈칸은 비워 둔다.
- * "계" 비고의 "금액 미정 n건 제외"는 가리기 중에는 통째로 뺀다(U6).
  */
-function PlanTable({ table, title, isMasked }: PlanTableProps) {
+function PlanTable({ table, title }: PlanTableProps) {
   return (
     <table className={styles.table} aria-label={title}>
       <thead>
@@ -97,7 +84,6 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
               key={index}
               row={row}
               trade={index === 0 ? { name: group.trade, rowSpan: group.rows.length } : null}
-              isMasked={isMasked}
             />
           ))}
         </tbody>
@@ -110,8 +96,8 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
           <td className={styles.vendorCell} />
           <td className={styles.detailCell} />
           <td className={styles.amountCell} />
-          <AmountCell won={table.confirmedTotal} isMasked={isMasked} />
-          <td className={styles.noteCell}>{!isMasked && table.totalNote}</td>
+          <AmountCell won={table.confirmedTotal} />
+          <td className={styles.noteCell}>{table.totalNote}</td>
         </tr>
       </tfoot>
     </table>

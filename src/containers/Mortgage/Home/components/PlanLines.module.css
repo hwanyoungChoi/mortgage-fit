@@ -108,10 +108,6 @@
   text-align: left;
 }
 
-.openButton:disabled {
-  color: inherit;
-}
-
 .openButton:focus-visible {
   outline-offset: -2px;
 }
@@ -123,7 +119,7 @@
   min-width: 0;
 }
 
-/* 첫 줄(세부내용, 없거나 가려졌으면 업체). 세부내용은 200자까지라 두 줄에서 자른다(전체는 줄 시트에서 본다). */
+/* 첫 줄(세부내용, 없으면 업체). 세부내용은 200자까지라 두 줄에서 자른다(전체는 줄 시트에서 본다). */
 .primaryText {
   display: -webkit-box;
   overflow: hidden;

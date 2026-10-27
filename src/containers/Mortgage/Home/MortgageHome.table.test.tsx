@@ -43,7 +43,6 @@ const HEADER_TEXT = ["구분", "업체", "세부내용", "견적(원)", "확정(
 const SCROLL_LABEL = "계획 표 (가로로 스크롤)";
 const PRIVACY_NOTICE = "가리기를 끄면 내려받기·인쇄할 수 있습니다";
 const BROWSER_NOTICE = "내려받기·인쇄가 안 되면 Safari·Chrome에서 열어 주세요";
-const MASKED = "•••가려짐";
 
 /** 기기 날짜 2026-10-27(로컬 생성자라 시간대와 무관) */
 const OCT_27_NOON = new Date(2026, 9, 27, 12, 0, 0);
@@ -338,82 +337,60 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
   });
 
   describe("AC-12(d) 가리기·줄 0개", () => {
-    const SECRETS = [
-      "3,700,000",
-      "4,000,000",
-      "2,500,000",
-      "2,300,000",
-      "1,800,000",
-      "7,500,000",
-      "15,000,000",
-      "폐기물처리",
-      "철거, 방수",
-      "타일 덧방",
-      "2.2T 장판",
-      "샷시·몰딩",
-      "추후 구매",
-      "1,500,000",
-    ];
-
-    it("가리기 켜짐: 구분·업체·열 제목·'계'만 보이고 값은 DOM에 없음(innerHTML), 버튼 비활성 + 가리기 안내, 강제 클릭도 0회 → 끄면 활성", async () => {
+    it("privacy-mode가 켜져 있어도 표 머리·표·계는 꺼짐과 같고, 버튼 활성 + 고정 안내, CSV는 같은 원문·인쇄 1회", async () => {
       const user = userEvent.setup();
-      const { container } = await renderApp(
+      await renderApp(
         storageWith([makePlanQ()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
         "#/home/plan-q?view=table",
       );
-      for (const secret of SECRETS) {
-        expect(container.innerHTML).not.toContain(secret);
-        expect(document.body.innerHTML).not.toContain(secret);
-      }
-      expect(screen.getByRole("heading", { level: 2, name: Q_TITLE })).toBeInTheDocument();
-      expect(screen.getByText(/^2026-10-27 기준 · /)).toHaveTextContent(
-        `2026-10-27 기준 · ${MASKED} · ${MASKED} · ${MASKED}`,
-      );
-      expect(tableText(planTable())).toEqual([
-        HEADER_TEXT,
-        ["바닥", "육문수", MASKED, MASKED, MASKED, ""],
-        ["필름", "숨고_빛인테리어필름", MASKED, MASKED, MASKED, ""],
-        ["욕실", "숨고_하루바스", MASKED, MASKED, MASKED, MASKED],
-        ["욕실나라", "", MASKED, "", MASKED],
-        ["숨고_하루바스", MASKED, MASKED, "", ""],
-        ["동네욕실", "", MASKED, "", ""],
-        ["에어컨", "", "", "", "", MASKED],
-        ["계", "", "", "", MASKED, ""],
-      ]);
 
-      expect(downloadButton()).toBeDisabled();
-      expect(printButton()).toBeDisabled();
-      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
-      expect(screen.queryByText(BROWSER_NOTICE)).not.toBeInTheDocument();
-
-      // 비활성 버튼을 눌러도, 비활성을 우회해 핸들러를 직접 불러도 호출 0회
-      fireEvent.click(downloadButton());
-      fireEvent.click(printButton());
-      forceReactClick(downloadButton());
-      forceReactClick(printButton());
-      expect(download).not.toHaveBeenCalled();
-      expect(printSpy).not.toHaveBeenCalled();
-
-      await user.click(screen.getByRole("button", { name: "가리기" }));
+      expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
+      expect(screen.getByText(Q_LINE)).toBeInTheDocument();
+      expect(tableText(planTable())).toEqual([HEADER_TEXT, ...Q_TABLE_TEXT]);
+      expect(document.body.innerHTML).not.toContain("가려짐");
       expect(downloadButton()).toBeEnabled();
       expect(printButton()).toBeEnabled();
       expect(screen.getByText(BROWSER_NOTICE)).toBeInTheDocument();
       expect(screen.queryByText(PRIVACY_NOTICE)).not.toBeInTheDocument();
-      expect(screen.getByText(Q_LINE)).toBeInTheDocument();
+
       await user.click(downloadButton());
+      await user.click(printButton());
       expect(download).toHaveBeenCalledTimes(1);
       expect(download.mock.calls[0][1] === Q_CSV).toBe(true);
+      expect(printSpy).toHaveBeenCalledTimes(1);
     });
 
-    it("화면에서 [가리기]를 켜면 바로 버튼 비활성·값 사라짐", async () => {
+    it("같은 앱에서 저장 목록 [가리기]를 켠 뒤 탭으로 와도 표·내보내기는 그대로, 저장 목록에 돌아가면 여전히 가려져 있다", async () => {
       const user = userEvent.setup();
-      const { container } = await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
-      expect(container.innerHTML).toContain("3,700,000");
-      await user.click(screen.getByRole("button", { name: "가리기" }));
-      expect(container.innerHTML).not.toContain("3,700,000");
-      expect(downloadButton()).toBeDisabled();
-      expect(printButton()).toBeDisabled();
-      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
+      const storage = storageWith([makePlanQ()], {
+        [LISTINGS_STORAGE_KEY]: JSON.stringify([makeListing()]),
+      });
+      await renderApp(storage, "#/listings");
+      const tab = (name: string) =>
+        within(screen.getByRole("navigation", { name: "화면" })).getByRole("link", { name });
+      await user.click(await screen.findByRole("button", { name: "가리기" }));
+      expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(screen.getByRole("main").innerHTML).toContain("가려짐");
+
+      await user.click(tab("우리 집"));
+      await user.click(await screen.findByRole("radio", { name: "표" }));
+      await waitFor(() => expect(window.location.hash).toBe("#/home?view=table"));
+      expect(tableText(planTable())).toEqual([HEADER_TEXT, ...Q_TABLE_TEXT]);
+      expect(screen.getByText(Q_LINE)).toBeInTheDocument();
+      expect(screen.getByRole("main").innerHTML).not.toContain("가려짐");
+      expect(downloadButton()).toBeEnabled();
+      expect(screen.queryByText(PRIVACY_NOTICE)).not.toBeInTheDocument();
+
+      await user.click(tab("매물"));
+      expect(await screen.findByRole("button", { name: "가리기" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(screen.getByRole("main").innerHTML).toContain("가려짐");
+      expect(storage.getItem(PRIVACY_MODE_STORAGE_KEY)).toBe("true");
     });
 
     it("줄 0개: 표·표 머리 대신 빈 문구, 두 버튼 비활성, 안내 줄 없음, 강제 클릭도 0회", async () => {
@@ -575,20 +552,22 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(storage.length).toBe(Object.keys(rawBefore).length);
     });
 
-    it("가리기 토글은 privacy-mode 키에만 쓴다(그 밖의 키 0회)", async () => {
+    it("privacy-mode가 켜져 있어도 표 보기·보기 전환은 privacy-mode를 포함해 어떤 키에도 쓰지 않는다", async () => {
       const user = userEvent.setup();
-      const storage = storageWith([makePlanQ()], SEED);
+      const storage = storageWith([makePlanQ()], { ...SEED, [PRIVACY_MODE_STORAGE_KEY]: "true" });
       await renderApp(storage, "#/home/plan-q?view=table");
       await act(async () => {});
       const writes = spyStorageWrites(storage);
-      await user.click(screen.getByRole("button", { name: "가리기" }));
-      await user.click(screen.getByRole("button", { name: "가리기" }));
-      expect(writes.setItem.mock.calls.map(([key]) => key)).toEqual([
-        PRIVACY_MODE_STORAGE_KEY,
-        PRIVACY_MODE_STORAGE_KEY,
-      ]);
+
+      for (const name of ["목록", "표"]) {
+        await user.click(screen.getByRole("radio", { name }));
+      }
+      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
+
+      expect(writes.setItem).not.toHaveBeenCalled();
       expect(writes.removeItem).not.toHaveBeenCalled();
       expect(writes.clear).not.toHaveBeenCalled();
+      expect(storage.getItem(PRIVACY_MODE_STORAGE_KEY) === "true").toBe(true);
     });
   });
 });

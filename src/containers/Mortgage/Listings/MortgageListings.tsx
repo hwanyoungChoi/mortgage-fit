@@ -111,6 +111,8 @@ type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; 
 
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
+const PRIVACY_DESCRIPTION_ID = "listings-privacy-description";
+
 /**
  * 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007).
  * 한 줄씩(이름과 필요한 자기자금) 보이고 줄을 누르면 상세 카드를 펼친다. 순서는 직접 정한 순서 하나다(ADR-026).
@@ -440,10 +442,15 @@ function MortgageListings({
                     type="button"
                     className={styles.privacyButton}
                     aria-pressed={isPrivacyMode}
+                    aria-describedby={PRIVACY_DESCRIPTION_ID}
                     onClick={handlePrivacyToggle}
                   >
                     가리기
                   </button>
+                  {/* 영향 범위는 화면에 쓰지 않고 보조기기에만 버튼 설명으로 읽힌다(U7). */}
+                  <span id={PRIVACY_DESCRIPTION_ID} className={styles.visuallyHidden}>
+                    이 기기에서 저장 목록의 금액과 메모를 가립니다
+                  </span>
                   <button
                     ref={shareListButtonRef}
                     type="button"

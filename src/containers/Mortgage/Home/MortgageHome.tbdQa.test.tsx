@@ -2,8 +2,7 @@
 // qa 태스크 1(스펙 interior-tbd-amount AC-1·AC-2 1단계·AC-4, 로그아웃) 빈틈:
 // - AC-1 경계: 총 예산 800(남은 0원, 초과 아님)·총 예산 없음([총 예산 입력])·확정이 R6뿐(지출 예정 0원)에도 문구가 붙는다.
 // - 옛 다견적 항목 F⁺(makeFullItem 변형: q1 하루바스 370 확정, q2 욕실나라 금액 없음): 표시·확정 옮김·확정 미정 견적 삭제.
-// - 가리기: 원 단위 줄 금액(1,800,000 등)·"미정"·세부내용이 목록/표 두 보기의 innerHTML·aria-label 어디에도 없다
-//   (옛 가리기 테스트의 "180"·"370"은 원 표기 "1,800,000원"에 들어 있지 않아 줄 금액을 지키지 못한다).
+// - 저장 목록에서 가리기를 켜 둬도 원 단위 줄 금액(1,800,000 등)·"미정"·세부내용이 목록/표 두 보기에 그대로 보인다(ADR-035).
 // - 시트 칸 순서와 포커스: 떠 있는 [+]·미정 줄 R6 모두 시트 안(지금처럼 시트 머리), [+ 조명에 줄 추가]는 세부내용 칸.
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -174,8 +173,8 @@ describe("AC-1 옛 다견적 항목 F⁺ (q1 하루바스 370 확정, q2 욕실�
   });
 });
 
-describe("가리기: 원 단위 줄 금액·'미정'·세부내용이 DOM에 없다 (P⁺, 목록·표)", () => {
-  const SECRETS = [
+describe("저장 목록에서 가리기를 켜 둬도 원 단위 줄 금액·'미정'·세부내용이 보인다 (P⁺, 목록·표, AC-5)", () => {
+  const VISIBLE = [
     "1,800,000",
     "1,500,000",
     "3,700,000",
@@ -198,16 +197,11 @@ describe("가리기: 원 단위 줄 금액·'미정'·세부내용이 DOM에 없
       storageWith([makeSimplePlanPPlus()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
       hash,
     );
-    expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
-    for (const secret of SECRETS) expect(container.innerHTML, secret).not.toContain(secret);
-    for (const element of container.querySelectorAll("[aria-label], [title]")) {
-      const text = `${element.getAttribute("aria-label") ?? ""} ${element.getAttribute("title") ?? ""}`;
-      expect(text).not.toContain("미정");
-      expect(text).not.toMatch(/\d{3}/);
-    }
-    // 요약은 •••가려짐, 구분·업체는 보인다
-    expect(headlineValue("지출 예정")).toBe("•••가려짐");
-    expect(container.innerHTML).toContain("빛나라조명");
+    expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
+    for (const text of VISIBLE) expect(container.innerHTML, text).toContain(text);
+    expect(container.innerHTML).not.toContain("가려짐");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
+    expect(within(summaryRegion()).getByText(TBD_NOTE)).toBeInTheDocument();
   });
 });
 
