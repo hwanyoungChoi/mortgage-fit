@@ -88,13 +88,13 @@ describe("startKakaoLogin: 키가 없으면 notConfigured", () => {
     ["REST 키만 비어 있음", { ...KEYS, KAKAO_REST_API_KEY: "" }],
     ["시크릿만 비어 있음", { ...KEYS, KAKAO_CLIENT_SECRET: "" }],
     ["공백만", { KAKAO_REST_API_KEY: "  ", KAKAO_CLIENT_SECRET: "\t" }],
-  ])("%s → 저장 목록 ?login=notConfigured, 초대 쿠키만 지운다", (_name, env) => {
+  ])("%s → 홈 ?login=notConfigured, 초대 쿠키만 지운다", (_name, env) => {
     const response = startKakaoLogin(new Request(`${ORIGIN}/api/auth/kakao/login`), env);
 
     expect(redirectOf(response)).toEqual({
       status: 302,
       cacheControl: "no-store",
-      location: `${ORIGIN}/#/listings?login=notConfigured`,
+      location: `${ORIGIN}/#/?login=notConfigured`,
       cookies: [CLEAR_INVITE_COOKIE],
     });
   });
@@ -102,9 +102,7 @@ describe("startKakaoLogin: 키가 없으면 notConfigured", () => {
   it("포트 있는 origin도 그 origin으로 보낸다", () => {
     const response = startKakaoLogin(new Request("http://localhost:8788/api/auth/kakao/login"), {});
 
-    expect(response.headers.get("Location")).toBe(
-      "http://localhost:8788/#/listings?login=notConfigured",
-    );
+    expect(response.headers.get("Location")).toBe("http://localhost:8788/#/?login=notConfigured");
   });
 });
 
@@ -186,7 +184,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
   ])("%s → failed", async (_name, params, cookies) => {
     const response = await finish(callbackRequest(params, cookies));
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=failed`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=failed`));
     expect(NO_FETCH).not.toHaveBeenCalled();
   });
 
@@ -197,7 +195,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
       callbackRequest({ state: STATE, error: "access_denied" }, { mf_oauth_state: STATE }),
     );
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=cancelled`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=cancelled`));
     expect(consoleError).not.toHaveBeenCalled();
   });
 
@@ -210,7 +208,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
 
     const response = await finish(callbackRequest(params, { mf_oauth_state: STATE }));
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=failed`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=failed`));
     expect(consoleError.mock.calls).toEqual([["kakao login failed", "authorize", detail]]);
     expect(loggedText(consoleError)).not.toContain(CODE);
     expect(NO_FETCH).not.toHaveBeenCalled();
@@ -225,7 +223,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
       env,
     );
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=failed`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=failed`));
     expect(NO_FETCH).not.toHaveBeenCalled();
   });
 
@@ -239,7 +237,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
       fetchImpl,
     );
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=failed`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=failed`));
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(consoleError.mock.calls).toEqual([["kakao login failed", "token", "401 KOE320"]]);
     expect(loggedText(consoleError)).not.toContain(CODE);
@@ -259,7 +257,7 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
       fetchImpl,
     );
 
-    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=failed`));
+    expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=failed`));
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(consoleError.mock.calls).toEqual([["kakao login failed", "user", "401 -401"]]);
     expect(loggedText(consoleError)).not.toContain(ACCESS_TOKEN);
@@ -267,19 +265,19 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
   });
 
   it.each([
-    ["취소", { state: STATE, error: "access_denied" }, "cancelled"],
-    ["state 불일치", { state: "other-state", code: CODE }, "failed"],
-    ["code 없음", { state: STATE }, "failed"],
+    ["취소", "cancelled", { state: STATE, error: "access_denied" }],
+    ["state 불일치", "failed", { state: "other-state", code: CODE }],
+    ["code 없음", "failed", { state: STATE }],
   ])(
-    "초대로 시작한 로그인의 %s → 초대 화면이 아니라 ?login=%s, 초대 쿠키를 지운다",
-    async (_name, params, result) => {
+    "초대로 시작한 로그인의 %s → 초대 화면이 아니라 홈 ?login=%s, 초대 쿠키를 지운다",
+    async (_name, result, params) => {
       vi.spyOn(console, "error").mockImplementation(() => {});
 
       const response = await finish(
         callbackRequest(params, { mf_oauth_state: STATE, mf_oauth_invite: INVITE_TOKEN }),
       );
 
-      expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/listings?login=${result}`));
+      expect(redirectOf(response)).toEqual(failedRedirect(`${ORIGIN}/#/?login=${result}`));
     },
   );
 
@@ -292,8 +290,6 @@ describe("finishKakaoLogin: DB 앞에서 끝나는 실패·취소", () => {
       ),
     );
 
-    expect(response.headers.get("Location")).toBe(
-      "http://localhost:8788/#/listings?login=cancelled",
-    );
+    expect(response.headers.get("Location")).toBe("http://localhost:8788/#/?login=cancelled");
   });
 });

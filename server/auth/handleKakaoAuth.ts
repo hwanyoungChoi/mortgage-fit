@@ -17,7 +17,7 @@ const STATE_BYTES = 32;
 
 const clearInviteCookie = `${INVITE_COOKIE}=; ${STATE_COOKIE_ATTRIBUTES}; Max-Age=0`;
 
-/** 저장 목록 화면이 `?login=`으로 받아 안내 한 줄을 보이는 값 */
+/** 홈 화면이 `?login=`으로 받아 안내 한 줄을 보이는 값 */
 type LoginResult = "cancelled" | "failed" | "notConfigured";
 
 type KakaoEnv = { KAKAO_REST_API_KEY?: string; KAKAO_CLIENT_SECRET?: string };
@@ -33,9 +33,9 @@ function readKakaoKeys(env: KakaoEnv): KakaoKeys | null {
 /** 카카오에 등록한 Redirect URI와 같아야 한다(로그인 요청과 토큰 요청에 같은 값). */
 const callbackUrl = (origin: string) => `${origin}/api/auth/kakao/callback`;
 
-/** 로그인 뒤에는 기본 저장 목록으로 돌아간다(초대로 시작한 성공 로그인만 초대 화면). */
-const listingsUrl = (origin: string, result?: LoginResult) =>
-  `${origin}/#/listings${result === undefined ? "" : `?login=${result}`}`;
+/** 로그인 뒤에는 홈으로 돌아간다(초대로 시작한 성공 로그인만 초대 화면). */
+const homeUrl = (origin: string, result?: LoginResult) =>
+  `${origin}/#/${result === undefined ? "" : `?login=${result}`}`;
 
 function redirectResponse(location: string, cookies: string[] = []): Response {
   const headers = new Headers({ Location: location, "Cache-Control": "no-store" });
@@ -55,7 +55,7 @@ export function startKakaoLogin(request: Request, env: KakaoEnv): Response {
   const { origin } = url;
   const keys = readKakaoKeys(env);
   if (keys === null) {
-    return redirectResponse(listingsUrl(origin, "notConfigured"), [clearInviteCookie]);
+    return redirectResponse(homeUrl(origin, "notConfigured"), [clearInviteCookie]);
   }
 
   const invite = url.searchParams.get("invite");
@@ -92,8 +92,9 @@ async function findOrCreateUserId(db: D1Database, kakaoId: string, now: () => Da
 
 /**
  * GET /api/auth/kakao/callback. state를 먼저 비교하고(state·초대 쿠키는 항상 지움) 취소·실패면 안내 값과 함께
- * 저장 목록으로, 성공하면 사용자를 찾거나 만들고 세션 쿠키를 심어 저장 목록으로 보낸다.
+ * 홈으로, 성공하면 사용자를 찾거나 만들고 세션 쿠키를 심어 홈으로 보낸다.
  * 성공이고 초대 쿠키가 있으면 초대 화면으로 보낸다. 쿠키는 클라이언트 값이라 여기서 모양을 다시 본다.
+ * 초대로 시작한 로그인도 취소·실패면 홈이다(초대 토큰은 버린다).
  */
 export async function finishKakaoLogin(
   request: Request,
@@ -104,7 +105,7 @@ export async function finishKakaoLogin(
   const url = new URL(request.url);
   const clearStateCookie = `${STATE_COOKIE}=; ${STATE_COOKIE_ATTRIBUTES}; Max-Age=0`;
   const fail = (result: LoginResult) =>
-    redirectResponse(listingsUrl(url.origin, result), [clearStateCookie, clearInviteCookie]);
+    redirectResponse(homeUrl(url.origin, result), [clearStateCookie, clearInviteCookie]);
 
   const state = url.searchParams.get("state");
   const savedState = readCookie(request, STATE_COOKIE);
@@ -127,6 +128,6 @@ export async function finishKakaoLogin(
   const userId = await findOrCreateUserId(db, kakaoId, deps.now);
   const sessionCookie = await createSession(db, userId, deps.now);
   const invite = readCookie(request, INVITE_COOKIE);
-  const location = isInviteToken(invite) ? inviteUrl(url.origin, invite) : listingsUrl(url.origin);
+  const location = isInviteToken(invite) ? inviteUrl(url.origin, invite) : homeUrl(url.origin);
   return redirectResponse(location, [clearStateCookie, clearInviteCookie, sessionCookie]);
 }

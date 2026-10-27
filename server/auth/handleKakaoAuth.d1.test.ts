@@ -70,10 +70,10 @@ beforeEach(async () => {
 });
 
 describe("finishKakaoLogin 성공", () => {
-  it("초대 쿠키 없음(보통 로그인·공유받기 화면에서 시작한 로그인) → 저장 목록, 사용자·세션 행 생성", async () => {
+  it("초대 쿠키 없음(보통 로그인·공유받기 화면에서 시작한 로그인) → 홈, 사용자·세션 행 생성", async () => {
     const sessionCookie = await expectSuccessRedirect(
       await finish(callbackRequest({ mf_oauth_state: STATE })),
-      `${ORIGIN}/#/listings`,
+      `${ORIGIN}/#/`,
     );
 
     const user = await db
@@ -94,7 +94,7 @@ describe("finishKakaoLogin 성공", () => {
 
     await expectSuccessRedirect(
       await finish(callbackRequest({ mf_oauth_state: STATE })),
-      `${ORIGIN}/#/listings`,
+      `${ORIGIN}/#/`,
     );
 
     const ids = await db.prepare("SELECT id FROM users").all<{ id: string }>();
@@ -111,17 +111,17 @@ describe("finishKakaoLogin 성공", () => {
     );
   });
 
-  it("모양이 틀린 초대 쿠키 → 초대 화면이 아니라 저장 목록", async () => {
+  it("모양이 틀린 초대 쿠키 → 초대 화면이 아니라 홈", async () => {
     await expectSuccessRedirect(
       await finish(callbackRequest({ mf_oauth_state: STATE, mf_oauth_invite: "not-a-token" })),
-      `${ORIGIN}/#/listings`,
+      `${ORIGIN}/#/`,
     );
   });
 
   it("포트 있는 origin도 그 origin으로 보낸다", async () => {
     await expectSuccessRedirect(
       await finish(callbackRequest({ mf_oauth_state: STATE }, "http://localhost:8788")),
-      "http://localhost:8788/#/listings",
+      "http://localhost:8788/#/",
     );
   });
 });
