@@ -19,8 +19,10 @@ export function useHashRoute(): Route {
   const route = parseRoute(hash);
   const canonicalPath = toRoutePath(route);
 
+  // 화면이 그사이 주소를 이미 바꿨으면(홈이 `?login=`을 지움) 옛 해시 기준으로 되돌리지 않는다.
   useEffect(() => {
-    if (hash !== canonicalPath) window.location.replace(canonicalPath);
+    if (window.location.hash === hash && hash !== canonicalPath)
+      window.location.replace(canonicalPath);
   }, [hash, canonicalPath]);
 
   return route;

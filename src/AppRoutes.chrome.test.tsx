@@ -77,7 +77,7 @@ describe("하단 탭 (AC-2)", () => {
     ["#/", "홈"],
     ["#/calculator", "계산"],
     ["#/listings", "매물"],
-    ["#/listings?login=failed", "매물"],
+    ["#/?login=failed", "홈"],
     ["#/home", "우리 집"],
     ["#/home/plan-p?view=table", "우리 집"],
     [`#/share/${VALID_TOKEN}`, null],

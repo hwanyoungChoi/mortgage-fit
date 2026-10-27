@@ -314,7 +314,7 @@ describe("AC-6 가리기(privacy-mode 읽기만)", () => {
     [PRIVACY_MODE_STORAGE_KEY]: "true",
   };
 
-  it("금액 자리는 •••·가려짐이고 innerHTML에 1,530·12억이 없다. 3개·계획 이름은 보인다. 저장소에 쓰지 않는다", async () => {
+  it("계산 카드 매매가는 •••·가려짐이고 innerHTML에 12억이 없다. 우리 집 줄·3개는 보인다(U6). 저장소에 쓰지 않는다", async () => {
     const { spies } = renderHub({ seed });
     const hub = await findHub();
     // 요약이 그려진 뒤(개수는 가리지 않는다)에 본다. 로딩 중이면 금액이 없어 거짓 통과한다
@@ -323,13 +323,12 @@ describe("AC-6 가리기(privacy-mode 읽기만)", () => {
       expect(within(card("home")).getByText(/우리 집 · 지출 예정/)).toBeInTheDocument(),
     );
 
-    expect(hub.innerHTML).not.toContain("1,530");
     expect(hub.innerHTML).not.toContain("12억");
     expect(hub.innerHTML).not.toContain("125,000");
     expect(summaryOf("calculator").textContent).toBe("작성 중 · 매매가 •••가려짐");
-    expect(summaryOf("home").textContent).toBe("우리 집 · 지출 예정 •••가려짐");
+    expect(summaryOf("home").textContent).toBe("우리 집 · 지출 예정 15,300,000원");
     expect(within(card("calculator")).getByText("•••")).toHaveAttribute("aria-hidden", "true");
-    expect(within(card("home")).getByText("가려짐")).toBeInTheDocument();
+    expect(within(card("home")).queryByText("가려짐")).not.toBeInTheDocument();
     // 홈에는 가리기 토글이 없다(U11)
     expect(within(hub).queryAllByRole("button")).toEqual([]);
     // 가리기 원문은 읽기만(로그아웃 확인 뒤 session-hint 정리 외 쓰기 없음)

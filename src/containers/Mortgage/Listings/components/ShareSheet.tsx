@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import Sheet from "@/components/Sheet";
+import bodyStyles from "@/components/SheetBody.module.css";
 import { ApiRequestError } from "@/lib/api/client";
 import { SHARE_MAX_LISTINGS } from "@/lib/constants/share";
 
@@ -73,7 +74,9 @@ function ShareSheet({ target, sentShareStore, onClose }: ShareSheetProps) {
       return <ShareLinkResult share={createShare.data} sentShareStore={sentShareStore} />;
     }
     if (isOverLimit) {
-      return <p className={styles.notice}>한 번에 {SHARE_MAX_LISTINGS}개까지 공유할 수 있습니다</p>;
+      return (
+        <p className={bodyStyles.notice}>한 번에 {SHARE_MAX_LISTINGS}개까지 공유할 수 있습니다</p>
+      );
     }
     return (
       <>
@@ -91,19 +94,19 @@ function ShareSheet({ target, sentShareStore, onClose }: ShareSheetProps) {
                 onChange={(event) => setIncludeMemo(event.target.checked)}
               />
             </label>
-            <p id={MEMO_HINT_ID} className={styles.hint}>
+            <p id={MEMO_HINT_ID} className={bodyStyles.hint}>
               끄면 메모 없이 매물 값만 보냅니다
             </p>
           </div>
         )}
         {createShare.isError && (
-          <p role="alert" className={styles.error}>
+          <p role="alert" className={bodyStyles.error}>
             {describeCreateError(createShare.error, includeMemo)}
           </p>
         )}
         <button
           type="button"
-          className={styles.primaryButton}
+          className={bodyStyles.primaryButton}
           disabled={createShare.isPending}
           onClick={handleCreate}
         >
@@ -119,7 +122,7 @@ function ShareSheet({ target, sentShareStore, onClose }: ShareSheetProps) {
 
   return (
     <Sheet title={TITLES[kind](listings)} onClose={onClose}>
-      <div className={styles.body}>{renderBody()}</div>
+      <div className={bodyStyles.body}>{renderBody()}</div>
     </Sheet>
   );
 }

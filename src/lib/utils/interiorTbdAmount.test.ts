@@ -183,14 +183,13 @@ describe("CSV — P⁺ (AC-3)", () => {
   });
 });
 
-describe("표 머리 — 지출 예정 조각에 '(금액 미정 n건 제외)'", () => {
-  it("P⁺: 조각 하나에 붙어 가리기가 조각 단위로 맞는다", () => {
+describe("표 머리 — 지출 예정 뒤에 '(금액 미정 n건 제외)'", () => {
+  it("P⁺: 지출 예정 금액 바로 뒤에 붙는다", () => {
     const heading = interiorPlanTableHeading(
       "우리 집",
       summarizeInteriorPlan(makeSimplePlanPPlus()),
       "2026-10-27",
     );
-    expect(heading.plannedTotal).toBe("지출 예정 8,000,000원(금액 미정 1건 제외)");
     expect(heading.line).toBe(
       "2026-10-27 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원(금액 미정 1건 제외) · 남은 예산 2,000,000원",
     );

@@ -10,18 +10,13 @@ import { tbdExclusionNote } from "./interiorPlanRows";
 
 import type { InteriorPlanSummary } from "./interiorPlanRows";
 
-export type InteriorPlanTableHeading = {
+type InteriorPlanTableHeading = {
   /** `{플랜 이름} 인테리어 계획`. 표의 접근 가능한 이름이기도 하다 */
   title: string;
-  /** `{today} 기준` */
-  basis: string;
-  /** `총 예산 10,000,000원`. 총 예산이 없으면 undefined */
-  budget: string | undefined;
-  /** `지출 예정 8,000,000원`(0이어도 있음). 확정 미정 줄이 있으면 뒤에 `(금액 미정 n건 제외)` — 조각 하나라 같이 가린다 */
-  plannedTotal: string;
-  /** `남은 예산 2,000,000원`, 음수면 `예산 초과 1,000,000원`. 총 예산이 없으면 undefined */
-  remaining: string | undefined;
-  /** 있는 조각을 " · "로 이은 한 줄 */
+  /**
+   * `{today} 기준 · 총 예산 · 지출 예정 · 남은 예산`(있는 조각만 " · "로 잇는다). 지출 예정은 0이어도 있고,
+   * 확정 미정 줄이 있으면 뒤에 `(금액 미정 n건 제외)`. 남은 예산이 음수면 `예산 초과`
+   */
   line: string;
 };
 
@@ -34,7 +29,7 @@ function remainingOf(remainingWon: number | null): string | undefined {
 
 /**
  * 표 머리(화면·인쇄 공통, U8): `{today} 기준 · 총 예산 · 지출 예정 · 남은 예산`(총 예산이 없으면 지출 예정만).
- * 가리기 때 화면이 금액 조각만 가릴 수 있게 조각으로도 준다. `today`는 파일 이름과 같은 렌더의 `now`에서 온다.
+ * `today`는 파일 이름과 같은 렌더의 `now`에서 온다.
  */
 export function interiorPlanTableHeading(
   planName: string,
@@ -56,10 +51,6 @@ export function interiorPlanTableHeading(
   );
   return {
     title: INTERIOR_PLAN_TABLE_HEADING.title(planName),
-    basis,
-    budget,
-    plannedTotal,
-    remaining,
     line: pieces.join(INTERIOR_PLAN_TABLE_SEPARATOR),
   };
 }

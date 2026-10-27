@@ -3,14 +3,19 @@
 // 열기만 하면 저장소에 쓰지 않고, 서버 응답(GET·PUT·POST)에 그런 견적이 와도 불러오기 실패로 떨어지지 않으며,
 // 다른 탭이 쓴 원문(`storage` 이벤트)도 손상이 아니다. 로그아웃에서 만든 P⁺·M은 로그인 이전 본문이 원문 그대로다.
 // 시드는 들여쓴 JSON이라 앱이 다시 직렬화해 쓰면 ===에서 걸린다.
+// 가리기 대조군(ADR-035 조건 6): 시드 privacy-mode "true"에서 저장 목록 [가리기] 2번 = setItem "false" → "true" 2회뿐이고,
+// [우리 집]·표·홈 단계의 privacy-mode 쓰기는 0회다.
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
+import { BUDGET_IMPORTS_STORAGE_KEY } from "@/lib/utils/budgetImportStorage";
 import { downloadTextFile } from "@/lib/utils/downloadTextFile";
 import { INTERIOR_PLAN_IMPORTS_STORAGE_KEY } from "@/lib/utils/interiorPlanImportStorage";
 import { INTERIOR_PLANS_STORAGE_KEY } from "@/lib/utils/interiorPlanStorage";
+import { LISTING_ORDER_IMPORTS_STORAGE_KEY } from "@/lib/utils/listingOrderImportStorage";
+import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
 import { PRIVACY_MODE_STORAGE_KEY } from "@/lib/utils/privacyModeStorage";
 import { SESSION_HINT_STORAGE_KEY } from "@/lib/utils/sessionHintStorage";
 import { createFakePlanApi, jsonResponse, type FakePlanApi } from "@/test/fakePlanApi";
@@ -20,6 +25,7 @@ import {
   makeSimplePlanPPlus,
   simpleTime,
 } from "@/test/interiorSimpleFixture";
+import { makeListing } from "@/test/listingFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 
 import type {
@@ -96,6 +102,25 @@ function seedOf(mode: Mode): Record<string, string> {
   };
 }
 
+/** 저장 목록 [가리기]가 보이려면 매물이 하나 있어야 한다(로그아웃은 로컬, 로그인은 서버 목록) */
+const listing = () => makeListing({ id: "listing-1", name: "래미안 84" });
+
+/**
+ * 순회 시드: 가리기를 켜 둔 브라우저(privacy-mode "true"). 로그아웃은 로컬 매물 하나를 더 두고, 혼자는 저장 목록이 여는
+ * 예산·순서 이전도 이 계정으로 끝난 기록을 둔다(저장 목록을 지나도 이전 기록을 새로 쓰지 않게)
+ */
+function walkSeedOf(mode: Mode): Record<string, string> {
+  const extra: Record<Mode, Record<string, string>> = {
+    loggedOut: { [LISTINGS_STORAGE_KEY]: JSON.stringify([listing()], null, 2) },
+    solo: {
+      [BUDGET_IMPORTS_STORAGE_KEY]: JSON.stringify(["user-a"]),
+      [LISTING_ORDER_IMPORTS_STORAGE_KEY]: JSON.stringify(["user-a"]),
+    },
+    household: {},
+  };
+  return { ...seedOf(mode), ...extra[mode], [PRIVACY_MODE_STORAGE_KEY]: "true" };
+}
+
 /** 허용된 쓰기: 로그인 힌트와 가리기 토글(privacy-mode) 뿐. 그 밖의 키·`interior-plans`는 0회 */
 const ALLOWED_KEYS = new Set([SESSION_HINT_STORAGE_KEY, PRIVACY_MODE_STORAGE_KEY]);
 
@@ -105,11 +130,16 @@ type Spies = {
   clear: { mock: { calls: unknown[][] } };
 };
 
+/** 저장 목록 [가리기] 끄기 → 켜기 뒤 */
+const PRIVACY_TOGGLED = ["false", "true"] as const;
+
+/** privacy-mode 쓰기는 정확히 `privacyWrites`(순서대로)이고 원문은 마지막으로 쓴 값(쓰지 않았으면 시드) */
 function expectNoPlanWrites(
   storage: Storage,
   spies: Spies,
   seed: Record<string, string>,
   step: string,
+  privacyWrites: readonly string[] = [],
 ) {
   const touched = [
     ...spies.setItem.mock.calls.map(([key]) => `setItem ${String(key)}`),
@@ -121,7 +151,17 @@ function expectNoPlanWrites(
     storage.getItem(INTERIOR_PLANS_STORAGE_KEY) === seed[INTERIOR_PLANS_STORAGE_KEY],
     step,
   ).toBe(true);
-  for (const [key, value] of Object.entries(seed)) {
+  expect(
+    spies.setItem.mock.calls
+      .filter(([key]) => key === PRIVACY_MODE_STORAGE_KEY)
+      .map(([, value]) => String(value)),
+    `${step}: privacy-mode 쓰기`,
+  ).toEqual(privacyWrites);
+  const expected = {
+    ...seed,
+    [PRIVACY_MODE_STORAGE_KEY]: privacyWrites.at(-1) ?? seed[PRIVACY_MODE_STORAGE_KEY],
+  };
+  for (const [key, value] of Object.entries(expected)) {
     if (key === SESSION_HINT_STORAGE_KEY) continue;
     expect(storage.getItem(key) === value, `${step}: ${key}`).toBe(true);
   }
@@ -153,61 +193,65 @@ async function pickPlan(user: ReturnType<typeof userEvent.setup>, name: RegExp, 
   await waitFor(() => expect(window.location.hash).toBe(hash));
 }
 
-/** 홈 → P⁺(R6 시트·표·CSV·인쇄·가리기) → M(M2 시트) → 0원 계획 → 홈. 단계마다 check */
+/** 홈 → 저장 목록 [가리기] 끄기·켜기 → P⁺(R6 시트·표·CSV·인쇄) → M(M2 시트) → 0원 계획 → 홈. 단계마다 check */
 async function walk(
   user: ReturnType<typeof userEvent.setup>,
   api: FakePlanApi,
-  check: (step: string) => void,
+  check: (step: string, privacyWrites?: readonly string[]) => void,
 ) {
   await expectHub();
   await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
   check("홈");
 
+  await user.click(tab("매물"));
+  const privacyButton = await screen.findByRole("button", { name: "가리기" });
+  expect(privacyButton).toHaveAttribute("aria-pressed", "true");
+  check("저장 목록");
+  await user.click(privacyButton);
+  expect(privacyButton).toHaveAttribute("aria-pressed", "false");
+  check("저장 목록 가리기 끄기", ["false"]);
+  await user.click(privacyButton);
+  expect(privacyButton).toHaveAttribute("aria-pressed", "true");
+  check("저장 목록 가리기 켜기", PRIVACY_TOGGLED);
+
   await pickPlan(user, /^우리 집/, "#/home/plan-simple");
   const r6Open = await screen.findByRole("button", { name: "조명 빛나라조명 거실 매입등 열기" });
   expect(r6Open).toHaveTextContent("미정");
   expect(within(summaryRegion()).getByText("금액 미정 1건 제외")).toBeInTheDocument();
-  check("P⁺ 목록");
+  check("P⁺ 목록", PRIVACY_TOGGLED);
 
   await user.click(r6Open);
   const r6Sheet = screen.getByRole("dialog", { name: "줄" });
   expect(within(r6Sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("");
-  check("R6 시트 열기");
+  check("R6 시트 열기", PRIVACY_TOGGLED);
   await user.click(within(r6Sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  check("R6 시트 닫기");
+  check("R6 시트 닫기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("radio", { name: "표" }));
   expect(await screen.findByRole("table", { name: "우리 집 인테리어 계획" })).toBeInTheDocument();
-  check("표");
+  check("표", PRIVACY_TOGGLED);
   await user.click(screen.getByRole("button", { name: "CSV 내려받기" }));
   await user.click(screen.getByRole("button", { name: "인쇄·PDF" }));
   expect(download).toHaveBeenCalledTimes(1);
   expect(window.print).toHaveBeenCalledTimes(1);
-  check("CSV·인쇄");
-
-  await user.click(screen.getByRole("button", { name: "가리기" }));
-  expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
-  check("가리기 켜기");
-  await user.click(screen.getByRole("button", { name: "가리기" }));
-  expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "false");
-  check("가리기 끄기");
+  check("CSV·인쇄", PRIVACY_TOGGLED);
   await user.click(screen.getByRole("radio", { name: "목록" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-simple"));
-  check("목록");
+  check("목록", PRIVACY_TOGGLED);
 
   await pickPlan(user, /^섞인 집/, "#/home/plan-m");
   const m2Open = await screen.findByRole("button", { name: "욕실 하루바스 열기" });
   expect(m2Open).toHaveTextContent("1,234,500원");
   expect(headlineValue("지출 예정")).toBe("10,469,500원");
-  check("M 목록");
+  check("M 목록", PRIVACY_TOGGLED);
   await user.click(m2Open);
   const m2Sheet = screen.getByRole("dialog", { name: "줄" });
   expect(within(m2Sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("1,234,500");
-  check("M2 시트 열기");
+  check("M2 시트 열기", PRIVACY_TOGGLED);
   await user.click(within(m2Sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  check("M2 시트 닫기");
+  check("M2 시트 닫기", PRIVACY_TOGGLED);
 
   await pickPlan(user, /^셀프 집/, "#/home/plan-zero");
   expect(await screen.findByRole("button", { name: "도배 셀프도배 열기" })).toHaveTextContent(
@@ -217,11 +261,11 @@ async function walk(
   expect(headlineValue("지출 예정")).toBe("0원");
   expect(headlineValue("남은 예산")).toBe("1원");
   expect(within(summaryRegion()).queryByText(/미정/)).not.toBeInTheDocument();
-  check("0원 계획");
+  check("0원 계획", PRIVACY_TOGGLED);
 
   await user.click(tab("홈"));
   await expectHub();
-  check("다시 홈");
+  check("다시 홈", PRIVACY_TOGGLED);
 }
 
 beforeEach(() => {
@@ -241,7 +285,7 @@ describe("AC-0(b) 미정·0원·원 키 계획을 열기만 하면 저장소 쓰
     ["solo", "로그인 혼자(서버 GET이 같은 세 계획 — 응답 파서가 미정·0·원 키를 받는다)"],
     ["household", "가구(서버 GET이 같은 세 계획)"],
   ])("%s — %s: 순회 내내 interior-plans 원문 ===, 서버 쓰기 0건", async (mode) => {
-    const seed = seedOf(mode);
+    const seed = walkSeedOf(mode);
     const storage = createMemoryStorage(seed);
     const spies = {
       setItem: vi.spyOn(storage, "setItem"),
@@ -253,11 +297,17 @@ describe("AC-0(b) 미정·0원·원 키 계획을 열기만 하면 저장소 쓰
       isInHousehold: mode === "household",
       plans: mode === "loggedOut" ? [] : seedPlans(),
     });
+    api.server.respond = (call) =>
+      call.method === "GET" && call.path === "/api/listings"
+        ? jsonResponse(200, { listings: [listing()] })
+        : undefined;
     const user = userEvent.setup();
     window.location.hash = "#/";
     render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
 
-    await walk(user, api, (step) => expectNoPlanWrites(storage, spies, seed, step));
+    await walk(user, api, (step, privacyWrites) =>
+      expectNoPlanWrites(storage, spies, seed, step, privacyWrites),
+    );
 
     expect(api.writes()).toEqual([]);
     expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();

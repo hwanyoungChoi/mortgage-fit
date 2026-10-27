@@ -43,12 +43,3 @@
   font-weight: 600;
   white-space: nowrap;
 }
-
-.privacyButton {
-  composes: headerButton;
-}
-
-.privacyButton[aria-pressed="true"] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}

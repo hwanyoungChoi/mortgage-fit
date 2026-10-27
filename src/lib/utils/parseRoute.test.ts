@@ -34,7 +34,7 @@ describe("toRoutePath 정규 경로", () => {
     expect(toRoutePath({ name: "calculator" })).toBe("#/calculator");
     expect(toRoutePath({ name: "listings" })).toBe("#/listings");
     expect(PATHS.calculator).toBe("#/calculator");
-    expect(PATHS.listings()).toBe("#/listings");
+    expect(PATHS.listings).toBe("#/listings");
   });
 
   // useHashRoute는 현재 해시와 이 값이 다르면 replace한다.

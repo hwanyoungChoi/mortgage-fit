@@ -122,16 +122,16 @@ describe("기존 링크 통합 표 (AC-1)", () => {
     ["cancelled", "로그인을 취소했습니다"],
     ["notConfigured", "로그인을 준비 중입니다"],
   ])(
-    "#/listings?login=%s → 저장 목록 + 안내 한 번, 안내 뒤 #/listings(replace), 선택 탭 매물",
+    "#/?login=%s → 홈 + 안내 한 번, 안내 뒤 #/(replace), 선택 탭 홈 (로그인 복귀는 홈, hub-account AC-2)",
     async (login, message) => {
-      const { historyLength } = renderApp(`#/listings?login=${login}`);
+      const { historyLength } = renderApp(`#/?login=${login}`);
 
-      await expectScreen("listings");
+      await expectScreen("hub");
       expect(await screen.findByText(message)).toBeInTheDocument();
       expect(screen.getAllByText(message)).toHaveLength(1);
-      await waitFor(() => expect(window.location.hash).toBe("#/listings"));
+      await waitFor(() => expect(window.location.hash).toBe("#/"));
       expect(window.history.length).toBe(historyLength);
-      expect(currentTabs()).toEqual(["매물"]);
+      expect(currentTabs()).toEqual(["홈"]);
     },
   );
 });

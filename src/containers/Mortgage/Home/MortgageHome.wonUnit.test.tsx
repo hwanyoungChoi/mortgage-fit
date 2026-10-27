@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // ADR-034 조건 8·9(qa Q4·Q10) 화면(로그아웃, 예시 M): 옛 키(만원)와 원 키가 섞인 계획을 목록·요약·표·CSV가 같은 숫자의
-// "1,234,500원" 형식으로 보인다. 가리기 중에는 원 숫자가 innerHTML·aria-label에 없다(목록·요약·표, 허브는
+// "1,234,500원" 형식으로 보인다. 저장 목록에서 가리기를 켜 둬도 원 숫자는 그대로 보인다(목록·요약·표, 허브는
 // MortgageHub.wonUnit.test.tsx). 미정 줄에는 "0원"이 없고, 금액 0 줄은 "0원"이다. 열기만 하면 저장소에 쓰지 않는다.
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -24,8 +24,8 @@ const download = vi.mocked(downloadTextFile);
 const M_HASH = "#/home/plan-m";
 const M_TABLE_HASH = "#/home/plan-m?view=table";
 const TBD_NOTE = "금액 미정 1건 제외";
-/** M의 원 숫자(줄 금액·지출 예정·초과·총 예산). 가리기 중에는 어느 것도 DOM에 없다 */
-const WON_SECRETS = [
+/** M의 원 숫자(줄 금액·지출 예정·초과·총 예산). 저장 목록에서 가리기를 켜 둬도 모두 보인다 */
+const WON_NUMBERS = [
   "8,000,000",
   "1,234,500",
   "1,235,000",
@@ -83,15 +83,6 @@ const planMWith = (budgets: Pick<InteriorPlanWithItems, "budget" | "budgetWon">)
   void budget;
   return { ...rest, ...budgets };
 };
-
-/** 원 숫자가 innerHTML과 모든 aria-label에 없다 */
-function expectNoWonSecrets(container: HTMLElement) {
-  for (const secret of WON_SECRETS) expect(container.innerHTML).not.toContain(secret);
-  for (const element of container.querySelectorAll("[aria-label]")) {
-    const label = element.getAttribute("aria-label") ?? "";
-    for (const secret of WON_SECRETS) expect(label).not.toContain(secret);
-  }
-}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -189,29 +180,20 @@ describe("표 보기·CSV (예시 M, 기기 날짜 2026-10-27)", () => {
   });
 });
 
-describe("가리기 (예시 M, 목록·표 두 보기)", () => {
+describe("저장 목록에서 가리기를 켜 둬도 우리 집 원 숫자는 그대로 (예시 M, 목록·표, AC-5)", () => {
   it.each([
     ["목록", M_HASH],
     ["표", M_TABLE_HASH],
-  ])("%s 보기: 원 숫자가 innerHTML·aria-label에 없고 요약은 •••가려짐", async (_view, hash) => {
+  ])("%s 보기: 원 숫자가 보이고 요약도 원 금액, [가리기]가 없다", async (_view, hash) => {
     const { container } = await renderLoggedOut(
       storageWith([makePlanM()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
       hash,
     );
-    expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
-    expectNoWonSecrets(container);
-    expect(headlineValue("지출 예정")).toBe("•••가려짐");
-    expect(headlineValue("남은 예산")).toBe("예산 초과 •••가려짐");
-    expect(detailValue("총 예산")).toBe("•••가려짐");
-  });
-
-  it("가리기를 끄면 같은 숫자가 다시 보인다", async () => {
-    const user = userEvent.setup();
-    const { container } = await renderLoggedOut(
-      storageWith([makePlanM()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
-    );
-    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
+    for (const won of WON_NUMBERS) expect(container.innerHTML, won).toContain(won);
+    expect(container.innerHTML).not.toContain("가려짐");
     expect(headlineValue("지출 예정")).toBe("10,469,500원");
-    expect(container.innerHTML).toContain("1,234,500원");
+    expect(headlineValue("남은 예산")).toBe("예산 초과 469,500원");
+    expect(detailValue("총 예산")).toBe("10,000,000원");
   });
 });

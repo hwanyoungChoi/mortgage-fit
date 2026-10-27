@@ -22,7 +22,7 @@ type TabNavProps = {
 const TABS: Record<TabName, { label: string; href: string; Icon: LucideIcon }> = {
   hub: { label: "홈", href: PATHS.hub, Icon: House },
   calculator: { label: "계산", href: PATHS.calculator, Icon: Calculator },
-  listings: { label: "매물", href: PATHS.listings(), Icon: Bookmark },
+  listings: { label: "매물", href: PATHS.listings, Icon: Bookmark },
   /** 라벨은 "우리 집"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
   home: { label: "우리 집", href: PATHS.home(), Icon: PaintRoller },
 };

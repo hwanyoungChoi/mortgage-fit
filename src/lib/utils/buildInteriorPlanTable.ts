@@ -11,13 +11,13 @@ export type InteriorPlanTableAmount = number | "tbd" | undefined;
 export type InteriorPlanTableRow = {
   /** 견적의 업체. 견적 없는 줄은 "" */
   vendor: string;
-  /** 세부내용 = 견적 메모. 없으면 "" (가리기 때 가린다) */
+  /** 세부내용 = 견적 메모. 없으면 "" */
   detail: string;
   /** 견적 금액(원). 금액 미정이면 "tbd", 견적 없는 줄은 undefined */
   quoteWon: InteriorPlanTableAmount;
   /** 확정한 줄의 견적 금액(원, 미정이면 "tbd"). 미확정이면 undefined */
   confirmedWon: InteriorPlanTableAmount;
-  /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산. 없으면 "" (가리기 때 통째로 가린다) */
+  /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산. 없으면 "" */
   note: string;
 };
 

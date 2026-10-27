@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 // 스펙 interior-simple AC-0(d)(ADR-032 조건 3): 새 [우리 집] 화면은 열기만 하면 저장소에 쓰지 않는다.
 // 시드: 기존 14개 키 전부, `interior-plans`는 들여쓴 JSON(옛 계획 L + 옛 P) — 앱이 다시 직렬화해 쓰면 ===에서 걸린다.
-// 단계: 홈 → [우리 집] → 계획 L 목록 → 줄 시트 열었다 닫기 → [표] → CSV·인쇄 → 가리기 켜기/끄기 → [목록] → [홈] → 뒤로 가기.
-// 단계마다 허용 목록 밖 setItem·removeItem·clear 0회, session-hint 외 13개 키 원문 ===(가리기 중 privacy-mode만 예외), 새 키 0개.
+// 단계: 홈 → [매물] 저장 목록 [가리기] 끄기/켜기 → [우리 집] → 계획 L 목록 → 줄 시트 열었다 닫기 → [표] → CSV·인쇄 → [목록]
+// → [홈] → 뒤로 가기. 단계마다 허용 목록 밖 setItem·removeItem·clear 0회, session-hint 외 13개 키 원문 ===, 새 키 0개.
+// 가리기 대조군(ADR-035 조건 6): 시드가 켜짐("true")이라 저장 목록 [가리기] 2번은 끄기 → 켜기이고 쓰기는
+// setItem(privacy-mode, "false") → setItem(privacy-mode, "true") 순서의 2회다. [우리 집]·표·홈 단계의 privacy-mode 쓰기는 0회다.
 // 모드: 로그아웃(주입 스파이 · Storage.prototype 스파이) / 로그인 혼자(서버 GET이 L) / 가구 — 로그인·가구는 서버 쓰기 0건.
 // 대조군(스파이가 살아 있음): 순회 뒤 L의 욕실나라 체크 1번 → 로컬 setItem 정확히 1회 또는 PUT 정확히 1건, 그 항목 외 값 그대로.
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -26,7 +28,7 @@ import { SENT_SHARES_STORAGE_KEY } from "@/lib/utils/sentShareStorage";
 import { SESSION_HINT_STORAGE_KEY } from "@/lib/utils/sessionHintStorage";
 import { TEXT_SIZE_STORAGE_KEY } from "@/lib/utils/textSizeStorage";
 import { TRADE_LOOKUP_STORAGE_KEY } from "@/lib/utils/tradeLookupStorage";
-import { createFakePlanApi, type FakePlanApi } from "@/test/fakePlanApi";
+import { createFakePlanApi, jsonResponse, type FakePlanApi } from "@/test/fakePlanApi";
 import { makePlanP } from "@/test/interiorPlanFixture";
 import { legacyX, makePlanL } from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
@@ -87,7 +89,7 @@ function seed14(mode: Mode): Record<string, string> {
     [LISTING_ORDER_STORAGE_KEY]: json(["listing-1"]),
     [LISTING_ORDER_IMPORTS_STORAGE_KEY]: json([owner]),
     [LISTINGS_STORAGE_KEY]: json([makeListing({ id: "listing-1", name: "래미안 84" })]),
-    [PRIVACY_MODE_STORAGE_KEY]: "false",
+    [PRIVACY_MODE_STORAGE_KEY]: "true",
     [SENT_SHARES_STORAGE_KEY]: json([
       {
         token: "AbCdEfGhIjKlMnOpQrStUv",
@@ -139,23 +141,39 @@ function writesSince(before: string[], after: string[]) {
 const keysOf = (storage: Storage) =>
   Array.from({ length: storage.length }, (_, index) => storage.key(index) ?? "");
 
-type Check = (step: string, privacy?: "true" | "false") => void;
+/** 그때까지 일어났어야 할 privacy-mode 쓰기 값(순서대로) */
+type Check = (step: string, privacyWrites?: readonly string[]) => void;
 
-/** 체크포인트 한 번: 허용 밖 쓰기 0회, 13개 키 원문 ===(가리기 중이면 privacy-mode는 "true"), 키 집합 불변 */
+/** 저장 목록 [가리기] 끄기 → 켜기 뒤 */
+const PRIVACY_TOGGLED = ["false", "true"] as const;
+
+const privacyWritesOf = ({ setItem }: WriteSpies) =>
+  setItem.mock.calls
+    .filter(([key]) => key === PRIVACY_MODE_STORAGE_KEY)
+    .map(([, value]) => String(value));
+
+/**
+ * 체크포인트 한 번: 허용 밖 쓰기 0회, privacy-mode 쓰기는 정확히 `privacyWrites`, 13개 키 원문 ===
+ * (privacy-mode는 마지막으로 쓴 값, 쓰지 않았으면 시드), 키 집합 불변
+ */
 function expectUntouched(
   storage: Storage,
   spies: WriteSpies,
   seed: Record<string, string>,
   mode: Mode,
   step: string,
-  privacy: "true" | "false" = "false",
+  privacyWrites: readonly string[] = [],
 ) {
   const allowed = new Set(ALLOWED_WRITES[mode]);
   expect(
     writesOf(spies).filter((write) => !allowed.has(write)),
     step,
   ).toEqual([]);
-  const expected: Record<string, string> = { ...seed, [PRIVACY_MODE_STORAGE_KEY]: privacy };
+  expect(privacyWritesOf(spies), `${step}: privacy-mode 쓰기`).toEqual(privacyWrites);
+  const expected: Record<string, string> = {
+    ...seed,
+    [PRIVACY_MODE_STORAGE_KEY]: privacyWrites.at(-1) ?? seed[PRIVACY_MODE_STORAGE_KEY],
+  };
   for (const key of NON_HINT_KEYS) {
     expect(storage.getItem(key) === expected[key], `${step}: ${key}`).toBe(true);
   }
@@ -168,11 +186,17 @@ function expectUntouched(
 }
 
 function stubApi(mode: Mode) {
-  return createFakePlanApi({
+  const api = createFakePlanApi({
     userId: USER_ID[mode],
     isInHousehold: mode === "household",
     plans: mode === "loggedOut" ? [] : seedPlans(),
   });
+  // 로그인이면 서버 목록에도 매물이 있어야 저장 목록 [가리기]가 보인다(로그아웃은 시드한 로컬 매물)
+  api.server.respond = (call) =>
+    call.method === "GET" && call.path === "/api/listings"
+      ? jsonResponse(200, { listings: [makeListing({ id: "listing-1", name: "래미안 84" })] })
+      : undefined;
+  return api;
 }
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -208,59 +232,63 @@ async function walk(user: User, api: FakePlanApi, check: Check) {
   await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
   check("홈 첫 화면");
 
+  await user.click(tab("매물"));
+  const privacyButton = await screen.findByRole("button", { name: "가리기" });
+  expect(privacyButton).toHaveAttribute("aria-pressed", "true");
+  check("탭 [매물] 저장 목록");
+  await user.click(privacyButton);
+  expect(privacyButton).toHaveAttribute("aria-pressed", "false");
+  check("저장 목록 가리기 끄기", ["false"]);
+  await user.click(privacyButton);
+  expect(privacyButton).toHaveAttribute("aria-pressed", "true");
+  check("저장 목록 가리기 켜기", PRIVACY_TOGGLED);
+
   await user.click(tab("우리 집"));
   expect(await screen.findByRole("heading", { name: "계획 고르기" })).toBeInTheDocument();
-  check("탭 [우리 집] 계획 고르기");
+  check("탭 [우리 집] 계획 고르기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("link", { name: /옛 계획/ }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-l"));
   await expectPlanLList();
-  check("계획 L 목록");
+  check("계획 L 목록", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("button", { name: "욕실 욕실나라 열기" }));
   const sheet = screen.getByRole("dialog", { name: "줄" });
   expect(within(sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("4,000,000");
-  check("줄 시트 열기");
+  check("줄 시트 열기", PRIVACY_TOGGLED);
   await user.click(within(sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  check("줄 시트 닫기");
+  check("줄 시트 닫기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("radio", { name: "표" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-l?view=table"));
   expect(screen.getByRole("table", { name: "옛 계획 인테리어 계획" })).toBeInTheDocument();
-  check("[표]");
+  check("[표]", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("button", { name: "CSV 내려받기" }));
   await user.click(screen.getByRole("button", { name: "인쇄·PDF" }));
   expect(download).toHaveBeenCalledTimes(1);
   expect(window.print).toHaveBeenCalledTimes(1);
-  check("CSV·인쇄");
-
-  await user.click(screen.getByRole("button", { name: "가리기" }));
-  expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
-  check("가리기 켜기", "true");
-  await user.click(screen.getByRole("button", { name: "가리기" }));
-  expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "false");
-  check("가리기 끄기");
+  check("CSV·인쇄", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("radio", { name: "목록" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-l"));
   await expectPlanLList();
-  check("[목록]");
+  check("[목록]", PRIVACY_TOGGLED);
 
   await user.click(tab("홈"));
   await expectHubPlanLines();
-  check("탭 [홈]");
+  check("탭 [홈]", PRIVACY_TOGGLED);
 
   // 탭은 replace로 옮기므로(TabNav) 뒤로 가면 계획 L 링크를 누르기 전 자리(#/home 계획 고르기)다
   window.history.back();
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   expect(await screen.findByRole("heading", { name: "계획 고르기" })).toBeInTheDocument();
-  check("뒤로 가기");
+  check("뒤로 가기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("link", { name: /옛 계획/ }));
   await expectPlanLList();
-  check("다시 계획 L");
+  check("다시 계획 L", PRIVACY_TOGGLED);
 }
 
 /** 대조군: L의 욕실나라를 체크해 X의 확정을 q2로 옮긴 값(그 밖의 키는 그대로) */
@@ -330,8 +358,8 @@ describe("AC-0(d) 새 우리 집을 열기만 하면 기존 14개 키는 그대�
     window.location.hash = "#/";
     render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
 
-    await walk(user, api, (step, privacy) =>
-      expectUntouched(storage, spies, seed, mode, step, privacy),
+    await walk(user, api, (step, privacyWrites) =>
+      expectUntouched(storage, spies, seed, mode, step, privacyWrites),
     );
 
     // 이전은 일어나지 않았고(이전 끝남·가구 건너뜀·로그아웃) 서버 쓰기 0건
@@ -390,8 +418,8 @@ describe("AC-0(d) 주입 경로를 우회하는 직접 쓰기 (jsdom localStorag
     window.location.hash = "#/";
     render(<AppRoutes />, { wrapper: api.wrapper });
 
-    await walk(user, api, (step, privacy) =>
-      expectUntouched(localStorage, spies, seed, "loggedOut", step, privacy),
+    await walk(user, api, (step, privacyWrites) =>
+      expectUntouched(localStorage, spies, seed, "loggedOut", step, privacyWrites),
     );
     expect(new Set(writesOf(spies))).toEqual(new Set(ALLOWED_WRITES.loggedOut));
 

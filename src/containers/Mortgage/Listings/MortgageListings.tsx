@@ -1,28 +1,23 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import KakaoLoginLink from "@/components/KakaoLoginLink";
 import { useListingSource } from "@/hooks/useListingSource";
-import { useLogout } from "@/hooks/useLogout";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
-import { ApiRequestError } from "@/lib/api/client";
 import { PATHS } from "@/lib/constants/paths";
+import { accountImportProblem } from "@/lib/utils/accountImportProblem";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
 import { sortListings } from "@/lib/utils/sortListings";
 
 import styles from "./MortgageListings.module.css";
-import { accountImportProblem } from "./accountImportProblem";
 import { budgetExcess } from "./budgetExcess";
 import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import HeaderNotices from "./components/HeaderNotices";
-import HouseholdSheet from "./components/HouseholdSheet";
 import { type ListingStatusFailure } from "./components/ListingCard";
 import ListingStatusSheet from "./components/ListingStatusSheet";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
-import { useLeaveHousehold } from "./hooks/useLeaveHousehold";
 import { useListingOrderSource } from "./hooks/useListingOrderSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 
@@ -42,7 +37,6 @@ import type {
 } from "@/lib/types/listingOrder";
 import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { Regulations } from "@/lib/types/regulation";
-import type { LoginResult } from "@/lib/types/route";
 import type { SentShareStore } from "@/lib/types/sentShare";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
 
@@ -63,8 +57,6 @@ type MortgageListingsProps = {
   /** 가리기 모드(이 기기). 켜면 금액과 메모를 가린다. */
   privacyModeStore: PrivacyModeStore;
   regulations: Regulations;
-  /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 제목 아래 안내로 보이고 주소에서 지운다. */
-  login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
   onSuggestedNameChange: (name: string) => void;
   /** 다른 화면이나 이전이 남긴 알림(공유받은 매물 추가, 계정으로 옮김). 한 번만 보인다. */
@@ -114,30 +106,12 @@ const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
   network: "상태를 바꾸지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
-/** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기, 함께 쓰기 */
-type ListingsSheet =
-  | { name: "share"; target: ShareTarget }
-  | { name: "status"; listing: Listing }
-  | { name: "household" };
-
-/**
- * 나가기 확인(스펙 시나리오 6, ADR-028 조건 5·개정). 초대한 사람인지 받은 사람인지 계약(`Household`)에 없어 두 경우를 함께 쓴다.
- */
-const LEAVE_CONFIRM_MESSAGE = [
-  "함께 쓰기에서 나갈까요?",
-  "",
-  "초대받아 참여했다면: 내가 원래 쓰던 목록과 예산·순서가 돌아옵니다. 함께 쓰는 동안 내가 넣은 매물은 가져갑니다.",
-  "",
-  "초대했다면: 함께 쓰던 목록과 예산·순서를 그대로 씁니다. 상대가 넣은 매물은 상대에게 갑니다.",
-  "",
-  "인테리어 계획: 함께 쓰는 동안 상대가 내 계획에 넣은 항목은 내 계획과 함께 나가고, 내가 상대 계획에 넣은 항목은 그 계획에 남습니다.",
-  "",
-  "상대가 지운 매물은 돌아오지 않습니다.",
-].join("\n");
+/** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기 */
+type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; listing: Listing };
 
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
-const LOGOUT_DESCRIPTION_ID = "logout-description";
+const PRIVACY_DESCRIPTION_ID = "listings-privacy-description";
 
 /**
  * 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007).
@@ -155,7 +129,6 @@ function MortgageListings({
   sentShareStore,
   privacyModeStore,
   regulations,
-  login,
   onSuggestedNameChange,
   notice,
   onNoticeChange,
@@ -190,17 +163,9 @@ function MortgageListings({
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const sheet = useOpenSheet<ListingsSheet>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
-  const householdButtonRef = useRef<HTMLButtonElement>(null);
-  const logout = useLogout(sessionHintStore);
-  const leaveHousehold = useLeaveHousehold();
-  const { household } = source;
-  // 함께 쓰기는 출처가 정해진 뒤에만 보인다(로그아웃이면 시트가 로그인을 안내한다).
-  const canUseHousehold = source.status === "loggedIn" || source.status === "loggedOut";
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
   const [shownNotice, setShownNotice] = useState(notice);
-  // 로그인 결과도 한 번 잡은 뒤 주소에서 지운다. 새로고침해도 안내가 다시 뜨지 않는다.
-  const [loginResult] = useState(login);
   useListingsScrollRestoration();
 
   useEffect(() => {
@@ -208,10 +173,6 @@ function MortgageListings({
     setShownNotice(notice);
     onNoticeChange(null);
   }, [notice, onNoticeChange]);
-
-  useEffect(() => {
-    if (login !== undefined) window.location.replace(PATHS.listings());
-  }, [login]);
 
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
@@ -298,23 +259,6 @@ function MortgageListings({
     );
   };
 
-  const handleHouseholdOpen = () => {
-    sheet.open({ name: "household" }, householdButtonRef.current);
-  };
-
-  /** 나가면 목록·예산·순서가 각자 것으로 돌아간다(훅이 다시 조회한다). 401은 제목 아래 안내가 알린다. */
-  const handleLeave = () => {
-    if (!window.confirm(LEAVE_CONFIRM_MESSAGE)) return;
-    setWriteError(null);
-    leaveHousehold.mutate(undefined, {
-      onSuccess: () => setShownNotice("함께 쓰기에서 나왔습니다"),
-      onError: (error) => {
-        if (error instanceof ApiRequestError && error.status === 401) source.expireSession();
-        else setWriteError("함께 쓰기에서 나가지 못했습니다. 연결을 확인하고 다시 시도해 주세요");
-      },
-    });
-  };
-
   const handleStatusOpen = (listing: Listing, returnFocusTo: HTMLElement | null) => {
     sheet.open({ name: "status", listing }, returnFocusTo);
   };
@@ -342,16 +286,6 @@ function MortgageListings({
         <ShareSheet
           target={openSheet.target}
           sentShareStore={sentShareStore}
-          onClose={sheet.close}
-        />
-      );
-    }
-    if (openSheet.name === "household") {
-      return (
-        <HouseholdSheet
-          status={source.status}
-          household={household}
-          onUnauthorized={source.expireSession}
           onClose={sheet.close}
         />
       );
@@ -497,7 +431,7 @@ function MortgageListings({
     <>
       <div className={styles.page} inert={sheet.isOpen}>
         <header className={styles.header}>
-          {/* 버튼이 제목과 한 줄에 다 들어가지 않으면(360px 로그아웃 상태 등) 제목 아래 줄로 내려간다. */}
+          {/* 버튼이 제목과 한 줄에 다 들어가지 않으면(글자 크기를 키운 경우 등) 제목 아래 줄로 내려간다. */}
           <div className={styles.titleRow}>
             <h1 className={styles.title}>저장 목록</h1>
             <div className={styles.titleActions}>
@@ -508,10 +442,15 @@ function MortgageListings({
                     type="button"
                     className={styles.privacyButton}
                     aria-pressed={isPrivacyMode}
+                    aria-describedby={PRIVACY_DESCRIPTION_ID}
                     onClick={handlePrivacyToggle}
                   >
                     가리기
                   </button>
+                  {/* 영향 범위는 화면에 쓰지 않고 보조기기에만 버튼 설명으로 읽힌다(U7). */}
+                  <span id={PRIVACY_DESCRIPTION_ID} className={styles.visuallyHidden}>
+                    이 기기에서 저장 목록의 금액과 메모를 가립니다
+                  </span>
                   <button
                     ref={shareListButtonRef}
                     type="button"
@@ -522,51 +461,6 @@ function MortgageListings({
                   </button>
                 </>
               )}
-              {canUseHousehold &&
-                (household === null ? (
-                  <button
-                    ref={householdButtonRef}
-                    type="button"
-                    className={styles.headerButton}
-                    aria-haspopup="dialog"
-                    onClick={handleHouseholdOpen}
-                  >
-                    함께 쓰기
-                  </button>
-                ) : (
-                  <span className={styles.householdGroup}>
-                    <span className={styles.householdStatus}>
-                      {household.memberCount}명이 함께 쓰는 중
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.headerButton}
-                      aria-label="함께 쓰기에서 나가기"
-                      disabled={leaveHousehold.isPending}
-                      onClick={handleLeave}
-                    >
-                      나가기
-                    </button>
-                  </span>
-                ))}
-              {source.status === "loggedOut" && <KakaoLoginLink />}
-              {source.status === "loggedIn" && (
-                <>
-                  <button
-                    type="button"
-                    className={styles.headerButton}
-                    disabled={logout.isPending}
-                    aria-describedby={LOGOUT_DESCRIPTION_ID}
-                    onClick={() => logout.mutate()}
-                  >
-                    로그아웃
-                  </button>
-                  {/* 화면에는 두지 않고 보조기기에만 버튼 설명으로 읽힌다. */}
-                  <span id={LOGOUT_DESCRIPTION_ID} className={styles.visuallyHidden}>
-                    로그아웃하면 이 기기에 있던 목록으로 돌아갑니다
-                  </span>
-                </>
-              )}
             </div>
           </div>
           <p className={styles.baseDate}>
@@ -575,10 +469,7 @@ function MortgageListings({
         </header>
         <HeaderNotices
           accountStatus={source.status}
-          loginResult={loginResult}
           isSessionExpired={source.isSessionExpired}
-          // 로그아웃 실패는 아직 로그인 상태일 때만 의미가 있다(그 뒤 세션이 끝나면 지운다).
-          isLogoutFailed={source.status === "loggedIn" && logout.isError}
           onAccountRetry={source.retry}
           isAccountRetrying={source.isRetrying}
           importProblem={importProblem}

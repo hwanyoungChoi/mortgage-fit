@@ -1,4 +1,4 @@
-// 저장 목록의 "이 기기 매물을 옮기지 못함" 안내(스펙 interior-planner 태스크 0-1·0-2, AC-10).
+// 저장 목록·홈의 "이 기기 매물을 옮기지 못함" 안내(스펙 interior-planner 태스크 0-1·0-2, AC-10, hub-account 태스크 1-2).
 import { describe, expect, it } from "vitest";
 
 import { accountImportProblem } from "./accountImportProblem";
@@ -18,6 +18,12 @@ describe("accountImportProblem", () => {
     expect(accountImportProblem({ userId: "u", status: "skipped", reason: "unavailable" })).toEqual(
       { message: expect.stringContaining("저장소") as string, canRetry: false },
     );
+  });
+
+  it("손상 안내는 로그아웃 자리(홈)를 가리킨다(hub-account AC-3)", () => {
+    expect(
+      accountImportProblem({ userId: "u", status: "skipped", reason: "corrupt" })?.message,
+    ).toContain("홈에서 로그아웃하면");
   });
 
   it("실패는 남은 개수와 함께 다시 시도할 수 있게 안내한다(기존 동작)", () => {

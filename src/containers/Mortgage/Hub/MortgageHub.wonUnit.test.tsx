@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // ADR-034 조건 8·9(qa Q4·Q10) 허브: 예시 M의 우리 집 줄은 요약·표와 같은 "지출 예정 10,469,500원 · 미정 1건"이고,
-// 가리기 중에는 원 숫자가 innerHTML·aria-label에 없다. 계산기 카드(만원)와 우리 집 줄(원)이 나란한 것은 허용한다.
+// 저장 목록에서 가리기를 켜 둬도 우리 집 줄의 원 숫자는 그대로다(U6). 계산기 카드(만원)와 우리 집 줄(원)이 나란한 것은 허용한다.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -46,15 +46,9 @@ describe("홈 허브 — 원 단위 (예시 M)", () => {
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(raw);
   });
 
-  it("가리기 중에는 원 숫자가 innerHTML·aria-label에 없다", async () => {
+  it("저장 목록에서 가리기를 켜 둬도 우리 집 줄은 원 숫자 그대로(U6)", async () => {
     renderHub([makePlanM()], { [PRIVACY_MODE_STORAGE_KEY]: "true" });
-    await expectHomeDescription("섞인 집 · 지출 예정 가려짐");
-    const main = screen.getByRole("main");
-    for (const secret of ["10,469,500", "1,234,500", "미정"]) {
-      expect(main.innerHTML).not.toContain(secret);
-      for (const element of main.querySelectorAll("[aria-label]")) {
-        expect(element.getAttribute("aria-label") ?? "").not.toContain(secret);
-      }
-    }
+    await expectHomeDescription("섞인 집 · 지출 예정 10,469,500원 · 미정 1건");
+    expect(homeCard().innerHTML).not.toContain("가려짐");
   });
 });

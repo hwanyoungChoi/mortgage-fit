@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 스펙 interior-tbd-amount 태스크 1-2 화면(로그아웃, 예시 P⁺): 목록·요약의 "미정"과 "금액 미정 n건 제외", 미정 줄 확정 체크,
-// 1단계 시트(견적 칸 빈칸·금액 없이 저장하면 필수 오류), 표 보기 칸·머리·계 비고, 가리기(목록·표 두 보기).
+// 1단계 시트(견적 칸 빈칸·금액 없이 저장하면 필수 오류), 표 보기 칸·머리·계 비고, 가리기를 켜 둬도 그대로(목록·표 두 보기).
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -242,27 +242,21 @@ describe("표 보기 (P⁺, 기기 날짜 2026-10-27)", () => {
   });
 });
 
-describe("가리기 (P⁺, 목록·표 두 보기)", () => {
-  const SECRETS = ["미정", "8,000,000원", "거실 매입등"];
+describe("저장 목록에서 가리기를 켜 둬도 우리 집은 그대로 (P⁺, 목록·표 두 보기, AC-5)", () => {
+  const VISIBLE = ["미정", "8,000,000원", "거실 매입등"];
 
   it.each([
     ["목록", P_HASH],
     ["표", TABLE_HASH],
-  ])(
-    "%s 보기: innerHTML에 '미정'·금액·세부내용이 없고, 체크 이름에도 '미정'이 없다",
-    async (_view, hash) => {
-      const { container } = await renderLoggedOut(
-        storageWith([makeSimplePlanPPlus()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
-        hash,
-      );
-      expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-      for (const secret of SECRETS) expect(container.innerHTML).not.toContain(secret);
-      for (const checkbox of screen.queryAllByRole("checkbox")) {
-        expect(checkbox.getAttribute("aria-label") ?? "").not.toContain("미정");
-      }
-    },
-  );
+  ])("%s 보기: '미정'·금액·세부내용이 보이고 가려짐·[가리기]가 없다", async (view, hash) => {
+    const { container } = await renderLoggedOut(
+      storageWith([makeSimplePlanPPlus()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
+      hash,
+    );
+    expect(screen.queryByRole("button", { name: "가리기" })).not.toBeInTheDocument();
+    for (const text of VISIBLE) expect(container.innerHTML).toContain(text);
+    expect(container.innerHTML).not.toContain("가려짐");
+    expect(within(summaryRegion()).getByText(TBD_NOTE)).toBeInTheDocument();
+    if (view === "목록") expect(check(R6_NAME)).toBeInTheDocument();
+  });
 });

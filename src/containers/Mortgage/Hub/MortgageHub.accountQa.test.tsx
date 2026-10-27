@@ -22,7 +22,8 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
-const REASON = "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 함께 볼 수 있어요";
+const REASON =
+  "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요";
 const STATUS = "카카오 계정에 저장 중";
 
 const LOGGED_IN_SEED = {
@@ -98,6 +99,9 @@ describe("홈 계정 자리 (QA 보강)", () => {
   it("로그인: 상태 줄도 카드 목록 앞이고 링크는 카드 3개뿐이다", async () => {
     renderHub({ seed: LOGGED_IN_SEED, userId: USER_ID });
     const hub = await findHub();
+    // 확인 중 자리표시자도 같은 글자를 inert 안에 숨겨 그린다(hub-account 태스크 1). jsdom의 toBeVisible은 inert를 보지 않으므로
+    // 확인이 끝난 뒤의 [로그아웃](역할 질의는 aria-hidden을 뺀다)을 먼저 기다린다. 느린 실행에서 자리표시자를 잡던 경합을 막는다.
+    await within(hub).findByRole("button", { name: "로그아웃" });
     await waitFor(() => expect(within(hub).getByText(STATUS)).toBeVisible());
 
     const status = within(hub).getByText(STATUS);

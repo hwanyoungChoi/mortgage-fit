@@ -1,5 +1,6 @@
-import LinkCopyActions from "./LinkCopyActions";
-import styles from "./ShareSheet.module.css";
+import LinkCopyActions from "@/components/LinkCopyActions";
+import styles from "@/components/SheetBody.module.css";
+
 import { useRevokeHouseholdInvite } from "../hooks/useRevokeHouseholdInvite";
 
 import type { CreateHouseholdInviteResponse } from "@/lib/types/household";
@@ -39,8 +40,8 @@ function HouseholdInviteResult({ invite }: HouseholdInviteResultProps) {
         shareTitle="모기지핏 함께 쓰는 목록 초대"
       />
       <p className={styles.hint}>
-        7일 동안 한 번 쓸 수 있습니다. 받은 사람이 카카오로 로그인해 수락하면 같은 목록을 함께
-        씁니다. 이 창을 닫으면 링크를 다시 볼 수 없어요.
+        7일 동안 한 번 쓸 수 있습니다. 받은 사람이 카카오로 로그인해 수락하면 같은 목록과 인테리어
+        계획을 함께 씁니다. 이 창을 닫으면 링크를 다시 볼 수 없어요.
       </p>
       {revokeInvite.isError && (
         <p role="alert" className={styles.error}>
