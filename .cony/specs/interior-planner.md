@@ -221,7 +221,7 @@ CREATE TABLE interior_plan_items (
   - [ ] 1-1. 계약 3파일(타입·상수·검증) 먼저 커밋. **fe·be 다음 작업은 이 커밋 뒤**. `src/lib/utils/validateInteriorPlan.ts`가 `tsconfig.worker.json` 빌드에 포함되는지 `pnpm build`로 확인 (be)
   - [ ] 1-2. 로컬 스토어(새 키, 쓰기 직전 재읽기, 손상·접근 불가 처리), `summarizeInteriorPlan`(요약·그룹 합계·할 일, `now` 주입)과 계획용 순수 함수(공간 기본값, 공종 정렬, 상태 전이, 확정 견적 삭제 시 확정 해제), 라우트 `home`(`?view=`)·탭·`TAB_ORDER` 파생, `MaskedValue` 승격, `Home` container(빈 상태·만들기·공간 편집·항목 시트·요약·공간별/공종별·할 일·공정 순서 시트·가리기) (fe)
   - [ ] 1-3. 검증 함수 경계표(최소 플랜 통과·각 상한 바로 안팎·소수 거부·공종 30자·id 유일성·시각 형식)·요약(P 값, AC-4 구분 값 두 개)·스토어(허용 목록 밖 키 `setItem` 0회)·라우트 파싱(`view`)·화면 테스트 (qa)
-- [ ] 2. 서버 저장·로그인 이전·함께 쓰기 — AC-7~9, AC-0(a)(b)(e)(f)
+- [x] 2. 서버 저장·로그인 이전·함께 쓰기 — AC-7~9, AC-0(a)(b)(e)(f)
   - [ ] 2-1. 0007(`--local` 적용 후 AC-0(a) 쿼리로 전후 비교), `PLAN_SCOPE_SQL`과 항목용 한 플랜 범위 조각, 엔드포인트 8개(봉투 `{ plan }`·`{ item }`, `import` 먼저 라우팅, 경로 id 400, id `import` 거부, POST `items` ≤30·서버 발급 id, GET 한 `db.batch`, 항목 POST 404/400 구분, import 항목 가드·상한 식·409 `inHousehold`), 검증은 알려진 키 복사·id 유일성·시각 형식·금액 `isSafeInteger`, 수락·나가기 batch 문장 추가(수락은 마지막 앞, 나가기는 맨 끝 + 이름으로 `cleared` 조회), worker 경로. 0-4 테스트와 기존 `server/**` 테스트 통과 (be)
   - [ ] 2-2. API 훅(`interiorPlanListQueryKey` 함수형, 항목 PUT·POST 응답은 `setQueryData`로 해당 항목만 갱신), 출처 훅(loading·loggedOut·loggedIn·error, `useListingSource` 규칙과 같음, 가구일 때만 30초), 로그인 이전(플랜 1개씩, 본문 실측, `Record<userId, planId[]>` 기록, **가구면 `skipped` — 0-1 규칙 그대로**, 409 `inHousehold`는 건너뜀으로 처리), 수락·나가기 훅의 무효화에 플랜 목록 키 추가, 같은 항목 동시 편집 경고(`updatedAt` 비교), 나가기 확인 문구에 항목 귀속 한 줄(U12) (fe)
   - [ ] 2-3. 하네스로 플랜 핸들러 테스트(범위·404·상한 한 문장·import 재시도(플랜 3개 상태의 같은 id → `imported: 0`)·항목 가드 변이·409 `inHousehold`·라우트 순서·CASCADE·수락 숨김/나가기 복귀·0006 시점 데이터에 0007 적용 후 기존 테스트 그대로), 출처·이전 훅 테스트 (qa)
