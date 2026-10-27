@@ -32,15 +32,18 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
 
   it("남은 예산이 정확히 0이면 '남은 예산 0원'(초과 아님)", () => {
     expect(
-      interiorPlanTableHeading("우리 집", { budget: 800, plannedTotal: 800, remaining: 0 }, TODAY)
-        .remaining,
+      interiorPlanTableHeading(
+        "우리 집",
+        { budget: 800, plannedTotal: 800, tbdCount: 0, remaining: 0 },
+        TODAY,
+      ).remaining,
     ).toBe("남은 예산 0원");
   });
 
   it("총 예산이 없으면(null) 총 예산·남은 예산 조각을 빼고 구분자가 어긋나지 않는다", () => {
     const heading = interiorPlanTableHeading(
       "우리 집",
-      { budget: null, plannedTotal: 750, remaining: null },
+      { budget: null, plannedTotal: 750, tbdCount: 0, remaining: null },
       TODAY,
     );
     expect(heading.budget).toBeUndefined();
@@ -58,11 +61,18 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
 
   it("지출 예정 0이면 '지출 예정 0원'(조각이 빠지지 않음)", () => {
     expect(
-      interiorPlanTableHeading("우리 집", { budget: null, plannedTotal: 0, remaining: null }, TODAY)
-        .line,
+      interiorPlanTableHeading(
+        "우리 집",
+        { budget: null, plannedTotal: 0, tbdCount: 0, remaining: null },
+        TODAY,
+      ).line,
     ).toBe("2026-10-27 기준 · 지출 예정 0원");
     expect(
-      interiorPlanTableHeading("우리 집", { budget: 0, plannedTotal: 0, remaining: 0 }, TODAY).line,
+      interiorPlanTableHeading(
+        "우리 집",
+        { budget: 0, plannedTotal: 0, tbdCount: 0, remaining: 0 },
+        TODAY,
+      ).line,
     ).toBe("2026-10-27 기준 · 총 예산 0원 · 지출 예정 0원 · 남은 예산 0원");
   });
 
@@ -70,7 +80,7 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
     expect(
       interiorPlanTableHeading(
         "집",
-        { budget: null, plannedTotal: 1, remaining: null },
+        { budget: null, plannedTotal: 1, tbdCount: 0, remaining: null },
         "1999-01-02",
       ).basis,
     ).toBe("1999-01-02 기준");

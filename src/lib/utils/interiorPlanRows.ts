@@ -1,3 +1,5 @@
+import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
+
 import type { InteriorItem, InteriorPlanWithItems, InteriorQuote } from "@/lib/types/interiorPlan";
 
 /**
@@ -26,8 +28,10 @@ export type InteriorPlanRowGroup = {
 export type InteriorPlanRows = {
   /** 그 구분의 가장 이른 줄 순, 묶음 안은 항목 순 → 견적 순(U5) */
   groups: InteriorPlanRowGroup[];
-  /** 지출 예정 = Σ(확정 줄 견적, 만원) */
+  /** 지출 예정 = Σ(확정이고 금액이 있는 줄의 견적, 만원) */
   plannedTotal: number;
+  /** 확정이고 금액이 없는(미정) 줄 수. 미확정 미정 줄은 세지 않는다(U2) */
+  tbdCount: number;
 };
 
 export type InteriorPlanSummary = {
@@ -35,6 +39,8 @@ export type InteriorPlanSummary = {
   budget: number | null;
   /** 지출 예정 */
   plannedTotal: number;
+  /** 지출 예정에서 빠진 확정 미정 줄 수 */
+  tbdCount: number;
   /** 총 예산 − 지출 예정. 음수면 예산 초과, 0이면 남은 예산 0. 총 예산이 없으면 null */
   remaining: number | null;
 };
@@ -62,8 +68,9 @@ function rowsOfItem(item: InteriorItem): InteriorPlanRow[] {
 }
 
 /**
- * 계획 → 공정(구분)별 줄 묶음과 지출 예정. 항목 목록 순서(로컬 배열 = 서버 `created_at, id`)로 펼친 줄에서
+ * 계획 → 공정(구분)별 줄 묶음과 지출 예정·미정 건수. 항목 목록 순서(로컬 배열 = 서버 `created_at, id`)로 펼친 줄에서
  * 묶음은 처음 나온 순이라, 앞 줄을 지우면 묶음 순서가 바뀔 수 있다. 목록·표·CSV·인쇄·홈이 모두 이 결과를 쓴다.
+ * 확정 줄은 "금액이 있는가" 한 가지로 나눈다: 있으면 지출 예정에 더하고, 없으면(미정) 건수만 센다(ADR-033).
  */
 export function buildInteriorPlanRows(
   plan: Pick<InteriorPlanWithItems, "items">,
@@ -73,11 +80,22 @@ export function buildInteriorPlanRows(
     const trade = row.item.trade.trim();
     groups.set(trade, [...(groups.get(trade) ?? []), row]);
   }
-  const confirmedRows = [...groups.values()].flat().filter((row) => row.isConfirmed);
+  const confirmedQuotes = [...groups.values()]
+    .flat()
+    .flatMap((row) => (row.isConfirmed && row.quote !== null ? [row.quote] : []));
+  const confirmedAmounts = confirmedQuotes.flatMap((quote) =>
+    quote.amount === undefined ? [] : [quote.amount],
+  );
   return {
     groups: Array.from(groups, ([trade, rows]) => ({ trade, rows })),
-    plannedTotal: confirmedRows.reduce((total, row) => total + (row.quote?.amount ?? 0), 0),
+    plannedTotal: confirmedAmounts.reduce((total, amount) => total + amount, 0),
+    tbdCount: confirmedQuotes.length - confirmedAmounts.length,
   };
+}
+
+/** "금액 미정 n건 제외"(요약·표 머리·계 비고·CSV 공통 문구). 0건이면 "" */
+export function tbdExclusionNote(tbdCount: number): string {
+  return tbdCount === 0 ? "" : `금액 ${INTERIOR_PLAN_TBD_LABEL} ${tbdCount}건 제외`;
 }
 
 /** 비고 조각을 잇는 구분자(앞뒤 공백 포함 가운뎃점) */
@@ -93,9 +111,17 @@ export function rowNoteOf(row: InteriorPlanRow, formatBudget: (manwon: number) =
   return pieces.filter((piece) => piece !== "").join(NOTE_SEPARATOR);
 }
 
-/** 요약(총 예산·지출 예정·남은 예산). 저장하지 않고 매번 계산한다(ADR-007). 날짜에 의존하지 않는다 */
+/**
+ * 요약(총 예산·지출 예정·미정 건수·남은 예산). 남은 예산도 미정 줄을 더하지 않는다.
+ * 저장하지 않고 매번 계산한다(ADR-007). 날짜에 의존하지 않는다
+ */
 export function summarizeInteriorPlan(plan: InteriorPlanWithItems): InteriorPlanSummary {
-  const { plannedTotal } = buildInteriorPlanRows(plan);
+  const { plannedTotal, tbdCount } = buildInteriorPlanRows(plan);
   const budget = plan.budget ?? null;
-  return { budget, plannedTotal, remaining: budget === null ? null : budget - plannedTotal };
+  return {
+    budget,
+    plannedTotal,
+    tbdCount,
+    remaining: budget === null ? null : budget - plannedTotal,
+  };
 }

@@ -88,7 +88,7 @@ describe("interiorPlanTableToCsvRows — 옛 P와 합계 0", () => {
   });
 
   it("줄 0개(groups [])면 열 제목과 계 0", () => {
-    expect(interiorPlanTableToCsvRows({ groups: [], confirmedTotal: 0 })).toEqual([
+    expect(interiorPlanTableToCsvRows({ groups: [], confirmedTotal: 0, totalNote: "" })).toEqual([
       HEADER,
       ["계", "", "", "", "0", ""],
     ]);

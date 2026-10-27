@@ -74,7 +74,11 @@ describe("buildInteriorPlanRows — 예시 P (AC-1)", () => {
   });
 
   it("줄 0개면 묶음 없음, 지출 예정 0", () => {
-    expect(buildInteriorPlanRows({ items: [] })).toEqual({ groups: [], plannedTotal: 0 });
+    expect(buildInteriorPlanRows({ items: [] })).toEqual({
+      groups: [],
+      plannedTotal: 0,
+      tbdCount: 0,
+    });
   });
 });
 
@@ -195,6 +199,7 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makeSimplePlanP())).toEqual({
       budget: 1000,
       plannedTotal: 800,
+      tbdCount: 0,
       remaining: 200,
     });
   });
@@ -213,6 +218,7 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(withoutBudget)).toEqual({
       budget: null,
       plannedTotal: 800,
+      tbdCount: 0,
       remaining: null,
     });
   });
@@ -221,6 +227,7 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makeSimplePlanP({ items: [] }))).toEqual({
       budget: 1000,
       plannedTotal: 0,
+      tbdCount: 0,
       remaining: 1000,
     });
   });
@@ -229,6 +236,7 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makePlanL())).toEqual({
       budget: 3000,
       plannedTotal: 370,
+      tbdCount: 0,
       remaining: 2630,
     });
   });

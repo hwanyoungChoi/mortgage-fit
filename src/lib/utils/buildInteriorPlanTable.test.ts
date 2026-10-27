@@ -68,7 +68,7 @@ describe("buildInteriorPlanTable — 예시 P (AC-5)", () => {
   it("계는 확정 칸만 있고 견적 합계는 두지 않는다(U6), 계 = 지출 예정 × 10,000", () => {
     const plan = makeSimplePlanP();
     const table = tableOf(plan);
-    expect(Object.keys(table).toSorted()).toEqual(["confirmedTotal", "groups"]);
+    expect(Object.keys(table).toSorted()).toEqual(["confirmedTotal", "groups", "totalNote"]);
     expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotal * 10_000);
   });
 });
@@ -184,8 +184,12 @@ describe("buildInteriorPlanTable — 합계 0과 빈 입력", () => {
   });
 
   it("줄 0개 → groups [] · 계 0", () => {
-    expect(tableOf({ items: [] })).toEqual({ groups: [], confirmedTotal: 0 });
-    expect(tableOf(makePlanQ({ items: [] }))).toEqual({ groups: [], confirmedTotal: 0 });
+    expect(tableOf({ items: [] })).toEqual({ groups: [], confirmedTotal: 0, totalNote: "" });
+    expect(tableOf(makePlanQ({ items: [] }))).toEqual({
+      groups: [],
+      confirmedTotal: 0,
+      totalNote: "",
+    });
   });
 });
 

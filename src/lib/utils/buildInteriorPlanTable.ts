@@ -1,7 +1,7 @@
 import { INTERIOR_PLAN_TBD_LABEL, WON_PER_MANWON } from "@/lib/constants/interiorPlanTable";
 
 import { formatThousands } from "./amount";
-import { rowNoteOf } from "./interiorPlanRows";
+import { rowNoteOf, tbdExclusionNote } from "./interiorPlanRows";
 
 import type { InteriorPlanRow, InteriorPlanRows } from "./interiorPlanRows";
 import type { InteriorQuote } from "@/lib/types/interiorPlan";
@@ -28,6 +28,8 @@ export type InteriorPlanTable = {
   groups: { trade: string; rows: InteriorPlanTableRow[] }[];
   /** "계"(원) = 지출 예정. 견적을 다 더한 값은 뜻이 없어 두지 않는다(U6). 0이어도 0 */
   confirmedTotal: number;
+  /** "계" 줄 비고 "금액 미정 n건 제외". 미정 0건이면 "" */
+  totalNote: string;
 };
 
 function toWon(manwon: number): number {
@@ -70,9 +72,11 @@ export function tableAmountText(
 export function buildInteriorPlanTable({
   groups,
   plannedTotal,
+  tbdCount,
 }: InteriorPlanRows): InteriorPlanTable {
   return {
     groups: groups.map((group) => ({ trade: group.trade, rows: group.rows.map(toRow) })),
     confirmedTotal: toWon(plannedTotal),
+    totalNote: tbdExclusionNote(tbdCount),
   };
 }

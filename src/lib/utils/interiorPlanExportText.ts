@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants/interiorPlanTable";
 
 import { formatThousands } from "./amount";
+import { tbdExclusionNote } from "./interiorPlanRows";
 
 import type { InteriorPlanSummary } from "./interiorPlanRows";
 
@@ -17,7 +18,7 @@ export type InteriorPlanTableHeading = {
   basis: string;
   /** `총 예산 10,000,000원`. 총 예산이 없으면 undefined */
   budget: string | undefined;
-  /** `지출 예정 8,000,000원`(0이어도 있음) */
+  /** `지출 예정 8,000,000원`(0이어도 있음). 확정 미정 줄이 있으면 뒤에 `(금액 미정 n건 제외)` — 조각 하나라 같이 가린다 */
   plannedTotal: string;
   /** `남은 예산 2,000,000원`, 음수면 `예산 초과 1,000,000원`. 총 예산이 없으면 undefined */
   remaining: string | undefined;
@@ -51,7 +52,10 @@ export function interiorPlanTableHeading(
     summary.budget === null
       ? undefined
       : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budget));
-  const plannedTotal = INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotal));
+  const tbdNote = tbdExclusionNote(summary.tbdCount);
+  const plannedTotal =
+    INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotal)) +
+    (tbdNote === "" ? "" : `(${tbdNote})`);
   const remaining = remainingOf(summary.remaining);
   const pieces = [basis, budget, plannedTotal, remaining].filter(
     (piece): piece is string => piece !== undefined,

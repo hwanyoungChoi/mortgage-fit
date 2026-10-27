@@ -13,7 +13,7 @@ import {
   pTime,
   withItem,
 } from "@/test/interiorPlanFixture";
-import { makeSimplePlanP } from "@/test/interiorSimpleFixture";
+import { makeSimplePlanP, makeSimplePlanPPlus, r6 } from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
 
 import { summarizeHub, type HubSummary } from "./summarizeHub";
@@ -51,7 +51,7 @@ const LOADING = { kind: "loading" } as const;
 const ERROR = { kind: "error" } as const;
 const CORRUPT = { kind: "corrupt" } as const;
 const DRAFT_125000 = { kind: "summary", value: 125000 } as const;
-const P_LINE = { id: "plan-p", name: "우리 집", plannedTotal: 1530 };
+const P_LINE = { id: "plan-p", name: "우리 집", plannedTotal: 1530, tbdCount: 0 };
 
 describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 카드의 상태가 다른 카드에 번지지 않음)", () => {
   it.each<[string, Partial<Input>, HubSummary]>([
@@ -126,7 +126,10 @@ describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 �
       {
         calculator: DRAFT_125000,
         listings: { kind: "summary", value: { count: 4, isHousehold: true } },
-        home: { kind: "summary", value: [{ id: "plan-pa", name: "A 계획", plannedTotal: 1530 }] },
+        home: {
+          kind: "summary",
+          value: [{ id: "plan-pa", name: "A 계획", plannedTotal: 1530, tbdCount: 0 }],
+        },
       },
     ],
     [
@@ -250,7 +253,7 @@ describe("AC-6 우리 집 카드: 계획별 지출 예정 (interior-simple U7)",
     expect(summarizeInteriorPlan(plan).plannedTotal).toBe(plannedTotal);
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, plannedTotal }],
+      value: [{ id: plan.id, name: plan.name, plannedTotal, tbdCount: 0 }],
     });
   });
 });
@@ -273,5 +276,19 @@ describe("AC-6 금액 경계표 (대출 계산 카드, validateAmount(salePrice)
     ["1000000000", INTRO],
   ])("salePrice %j → %j", (salePrice, expected) => {
     expect(summarize({ draft: { salePrice } }).calculator).toEqual(expected);
+  });
+});
+
+// 스펙 interior-tbd-amount AC-4: 확정 미정 줄 수는 우리 집 요약(`summarizeInteriorPlan`)의 값 그대로다.
+describe("우리 집 카드 — 금액 미정 건수 (interior-tbd-amount)", () => {
+  it.each<[string, InteriorPlanWithItems, number, number]>([
+    ["P⁺: 지출 예정 800 · 미정 1건(미확정 R7은 세지 않음)", makeSimplePlanPPlus(), 800, 1],
+    ["확정이 R6뿐: 지출 예정 0 · 미정 1건", makeSimplePlanP({ items: [r6()] }), 0, 1],
+    ["P: 미정 0건", makeSimplePlanP(), 800, 0],
+  ])("%s", (_name, plan, plannedTotal, tbdCount) => {
+    expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
+      kind: "summary",
+      value: [{ id: plan.id, name: plan.name, plannedTotal, tbdCount }],
+    });
   });
 });

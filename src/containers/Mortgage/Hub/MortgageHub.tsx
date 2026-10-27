@@ -4,6 +4,7 @@ import MaskedValue from "@/components/MaskedValue";
 import { useDraft } from "@/hooks/useDraft";
 import { useInteriorPlanListSource } from "@/hooks/useInteriorPlanListSource";
 import { useListingSource } from "@/hooks/useListingSource";
+import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 import { PATHS } from "@/lib/constants/paths";
 import { formatManwon } from "@/lib/utils/amount";
 
@@ -112,6 +113,10 @@ function MortgageHub({
                   <MaskedValue isMasked={isPrivacyMode}>
                     {formatManwon(line.plannedTotal)}
                   </MaskedValue>
+                  {/* 확정 미정 줄 수. 가리기 중에는 구분자까지 통째로 뺀다(U6) */}
+                  {line.tbdCount > 0 &&
+                    !isPrivacyMode &&
+                    ` · ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`}
                 </span>
               ))
             }

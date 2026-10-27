@@ -75,6 +75,7 @@ type PlanTableProps = {
 /**
  * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정 칸만, U6).
  * 금액은 이미 원 단위라 천 단위 쉼표만 붙이고 다시 곱하지 않는다. 빈칸은 비워 둔다.
+ * "계" 비고의 "금액 미정 n건 제외"는 가리기 중에는 통째로 뺀다(U6).
  */
 function PlanTable({ table, title, isMasked }: PlanTableProps) {
   return (
@@ -110,7 +111,7 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
           <td className={styles.detailCell} />
           <td className={styles.amountCell} />
           <AmountCell won={table.confirmedTotal} isMasked={isMasked} />
-          <td className={styles.noteCell} />
+          <td className={styles.noteCell}>{!isMasked && table.totalNote}</td>
         </tr>
       </tfoot>
     </table>

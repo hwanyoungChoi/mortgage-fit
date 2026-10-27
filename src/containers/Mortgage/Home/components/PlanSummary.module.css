@@ -40,6 +40,12 @@
   color: var(--color-error);
 }
 
+/* 남은 예산·지출 예정 두 칸 아래 전체 폭 한 줄(한 칸 아래에 붙이면 좁은 폭에서 두 칸 높이가 어긋난다) */
+.tbdNote {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
 .budgetButton {
   min-height: 36px;
   padding: 0 var(--space-3);
