@@ -1,6 +1,7 @@
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { INTERIOR_ITEM_MAX_COUNT } from "@/lib/constants/interiorPlan";
-import { summarizeInteriorPlan, toLocalDateString } from "@/lib/utils/summarizeInteriorPlan";
+import { summarizeInteriorPlan } from "@/lib/utils/summarizeInteriorPlan";
+import { toLocalDateString } from "@/lib/utils/toLocalDateString";
 
 import EmptyItems from "./EmptyItems";
 import ItemGroups from "./ItemGroups";

@@ -1,0 +1,150 @@
+// 스펙 interior-simple "수용 기준"의 예시 계획(qa fixture). 옛 P(`interiorPlanFixture.makePlanP`)와 이름이 겹치지 않게 둔다.
+// P(새 화면에서 만든 것): 총 예산 1,000, 줄 5개를 R1 → R5 순으로 추가했고 줄마다 견적 1개 항목이다.
+// L(옛 화면에서 만든 것): 총 예산 3,000, 공간 [전체 s0, 욕실1 s1, 욕실2 s2], 항목 X → Y → Z 순.
+import type {
+  InteriorItem,
+  InteriorItemStatus,
+  InteriorPlanWithItems,
+} from "@/lib/types/interiorPlan";
+
+/** 시각은 `toISOString` 형식. n번째 항목은 n분에 만든다 */
+export const simpleTime = (minute: number) =>
+  `2026-10-27T00:${String(minute).padStart(2, "0")}:00.000Z`;
+
+/** 새 화면이 만드는 줄 하나 = 견적 1개 항목(`spaceId`는 계획의 첫 공간, 상태 "계획") */
+function simpleRow(
+  index: number,
+  trade: string,
+  vendor: string,
+  detail: string,
+  amount: number,
+  isConfirmed: boolean,
+): InteriorItem {
+  const quoteId = `rq${index}`;
+  return {
+    id: `r${index}`,
+    spaceId: "sp-whole",
+    trade,
+    quotes: [{ id: quoteId, vendor, amount, memo: detail }],
+    ...(isConfirmed && { confirmedQuoteId: quoteId }),
+    status: "planned",
+    createdAt: simpleTime(index),
+    updatedAt: simpleTime(index),
+  };
+}
+
+/** R1 도배·육문수·실크 전체·180 ✓ */
+export const r1 = () => simpleRow(1, "도배", "육문수", "실크 전체", 180, true);
+/** R2 도배·동네도배·합지·150 */
+export const r2 = () => simpleRow(2, "도배", "동네도배", "합지", 150, false);
+/** R3 욕실·하루바스·철거·방수 (1)·370 ✓ */
+export const r3 = () => simpleRow(3, "욕실", "하루바스", "철거·방수 (1)", 370, true);
+/** R4 욕실·욕실나라·철거·방수 (1)·400 */
+export const r4 = () => simpleRow(4, "욕실", "욕실나라", "철거·방수 (1)", 400, false);
+/** R5 욕실·하루바스·타일 덧방 (2)·250 ✓ */
+export const r5 = () => simpleRow(5, "욕실", "하루바스", "타일 덧방 (2)", 250, true);
+
+/** 계획 P. 부를 때마다 새 객체다 */
+export function makeSimplePlanP(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return {
+    id: "plan-simple",
+    name: "우리 집",
+    budget: 1000,
+    spaces: [{ id: "sp-whole", name: "전체" }],
+    createdAt: simpleTime(0),
+    updatedAt: simpleTime(0),
+    items: [r1(), r2(), r3(), r4(), r5()],
+    ...overrides,
+  };
+}
+
+/**
+ * X = s1 · 욕실 · 예산 350 · 견적 [q1 하루바스(연락처)·370·"철거·방수", q2 욕실나라·400] · 확정 q1 ·
+ * 지급 [계약금 100 · 2026-11-01 · 지급함] · 진행 중 · 2026-11-03~2026-11-07 · 메모 "폐기물 포함"
+ */
+export const legacyX = (): InteriorItem => ({
+  id: "item-x",
+  spaceId: "s1",
+  trade: "욕실",
+  budget: 350,
+  quotes: [
+    { id: "q1", vendor: "하루바스", contact: "010-1234-5678", amount: 370, memo: "철거·방수" },
+    { id: "q2", vendor: "욕실나라", amount: 400 },
+  ],
+  confirmedQuoteId: "q1",
+  payments: [{ id: "pay-x1", label: "계약금", amount: 100, dueDate: "2026-11-01", isPaid: true }],
+  status: "inProgress",
+  startDate: "2026-11-03",
+  endDate: "2026-11-07",
+  memo: "폐기물 포함",
+  createdAt: simpleTime(1),
+  updatedAt: simpleTime(1),
+});
+
+/** Y = s0 · 도배 · 예산 200 · 계획 · 견적 없음 */
+export const legacyY = (): InteriorItem => ({
+  id: "item-y",
+  spaceId: "s0",
+  trade: "도배",
+  budget: 200,
+  status: "planned",
+  createdAt: simpleTime(2),
+  updatedAt: simpleTime(2),
+});
+
+/** Z = s2 · 욕실 · 견적 [q3 하루바스·250·"타일 덧방"] · 견적 중 */
+export const legacyZ = (): InteriorItem => ({
+  id: "item-z",
+  spaceId: "s2",
+  trade: "욕실",
+  quotes: [{ id: "q3", vendor: "하루바스", amount: 250, memo: "타일 덧방" }],
+  status: "quoting",
+  createdAt: simpleTime(3),
+  updatedAt: simpleTime(3),
+});
+
+/** 옛 계획 L. 부를 때마다 새 객체다 */
+export function makePlanL(overrides: Partial<InteriorPlanWithItems> = {}): InteriorPlanWithItems {
+  return {
+    id: "plan-l",
+    name: "옛 계획",
+    budget: 3000,
+    spaces: [
+      { id: "s0", name: "전체" },
+      { id: "s1", name: "욕실1" },
+      { id: "s2", name: "욕실2" },
+    ],
+    createdAt: simpleTime(0),
+    updatedAt: simpleTime(0),
+    items: [legacyX(), legacyY(), legacyZ()],
+    ...overrides,
+  };
+}
+
+/**
+ * 모든 선택 키가 채워진 항목(AC-0(c) c3): 예산 · 견적 2개(연락처·메모 포함) · 확정 · 지급 2줄(지급함/미지급, 예정일) ·
+ * 시작·끝 · 메모. 상태만 바꿔 5종 각각으로 쓴다
+ */
+export const makeFullItem = (status: InteriorItemStatus): InteriorItem => ({
+  id: "item-full",
+  spaceId: "s1",
+  trade: "욕실",
+  budget: 350,
+  quotes: [
+    { id: "fq1", vendor: "하루바스", contact: "010-1234-5678", amount: 370, memo: "철거·방수" },
+    { id: "fq2", vendor: "욕실나라", contact: "02-123-4567", amount: 400, memo: "도기 포함" },
+  ],
+  confirmedQuoteId: "fq1",
+  payments: [
+    { id: "fp1", label: "계약금", amount: 100, dueDate: "2026-11-01", isPaid: true },
+    { id: "fp2", label: "잔금", amount: 270, dueDate: "2026-11-20", isPaid: false },
+  ],
+  status,
+  startDate: "2026-11-03",
+  endDate: "2026-11-07",
+  memo: "폐기물 포함",
+  createdAt: simpleTime(9),
+  updatedAt: simpleTime(9),
+});

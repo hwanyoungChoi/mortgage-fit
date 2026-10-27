@@ -12,7 +12,6 @@ import {
   confirmedAmountOf,
   NO_SPACE_GROUP_ID,
   summarizeInteriorPlan,
-  toLocalDateString,
 } from "./summarizeInteriorPlan";
 
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
@@ -366,12 +365,5 @@ describe("확정 금액 읽기", () => {
     expect(summary.confirmedTotal).toBe(280);
     expect(summary.expectedTotal).toBe(280 + 600 + 1200 + 500);
     expect(summary.confirmTodos.map((line) => line.item.trade)).toEqual(["타일", "샷시"]);
-  });
-});
-
-describe("toLocalDateString", () => {
-  it("기기 로컬 날짜를 YYYY-MM-DD로(한 자리 월·일은 0을 붙인다)", () => {
-    expect(toLocalDateString(new Date(2026, 0, 5, 23, 59))).toBe("2026-01-05");
-    expect(toLocalDateString(new Date(2026, 11, 31, 0, 0))).toBe("2026-12-31");
   });
 });

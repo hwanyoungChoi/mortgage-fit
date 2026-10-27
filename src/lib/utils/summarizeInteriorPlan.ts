@@ -1,6 +1,7 @@
 import { INTERIOR_NO_SPACE_LABEL } from "@/lib/constants/interiorSpaces";
 
 import { sortInteriorTrades } from "./sortInteriorTrades";
+import { toLocalDateString } from "./toLocalDateString";
 
 import type {
   InteriorItem,
@@ -65,13 +66,6 @@ export type InteriorPlanSummary = {
 };
 
 export const NO_SPACE_GROUP_ID = "noSpace";
-
-/** 기기 로컬 날짜 `YYYY-MM-DD`(지급 예정일과 같은 형식, A5) */
-export function toLocalDateString(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-}
 
 function sum(values: number[]): number {
   return values.reduce((total, value) => total + value, 0);
