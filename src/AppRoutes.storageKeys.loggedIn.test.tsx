@@ -125,7 +125,9 @@ async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
   await user.click(screen.getByRole("link", { name: "매물" }));
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
-  // 로그인 상태 목록(서버)을 받은 뒤(이전이 끝났거나 건너뛰었다)
+  // 로그인 상태 목록(서버, 빈 목록)이 화면에 뜬 뒤(이전이 끝났거나 건너뛰었다).
+  // `/api/listings` 호출은 앞 화면에서 이미 일어날 수 있어 호출 횟수만으로는 이 화면의 동기화 지점이 되지 않는다.
+  expect(await screen.findByText("저장한 매물이 없습니다")).toBeInTheDocument();
   await waitFor(() => expect(api.callsTo("GET", "/api/listings").length).toBeGreaterThan(0));
 
   await user.click(screen.getByRole("link", { name: "우리 집" }));

@@ -33,6 +33,7 @@ describe("하단 탭 (AC-1)", () => {
   });
 
   it.each<[TabName, string]>([
+    ["hub", "홈"],
     ["calculator", "계산"],
     ["listings", "매물"],
     ["home", "우리 집"],
