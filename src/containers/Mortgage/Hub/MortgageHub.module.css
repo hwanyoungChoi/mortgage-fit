@@ -18,3 +18,8 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+/* 우리 집 카드의 계획 한 줄(계획마다 줄을 바꾼다) */
+.planLine {
+  display: block;
+}

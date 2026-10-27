@@ -29,7 +29,11 @@
   font-weight: 700;
 }
 
+/* 요약 줄(소개·내 현황·불러오는 중·실패·손상). 모든 상태가 같은 최소 높이(한 줄)를 써서 상태가 바뀌어도
+   카드가 덜 흔들린다. 우리 집은 계획마다 한 줄이라 계획 수만큼 늘어난다. */
 .description {
+  min-height: 1.5em;
   color: var(--color-text-muted);
   font-size: var(--fs-body);
+  line-height: 1.5;
 }

@@ -128,7 +128,20 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   };
 
   const renderScreen = () => {
-    if (route.name === "hub") return <MortgageHub onListingsNavigate={resetListingsScroll} />;
+    if (route.name === "hub") {
+      return (
+        <MortgageHub
+          listingStore={listingStore}
+          sessionHintStore={sessionHintStore}
+          accountImport={accountImport}
+          interiorPlanStore={interiorPlanStore}
+          planImport={planImport}
+          draftStore={draftStore}
+          privacyModeStore={privacyModeStore}
+          onListingsNavigate={resetListingsScroll}
+        />
+      );
+    }
     if (route.name === "share") {
       return (
         <MortgageShare

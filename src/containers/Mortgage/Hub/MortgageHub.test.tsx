@@ -54,6 +54,8 @@ describe("홈 — 데이터 없음 (AC-5)", () => {
   it("h1 홈, 카드 링크는 DOM 순서대로 대출 계산 → 매물 모으기 → 우리 집 인테리어, 소개 문구는 설명으로 읽힌다", async () => {
     renderApp("#/");
     const hub = await findHub();
+    // 계정 확인(/api/me) 전에는 요약 줄이 "불러오는 중"이다(AC-7 4행). 로그아웃이 확인된 뒤 소개 문구가 된다.
+    await waitFor(() => expect(hub.querySelector('[aria-busy="true"]')).toBeNull());
 
     const links = within(hub).getAllByRole("link");
     expect(links.map((link) => link.getAttribute("href"))).toEqual(CARDS.map(([, href]) => href));
