@@ -14,7 +14,7 @@
   margin-bottom: var(--space-1);
 }
 
-/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]·로그인/로그아웃). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
+/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]·함께 쓰기). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
 .titleRow {
   display: flex;
   flex-wrap: wrap;
@@ -53,16 +53,6 @@
 .privacyButton[aria-pressed="true"] {
   background: var(--color-primary);
   color: var(--color-on-primary);
-}
-
-/* 화면에서는 숨기고 보조기기에는 읽힌다 */
-.visuallyHidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .title {

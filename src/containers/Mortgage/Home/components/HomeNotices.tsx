@@ -1,3 +1,5 @@
+import { PATHS } from "@/lib/constants/paths";
+
 import styles from "./HomeNotices.module.css";
 
 type HomeNoticesProps = {
@@ -20,6 +22,7 @@ const SESSION_EXPIRED_MESSAGE = "로그인이 끝났습니다. 다시 로그인�
 
 /**
  * [우리 집] 위쪽 안내. 있을 때만 한 줄씩 보이고 평소에는 아무것도 그리지 않는다(저장 목록 제목 아래 안내와 같은 규칙).
+ * 로그인은 홈 계정 자리에 있으므로 세션이 끝나면 홈으로 가는 링크를 붙인다(hub-account U4).
  */
 function HomeNotices({
   isSessionExpired,
@@ -55,9 +58,12 @@ function HomeNotices({
         </div>
       )}
       {isSessionExpired && (
-        <p role="status" className={styles.line}>
-          {SESSION_EXPIRED_MESSAGE}
-        </p>
+        <div role="status" className={styles.line}>
+          <span>{SESSION_EXPIRED_MESSAGE}</span>
+          <a className={styles.lineLink} href={PATHS.hub}>
+            홈에서 로그인
+          </a>
+        </div>
       )}
       {importProblem !== null && (
         <div className={styles.errorLine}>

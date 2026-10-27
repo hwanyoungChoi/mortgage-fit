@@ -23,7 +23,8 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 카카오 로그인 시작 링크. 페이지 전체가 Worker로 이동하고, 끝나면 `#/listings`(초대면 `#/invite/{token}`)로 돌아온다.
+ * 카카오 로그인 시작 링크. 페이지 전체가 Worker로 이동하고, 끝나면 홈 `#/`(취소·실패면 `#/?login=`, 초대 성공이면
+ * `#/invite/{token}`)으로 돌아온다.
  * 색은 카카오 로그인 버튼 가이드의 컨테이너(#FEE500)·레이블(검정 85%)을 따른다.
  */
 function KakaoLoginLink({

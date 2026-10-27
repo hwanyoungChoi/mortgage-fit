@@ -1,4 +1,5 @@
 // 스펙 platform-home AC-1: 홈(허브)이 첫 화면 `#/`, 계산은 정확히 `#/calculator`일 때만. 알 수 없는 해시는 홈.
+// 스펙 hub-account AC-2: 로그인 결과 `?login=`은 홈이 받는다(저장 목록은 받지 않는다).
 import { describe, expect, it } from "vitest";
 
 import { PATHS } from "@/lib/constants/paths";
@@ -22,25 +23,34 @@ describe("parseRoute → 정규 경로 (platform-home AC-1)", () => {
     ["#/calculator/x", { name: "hub" }, "#/"],
     ["#/Calculator", { name: "hub" }, "#/"],
     ["#calculator", { name: "hub" }, "#/"],
-    // 홈은 쿼리를 정규 경로에서 버린다(옛 `#/?login=`)
+    // 홈은 로그인 결과(`login`)만 허용 값일 때 읽고 그 밖의 쿼리는 버린다(스펙 hub-account AC-2)
     ["#/?a=1", { name: "hub" }, "#/"],
-    ["#/?login=failed", { name: "hub" }, "#/"],
+    ["#/?login=failed", { name: "hub", login: "failed" }, "#/?login=failed"],
+    ["#/?login=cancelled", { name: "hub", login: "cancelled" }, "#/?login=cancelled"],
+    ["#/?login=notConfigured", { name: "hub", login: "notConfigured" }, "#/?login=notConfigured"],
+    ["#/?login=", { name: "hub" }, "#/"],
+    ["#/?login=FAILED", { name: "hub" }, "#/"],
+    ["#/?login=x", { name: "hub" }, "#/"],
+    // 허용 값 검사는 정확 일치다(`in`·객체 인덱싱이면 통과해 버리는 이름)
+    ["#/?login=constructor", { name: "hub" }, "#/"],
+    ["#/?login=toString", { name: "hub" }, "#/"],
+    ["#/?login=__proto__", { name: "hub" }, "#/"],
+    ["#/?login=failed&a=1", { name: "hub", login: "failed" }, "#/?login=failed"],
+    // 중복이면 첫 값(URLSearchParams.get)
+    ["#/?login=failed&login=cancelled", { name: "hub", login: "failed" }, "#/?login=failed"],
+    // 홈 경로(`/`)가 아니면 login을 읽지 않는다
+    ["#/x?login=failed", { name: "hub" }, "#/"],
+    ["#/calculator?login=failed", { name: "calculator" }, "#/calculator"],
+    ["#/home?login=failed", { name: "home" }, "#/home"],
     // 계산: 정확히 `/calculator`, 쿼리는 버린다
     ["#/calculator", { name: "calculator" }, "#/calculator"],
     ["#/calculator?a=1", { name: "calculator" }, "#/calculator"],
-    // 저장 목록: login은 허용 목록만 남기고 그 밖의 쿼리는 버린다
+    // 저장 목록: 쿼리는 모두 버린다. 로그인 결과는 홈이 받는다(옛 `#/listings?login=`은 안내 없이 #/listings)
     ["#/listings", { name: "listings" }, "#/listings"],
-    ["#/listings?login=failed", { name: "listings", login: "failed" }, "#/listings?login=failed"],
-    [
-      "#/listings?login=cancelled",
-      { name: "listings", login: "cancelled" },
-      "#/listings?login=cancelled",
-    ],
-    [
-      "#/listings?login=notConfigured",
-      { name: "listings", login: "notConfigured" },
-      "#/listings?login=notConfigured",
-    ],
+    ["#/listings?login=failed", { name: "listings" }, "#/listings"],
+    ["#/listings?login=cancelled", { name: "listings" }, "#/listings"],
+    ["#/listings?login=notConfigured", { name: "listings" }, "#/listings"],
+    ["#/listings?login=failed&x=1", { name: "listings" }, "#/listings"],
     ["#/listings?sort=recent", { name: "listings" }, "#/listings"],
     // 우리 집: 경로·쿼리 그대로
     ["#/home", { name: "home" }, "#/home"],
@@ -61,17 +71,26 @@ describe("parseRoute → 정규 경로 (platform-home AC-1)", () => {
     expect(toRoutePath(parseRoute(hash))).toBe(canonical);
   });
 
-  it.each(["#/", "#/calculator", "#/listings", "#/home", "#/home/plan-p?view=table"])(
-    "정규 경로 %s는 다시 파싱해도 같다(replace 루프 없음)",
-    (hash) => {
-      expect(toRoutePath(parseRoute(hash))).toBe(hash);
-    },
-  );
+  it.each([
+    "#/",
+    "#/?login=failed",
+    "#/calculator",
+    "#/listings",
+    "#/home",
+    "#/home/plan-p?view=table",
+  ])("정규 경로 %s는 다시 파싱해도 같다(replace 루프 없음)", (hash) => {
+    expect(toRoutePath(parseRoute(hash))).toBe(hash);
+  });
 
   it("PATHS.hub는 #/, PATHS.calculator는 #/calculator이고 hub·calculator의 정규 경로와 같다", () => {
     expect(PATHS.hub).toBe("#/");
     expect(PATHS.calculator).toBe("#/calculator");
     expect(toRoutePath({ name: "hub" })).toBe(PATHS.hub);
     expect(toRoutePath({ name: "calculator" })).toBe(PATHS.calculator);
+  });
+
+  it("로그인 결과가 있는 홈은 #/?login={값}, 없으면 #/(hub-account AC-2 왕복)", () => {
+    expect(toRoutePath({ name: "hub", login: "cancelled" })).toBe("#/?login=cancelled");
+    expect(toRoutePath({ name: "hub" })).toBe("#/");
   });
 });

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-// 홈의 계정 자리(카드 위): 로그아웃이면 카카오 로그인(주 동작 크기)과 이유 한 줄, 로그인이면 상태 한 줄,
-// 계정 확인 중이면 보이지 않게 자리만 지키고, 계정 확인 실패면 숨긴다. 홈은 저장소에 쓰지 않는다(AC-0).
+// 홈의 계정 자리(카드 위): 로그아웃이면 카카오 로그인(주 동작 크기)과 이유 한 줄, 로그인이면 상태 줄과 [로그아웃],
+// 계정 확인 중이면 보이지 않게 자리만 지키고, 계정 확인 실패면 이유와 [다시 시도](hub-account AC-1).
+// 홈은 저장소에 쓰지 않는다(AC-0).
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -90,14 +91,15 @@ describe("홈 계정 자리", () => {
     expectNoStorageWrites(spies);
   });
 
-  it("로그인: 로그인 링크 대신 상태 한 줄, 로그아웃 버튼은 홈에 두지 않는다", async () => {
+  it("로그인: 로그인 링크 대신 상태 줄과 [로그아웃](홈의 버튼은 이것 하나)", async () => {
     const { spies } = renderHub({ seed: LOGGED_IN_SEED, userId: USER_ID });
     const hub = await findHub();
 
-    await waitFor(() => expect(within(hub).getByText(STATUS)).toBeVisible());
+    const logout = await within(hub).findByRole("button", { name: "로그아웃" });
+    expect(within(hub).getByText(STATUS)).toBeVisible();
     expect(within(hub).queryByRole("link", { name: LOGIN })).not.toBeInTheDocument();
     expect(within(hub).queryByText(REASON)).not.toBeInTheDocument();
-    expect(within(hub).queryAllByRole("button")).toEqual([]);
+    expect(within(hub).queryAllByRole("button")).toEqual([logout]);
     expectNoStorageWrites(spies);
   });
 
@@ -131,7 +133,7 @@ describe("홈 계정 자리", () => {
     expect(within(hub).queryByRole("link", { name: LOGIN })).not.toBeInTheDocument();
   });
 
-  it("계정 확인 실패(/api/me 500 + 로그인했던 브라우저): 로그인 자리도 상태 줄도 없다", async () => {
+  it("계정 확인 실패(/api/me 500 + 로그인했던 브라우저): 로그인 자리도 상태 줄도 없고 이유와 [다시 시도]가 있다", async () => {
     renderHub({
       seed: LOGGED_IN_SEED,
       userId: USER_ID,
@@ -147,5 +149,7 @@ describe("홈 계정 자리", () => {
     expect(within(hub).queryByText(REASON)).not.toBeInTheDocument();
     expect(within(hub).queryByText(STATUS)).not.toBeInTheDocument();
     expect(within(hub).queryByRole("link", { name: LOGIN })).not.toBeInTheDocument();
+    expect(within(hub).getByRole("alert")).toHaveTextContent("계정 상태를 확인하지 못했습니다");
+    expect(within(hub).getByRole("button", { name: "다시 시도" })).toBeEnabled();
   });
 });

@@ -10,7 +10,7 @@ const FAILURE_REASONS: Record<InteriorPlanImportFailureReason, string> = {
   limit: `계정에는 계획을 ${INTERIOR_PLAN_MAX_COUNT}개까지 저장할 수 있습니다`,
   network: "연결을 확인하고 다시 시도해 주세요",
   tooLarge:
-    "계획이 너무 커서 옮길 수 없습니다. 로그아웃한 뒤 메모를 줄이면 다음 로그인 때 옮깁니다",
+    "계획이 너무 커서 옮길 수 없습니다. 홈에서 로그아웃한 뒤 메모를 줄이면 다음 로그인 때 옮깁니다",
 };
 
 /** 다시 해도 같은 결과면 [다시 시도]를 보이지 않는다 */
@@ -23,7 +23,7 @@ const CAN_RETRY: Record<InteriorPlanImportFailureReason, boolean> = {
 /** null이면 알리지 않는다(함께 쓰는 중 건너뛰기는 문제가 아니다). */
 const SKIP_MESSAGES: Record<InteriorPlanImportSkipReason, string | null> = {
   corrupt:
-    "이 기기의 인테리어 계획이 손상되어 계정으로 옮기지 못했습니다. 로그아웃하면 손상된 원문을 복사할 수 있습니다",
+    "이 기기의 인테리어 계획이 손상되어 계정으로 옮기지 못했습니다. 홈에서 로그아웃하면 우리 집에서 손상된 원문을 복사할 수 있습니다",
   unavailable:
     "이 브라우저에서는 저장소를 사용할 수 없어 이 기기의 인테리어 계획을 계정으로 옮기지 못했습니다",
   household: null,

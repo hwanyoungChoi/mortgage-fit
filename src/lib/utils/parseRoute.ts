@@ -11,16 +11,17 @@ const LOGIN_RESULTS: LoginResult[] = ["cancelled", "failed", "notConfigured"];
 /** 주소에 남는 보기. 목록은 기본값이라 쓰지 않는다 */
 const HOME_VIEW_QUERY_VALUES: Exclude<HomeView, "list">[] = ["table"];
 
+const HUB_PATH = "/";
 const CALCULATOR_PATH = "/calculator";
+const LISTINGS_PATH = "/listings";
 const HOME_PATH = "/home";
 const SHARE_PATH_PREFIX = "/share/";
 const INVITE_PATH_PREFIX = "/invite/";
 
 /**
  * 해시 → 라우트. 알 수 없는 해시는 홈(허브)이다. 계산은 경로가 정확히 `/calculator`일 때만이고 쿼리는 버린다.
- * 홈도 쿼리를 버린다(옛 `#/?login=` 등은 정규 경로 `#/`로 바뀐다).
- * 목록의 쿼리는 로그인 결과(`login`)만 읽고 허용 목록 밖의 값이면 버린다. 그 밖의 쿼리(옛 `sort`·`order`·`view`)는 버려
- * 정규 경로 `#/listings`로 바뀐다.
+ * 홈(경로 `/`)의 쿼리는 로그인 결과(`login`)만 읽고 허용 값과 정확히 같을 때만 남긴다. 그 밖의 쿼리는 버린다.
+ * 목록은 쿼리를 모두 버린다(옛 `login`·`sort`·`order`·`view`는 정규 경로 `#/listings`로 바뀐다).
  * `/share/`·`/invite/` 뒤는 모양이 틀려도 그 라우트로 둔다. 화면이 "끊긴 링크"로 안내한다(홈으로 돌리지 않는다).
  * 우리 집은 형식이 틀린 플랜 id·매물 id를 버리고(`#/home`), `view`는 `table`만 남긴다(그 밖은 목록).
  */
@@ -32,13 +33,12 @@ export function parseRoute(hash: string): Route {
   if (path.startsWith(INVITE_PATH_PREFIX)) {
     return { name: "invite", token: path.slice(INVITE_PATH_PREFIX.length) };
   }
-  if (path === "/listings") {
-    const login = new URLSearchParams(query).get("login");
-    return { name: "listings", ...(isOneOf(LOGIN_RESULTS, login) && { login }) };
-  }
+  if (path === LISTINGS_PATH) return { name: "listings" };
   if (path === HOME_PATH || path.startsWith(`${HOME_PATH}/`)) return parseHomeRoute(path, query);
   if (path === CALCULATOR_PATH) return { name: "calculator" };
-  return { name: "hub" };
+  if (path !== HUB_PATH) return { name: "hub" };
+  const login = new URLSearchParams(query).get("login");
+  return { name: "hub", ...(isOneOf(LOGIN_RESULTS, login) && { login }) };
 }
 
 function parseHomeRoute(path: string, query: string): Route {
@@ -59,6 +59,7 @@ export function toRoutePath(route: Route): string {
   if (route.name === "share") return PATHS.share(route.token);
   if (route.name === "invite") return PATHS.invite(route.token);
   if (route.name === "home") return PATHS.home(route);
-  if (route.name === "listings") return PATHS.listings(route);
-  return route.name === "calculator" ? PATHS.calculator : PATHS.hub;
+  if (route.name === "listings") return PATHS.listings;
+  if (route.name === "calculator") return PATHS.calculator;
+  return route.login === undefined ? PATHS.hub : `${PATHS.hub}?login=${route.login}`;
 }

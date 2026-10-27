@@ -124,7 +124,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   const goToListingsWithNotice = (notice: string) => {
     setListingsNotice(notice);
     resetListingsScroll();
-    window.location.replace(PATHS.listings());
+    window.location.replace(PATHS.listings);
   };
 
   const renderScreen = () => {
@@ -139,6 +139,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           draftStore={draftStore}
           privacyModeStore={privacyModeStore}
           onListingsNavigate={resetListingsScroll}
+          login={route.login}
         />
       );
     }
@@ -202,7 +203,6 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           sentShareStore={sentShareStore}
           privacyModeStore={privacyModeStore}
           regulations={regulations}
-          login={route.login}
           onSuggestedNameChange={setSuggestedName}
           notice={listingsNotice}
           onNoticeChange={setListingsNotice}

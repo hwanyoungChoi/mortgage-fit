@@ -37,3 +37,11 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* 줄 오른쪽 끝의 이동 링크([다시 시도]와 같은 크기) */
+.lineLink {
+  composes: retryButton;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

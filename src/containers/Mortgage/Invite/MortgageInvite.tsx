@@ -160,8 +160,8 @@ function InviteView({
         title="내가 만든 초대 링크입니다"
         description="함께 쓸 사람에게 보내 주세요. 받은 사람이 카카오로 로그인해 수락하면 같은 목록을 함께 씁니다"
       >
-        <a className={styles.primaryLink} href={PATHS.listings()}>
-          저장 목록으로 가기
+        <a className={styles.primaryLink} href={PATHS.hub}>
+          홈으로 가기
         </a>
       </StatusPanel>
     );
@@ -170,10 +170,10 @@ function InviteView({
     return (
       <StatusPanel
         title="이미 함께 쓰는 목록이 있습니다"
-        description="저장 목록에서 [나가기]로 나간 뒤 이 링크를 다시 열어 주세요"
+        description="홈에서 [나가기]로 나간 뒤 이 링크를 다시 열어 주세요"
       >
-        <a className={styles.primaryLink} href={PATHS.listings()}>
-          저장 목록으로 가기
+        <a className={styles.primaryLink} href={PATHS.hub}>
+          홈으로 가기
         </a>
       </StatusPanel>
     );

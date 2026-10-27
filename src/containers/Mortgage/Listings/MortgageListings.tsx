@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import KakaoLoginLink from "@/components/KakaoLoginLink";
 import { useListingSource } from "@/hooks/useListingSource";
-import { useLogout } from "@/hooks/useLogout";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { ApiRequestError } from "@/lib/api/client";
 import { PATHS } from "@/lib/constants/paths";
+import { accountImportProblem } from "@/lib/utils/accountImportProblem";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
 import { sortListings } from "@/lib/utils/sortListings";
 
 import styles from "./MortgageListings.module.css";
-import { accountImportProblem } from "./accountImportProblem";
 import { budgetExcess } from "./budgetExcess";
 import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
@@ -42,7 +40,6 @@ import type {
 } from "@/lib/types/listingOrder";
 import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { Regulations } from "@/lib/types/regulation";
-import type { LoginResult } from "@/lib/types/route";
 import type { SentShareStore } from "@/lib/types/sentShare";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
 
@@ -63,8 +60,6 @@ type MortgageListingsProps = {
   /** 가리기 모드(이 기기). 켜면 금액과 메모를 가린다. */
   privacyModeStore: PrivacyModeStore;
   regulations: Regulations;
-  /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 제목 아래 안내로 보이고 주소에서 지운다. */
-  login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
   onSuggestedNameChange: (name: string) => void;
   /** 다른 화면이나 이전이 남긴 알림(공유받은 매물 추가, 계정으로 옮김). 한 번만 보인다. */
@@ -137,8 +132,6 @@ const LEAVE_CONFIRM_MESSAGE = [
 
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
-const LOGOUT_DESCRIPTION_ID = "logout-description";
-
 /**
  * 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007).
  * 한 줄씩(이름과 필요한 자기자금) 보이고 줄을 누르면 상세 카드를 펼친다. 순서는 직접 정한 순서 하나다(ADR-026).
@@ -155,7 +148,6 @@ function MortgageListings({
   sentShareStore,
   privacyModeStore,
   regulations,
-  login,
   onSuggestedNameChange,
   notice,
   onNoticeChange,
@@ -191,7 +183,6 @@ function MortgageListings({
   const sheet = useOpenSheet<ListingsSheet>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
   const householdButtonRef = useRef<HTMLButtonElement>(null);
-  const logout = useLogout(sessionHintStore);
   const leaveHousehold = useLeaveHousehold();
   const { household } = source;
   // 함께 쓰기는 출처가 정해진 뒤에만 보인다(로그아웃이면 시트가 로그인을 안내한다).
@@ -199,8 +190,6 @@ function MortgageListings({
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
   const [shownNotice, setShownNotice] = useState(notice);
-  // 로그인 결과도 한 번 잡은 뒤 주소에서 지운다. 새로고침해도 안내가 다시 뜨지 않는다.
-  const [loginResult] = useState(login);
   useListingsScrollRestoration();
 
   useEffect(() => {
@@ -208,10 +197,6 @@ function MortgageListings({
     setShownNotice(notice);
     onNoticeChange(null);
   }, [notice, onNoticeChange]);
-
-  useEffect(() => {
-    if (login !== undefined) window.location.replace(PATHS.listings());
-  }, [login]);
 
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
@@ -497,7 +482,7 @@ function MortgageListings({
     <>
       <div className={styles.page} inert={sheet.isOpen}>
         <header className={styles.header}>
-          {/* 버튼이 제목과 한 줄에 다 들어가지 않으면(360px 로그아웃 상태 등) 제목 아래 줄로 내려간다. */}
+          {/* 버튼이 제목과 한 줄에 다 들어가지 않으면(360px 함께 쓰는 중 등) 제목 아래 줄로 내려간다. */}
           <div className={styles.titleRow}>
             <h1 className={styles.title}>저장 목록</h1>
             <div className={styles.titleActions}>
@@ -549,24 +534,6 @@ function MortgageListings({
                     </button>
                   </span>
                 ))}
-              {source.status === "loggedOut" && <KakaoLoginLink />}
-              {source.status === "loggedIn" && (
-                <>
-                  <button
-                    type="button"
-                    className={styles.headerButton}
-                    disabled={logout.isPending}
-                    aria-describedby={LOGOUT_DESCRIPTION_ID}
-                    onClick={() => logout.mutate()}
-                  >
-                    로그아웃
-                  </button>
-                  {/* 화면에는 두지 않고 보조기기에만 버튼 설명으로 읽힌다. */}
-                  <span id={LOGOUT_DESCRIPTION_ID} className={styles.visuallyHidden}>
-                    로그아웃하면 이 기기에 있던 목록으로 돌아갑니다
-                  </span>
-                </>
-              )}
             </div>
           </div>
           <p className={styles.baseDate}>
@@ -575,10 +542,7 @@ function MortgageListings({
         </header>
         <HeaderNotices
           accountStatus={source.status}
-          loginResult={loginResult}
           isSessionExpired={source.isSessionExpired}
-          // 로그아웃 실패는 아직 로그인 상태일 때만 의미가 있다(그 뒤 세션이 끝나면 지운다).
-          isLogoutFailed={source.status === "loggedIn" && logout.isError}
           onAccountRetry={source.retry}
           isAccountRetrying={source.isRetrying}
           importProblem={importProblem}
