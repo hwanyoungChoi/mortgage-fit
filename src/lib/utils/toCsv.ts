@@ -1,5 +1,5 @@
 /** 엑셀이 UTF-8로 읽게 파일 맨 앞에 붙이는 BOM(U+FEFF) */
-const BOM = "﻿";
+const BOM = "\uFEFF";
 const LINE_END = "\r\n";
 
 /** 이 문자로 시작하는 셀은 스프레드시트가 수식으로 읽을 수 있다(OWASP CSV Injection, 전각 포함) */
