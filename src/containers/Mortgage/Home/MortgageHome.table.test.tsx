@@ -453,7 +453,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
 
       // 다른 화면으로 이동(주소 push, 탭은 replace라 링크 이동처럼 해시를 바꾼다) → 뒤로 가기
       window.location.hash = "#/listings";
-      await screen.findByRole("link", { name: "저장 목록", current: "page" });
+      await screen.findByRole("link", { name: "매물", current: "page" });
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
       window.history.back();
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));

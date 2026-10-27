@@ -8,9 +8,9 @@ import type { Route } from "@/lib/types/route";
 
 describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
   const cases: [string, Route][] = [
-    ["", { name: "calculator" }],
-    ["#", { name: "calculator" }],
-    ["#/", { name: "calculator" }],
+    ["", { name: "hub" }],
+    ["#", { name: "hub" }],
+    ["#/", { name: "hub" }],
     ["#/listings", { name: "listings" }],
     // 옛 정렬·보기 주소는 쿼리를 버린다
     ["#/listings?sort=recent", { name: "listings" }],
@@ -18,9 +18,9 @@ describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
     ["#/listings?sort=custom&view=compact", { name: "listings" }],
     ["#/listings?other=1", { name: "listings" }],
     // 알 수 없는 해시
-    ["#/listing/abc", { name: "calculator" }],
-    ["#/x", { name: "calculator" }],
-    ["#listings", { name: "calculator" }],
+    ["#/listing/abc", { name: "hub" }],
+    ["#/x", { name: "hub" }],
+    ["#listings", { name: "hub" }],
     ["#/calculator", { name: "calculator" }],
   ];
 
@@ -31,9 +31,9 @@ describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
 
 describe("toRoutePath 정규 경로", () => {
   it("라우트별 정규 경로는 PATHS와 같다", () => {
-    expect(toRoutePath({ name: "calculator" })).toBe("#/");
+    expect(toRoutePath({ name: "calculator" })).toBe("#/calculator");
     expect(toRoutePath({ name: "listings" })).toBe("#/listings");
-    expect(PATHS.calculator).toBe("#/");
+    expect(PATHS.calculator).toBe("#/calculator");
     expect(PATHS.listings()).toBe("#/listings");
   });
 

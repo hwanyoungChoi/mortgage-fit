@@ -8,6 +8,8 @@ export type HomeView = "space" | "trade" | "table";
 export type ListView = Exclude<HomeView, "table">;
 
 export type Route =
+  /** 홈(허브, 첫 화면 `#/`). 화면 라벨은 "홈"이다. 라벨 "우리 집"은 아래 `home`(인테리어 플래너)이다(ADR-031 D2). */
+  | { name: "hub" }
   | { name: "calculator" }
   /** `login`은 저장 목록이 한 번 잡아 안내한 뒤 주소에서 지운다. 정규화가 먼저 지우지 않도록 라우트에 둔다. */
   | { name: "listings"; login?: LoginResult }
@@ -21,5 +23,5 @@ export type Route =
    */
   | { name: "home"; planId?: string; listingId?: string; view?: HomeView };
 
-/** 상단 탭이 있는 화면 */
+/** 하단 탭이 있는 화면 */
 export type TabName = Exclude<Route["name"], "share" | "invite">;

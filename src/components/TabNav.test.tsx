@@ -3,6 +3,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { PATHS } from "@/lib/constants/paths";
+
 import TabNav from "./TabNav";
 
 import type { TabName } from "@/lib/types/route";
@@ -19,19 +21,20 @@ describe("상단 탭 (AC-1)", () => {
     vi.restoreAllMocks();
   });
 
-  it("탭 순서는 계산 | 저장 목록 | 우리 집, 주소는 #/ · #/listings · #/home", () => {
+  it("탭 순서는 홈 | 계산 | 매물 | 우리 집, 주소는 #/ · #/calculator · #/listings · #/home", () => {
     const { nav } = renderTabNav("calculator");
     const links = within(nav).getAllByRole("link");
     expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
-      ["계산", "#/"],
-      ["저장 목록", "#/listings"],
+      ["홈", "#/"],
+      ["계산", "#/calculator"],
+      ["매물", "#/listings"],
       ["우리 집", "#/home"],
     ]);
   });
 
   it.each<[TabName, string]>([
     ["calculator", "계산"],
-    ["listings", "저장 목록"],
+    ["listings", "매물"],
     ["home", "우리 집"],
   ])("현재 %s면 '%s'만 aria-current=page", (current, label) => {
     const { nav } = renderTabNav(current);
@@ -52,7 +55,7 @@ describe("상단 탭 (AC-1)", () => {
 
   it("[우리 집]을 누르면 onNavigate 뒤 #/home으로 replace(이력이 쌓이지 않음)", async () => {
     const user = userEvent.setup();
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
     const historyLength = window.history.length;
     const { nav, onNavigate } = renderTabNav("calculator");
     await user.click(within(nav).getByRole("link", { name: "우리 집" }));

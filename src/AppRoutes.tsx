@@ -4,6 +4,7 @@ import TabNav from "@/components/TabNav";
 import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
 import MortgageHome from "@/containers/Mortgage/Home/MortgageHome";
+import MortgageHub from "@/containers/Mortgage/Hub/MortgageHub";
 import MortgageInvite from "@/containers/Mortgage/Invite/MortgageInvite";
 import MortgageListings from "@/containers/Mortgage/Listings/MortgageListings";
 import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useListingsScrollRestoration";
@@ -126,6 +127,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   };
 
   const renderScreen = () => {
+    if (route.name === "hub") return <MortgageHub />;
     if (route.name === "share") {
       return (
         <MortgageShare

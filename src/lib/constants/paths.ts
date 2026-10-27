@@ -4,7 +4,9 @@ type ListingsPathParams = Omit<Extract<Route, { name: "listings" }>, "name">;
 type HomePathParams = Omit<Extract<Route, { name: "home" }>, "name">;
 
 export const PATHS = {
-  calculator: "#/",
+  /** 홈(허브). 첫 화면이고 알 수 없는 해시도 여기로 온다(ADR-031 D1). */
+  hub: "#/",
+  calculator: "#/calculator",
   /** `login`은 로그인에서 돌아온 결과(서버가 붙인다). 인자가 없으면 `#/listings`. */
   listings: ({ login }: ListingsPathParams = {}) =>
     login === undefined ? "#/listings" : `#/listings?login=${login}`,

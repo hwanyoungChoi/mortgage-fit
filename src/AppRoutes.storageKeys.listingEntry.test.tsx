@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { DEFAULT_DRAFT } from "@/lib/constants/draft";
+import { PATHS } from "@/lib/constants/paths";
 import { ACCOUNT_IMPORTS_STORAGE_KEY } from "@/lib/utils/accountImportStorage";
 import { BUDGET_IMPORTS_STORAGE_KEY } from "@/lib/utils/budgetImportStorage";
 import { BUDGET_STORAGE_KEY } from "@/lib/utils/budgetStorage";
@@ -126,12 +127,12 @@ async function clickCardLink(user: User, name: string) {
 }
 
 /**
- * 앱 시작(#/) → 저장 목록 → 카드 [인테리어 계획] → 만들기(가져오기 체크) → 저장 목록 → 같은 카드(replace) →
+ * 앱 시작(#/calculator) → 저장 목록 → 카드 [인테리어 계획] → 만들기(가져오기 체크) → 저장 목록 → 같은 카드(replace) →
  * ⋯ [매물 연결 해제] → 계산
  */
 async function walkCardEntry(user: User) {
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
-  await user.click(screen.getByRole("link", { name: "저장 목록" }));
+  await user.click(screen.getByRole("link", { name: "매물" }));
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
 
   await clickCardLink(user, "래미안 84");
@@ -144,7 +145,7 @@ async function walkCardEntry(user: User) {
   const planHash = window.location.hash;
   expect(await screen.findByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
 
-  await user.click(screen.getByRole("link", { name: "저장 목록" }));
+  await user.click(screen.getByRole("link", { name: "매물" }));
   await clickCardLink(user, "래미안 84");
   await waitFor(() => expect(window.location.hash).toBe(planHash));
 
@@ -166,7 +167,7 @@ class NoopResizeObserver {
 
 describe("AC-0(c)(g) 매물 카드 진입·가져오기 흐름에서도 기존 12개 키는 그대로", () => {
   beforeEach(() => {
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
     // 펼친 카드의 메모(ListingMemo)가 ResizeObserver를 쓴다. jsdom에는 없다
     vi.stubGlobal("ResizeObserver", NoopResizeObserver);
   });

@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { DEFAULT_DRAFT } from "@/lib/constants/draft";
+import { PATHS } from "@/lib/constants/paths";
 import { ACCOUNT_IMPORTS_STORAGE_KEY } from "@/lib/utils/accountImportStorage";
 import { BUDGET_IMPORTS_STORAGE_KEY } from "@/lib/utils/budgetImportStorage";
 import { BUDGET_STORAGE_KEY } from "@/lib/utils/budgetStorage";
@@ -119,10 +120,10 @@ const storedKeys = (storage: Storage) =>
 
 type User = ReturnType<typeof userEvent.setup>;
 
-/** 앱 시작(#/) → 저장 목록 → 우리 집(항목 추가) → 계산 → 우리 집 */
+/** 앱 시작(#/calculator) → 저장 목록 → 우리 집(항목 추가) → 계산 → 우리 집 */
 async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
-  await user.click(screen.getByRole("link", { name: "저장 목록" }));
+  await user.click(screen.getByRole("link", { name: "매물" }));
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
   // 로그인 상태 목록(서버)을 받은 뒤(이전이 끝났거나 건너뛰었다)
   await waitFor(() => expect(api.callsTo("GET", "/api/listings").length).toBeGreaterThan(0));
@@ -156,7 +157,7 @@ function expectOnlySessionHintMark(forbiddenWrites: string[]) {
 
 describe("AC-0(c)(g) 로그인 상태에서도 기존 12개 키는 그대로", () => {
   beforeEach(() => {
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
   });
 
   afterEach(() => {
