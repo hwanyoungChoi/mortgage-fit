@@ -57,11 +57,15 @@ describe("홈 — 데이터 없음 (AC-5)", () => {
     // 계정 확인(/api/me) 전에는 요약 줄이 "불러오는 중"이다(AC-7 4행). 로그아웃이 확인된 뒤 소개 문구가 된다.
     await waitFor(() => expect(hub.querySelector('[aria-busy="true"]')).toBeNull());
 
-    const links = within(hub).getAllByRole("link");
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(CARDS.map(([, href]) => href));
+    // 로그아웃이라 카드들 위에 카카오 로그인 링크가 먼저 온다(MortgageHub.account.test.tsx)
+    const [loginLink, ...cardLinks] = within(hub).getAllByRole("link");
+    expect(loginLink).toHaveAccessibleName("카카오로 로그인");
+    expect(cardLinks.map((link) => link.getAttribute("href"))).toEqual(
+      CARDS.map(([, href]) => href),
+    );
     for (const [index, [name, href, description]] of CARDS.entries()) {
       const link = within(hub).getByRole("link", { name });
-      expect(link).toBe(links[index]);
+      expect(link).toBe(cardLinks[index]);
       expect(link).toHaveAttribute("href", href);
       expect(link).toHaveAccessibleName(name);
       expect(link).toHaveAccessibleDescription(description);
