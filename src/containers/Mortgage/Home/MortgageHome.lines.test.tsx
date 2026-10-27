@@ -192,7 +192,7 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
     expect(headlineValue("지출 예정")).toBe("0만원");
     expect(headlineValue("남은 예산")).toBe("1,000만원");
     expect(
-      screen.getByText("아직 줄이 없습니다. [줄 추가]로 공정별 업체 견적을 적어 보세요"),
+      screen.getByText("아직 줄이 없습니다. 오른쪽 아래 [+]를 눌러 공정별 업체 견적을 적어 보세요"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
@@ -509,10 +509,10 @@ describe("AC-1 가리기 (A8·A10)", () => {
     fireEvent.click(open);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    // 체크 토글·[줄 추가]는 가리기 중에도 된다
+    // 체크 토글은 가리기 중에도 된다. 떠 있는 [줄 추가]는 가리기 중에 숨긴다(스펙 interior-tbd-amount 추가 요청)
     await user.click(check("욕실 욕실나라 확정"));
     await waitFor(() => expect(check("욕실 욕실나라 확정")).toBeChecked());
-    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "가리기" }));
     expect(headlineValue("지출 예정")).toBe("1,200만원");
@@ -594,5 +594,41 @@ describe("목록에서 비고 숨기기 (스펙 interior-tbd-amount 추가 요�
     const table = await screen.findByRole("table");
     expect(within(table).getAllByText("폐기물 포함")).toHaveLength(2);
     expect(within(table).getByText("예산 2,000,000원")).toBeInTheDocument();
+  });
+});
+
+describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", () => {
+  it("목록 보기에서 하나, 아이콘(aria-hidden)만 있고 이름은 '줄 추가'. 누르면 줄 시트, 시트가 열린 동안 화면과 함께 inert, 닫으면 포커스가 돌아온다", async () => {
+    const user = userEvent.setup();
+    await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    const [add] = screen.getAllByRole("button", { name: "줄 추가" });
+    expect(screen.getAllByRole("button", { name: "줄 추가" })).toHaveLength(1);
+    expect(add).toHaveAttribute("aria-haspopup", "dialog");
+    expect(add).toHaveTextContent("");
+    expect(add.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    // 목록 맨 끝(마지막 묶음 뒤)이라 키보드 순서도 보이는 자리(목록 아래)와 같다
+    const lastGroup = screen.getByRole("region", { name: "욕실" });
+    expect(lastGroup.compareDocumentPosition(add)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    await user.click(add);
+    expect(screen.getByRole("dialog", { name: "줄 추가" })).toBeInTheDocument();
+    expect(add.closest("[inert]")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "닫기" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(add.closest("[inert]")).toBeNull();
+    expect(add).toHaveFocus();
+  });
+
+  it("표 보기와 가리기 중에는 없다", async () => {
+    const user = userEvent.setup();
+    await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    await user.click(screen.getByRole("radio", { name: "표" }));
+    await screen.findByRole("table");
+    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: "목록" }));
+    expect(await screen.findByRole("button", { name: "줄 추가" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
   });
 });

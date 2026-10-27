@@ -52,7 +52,7 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 }
 
 /**
- * 플랜 화면: 머리글(이름 + [가리기][⋯]) → 요약 → [목록|표] → (목록) [줄 추가] + 공정별 목록 / (표) 표 보기.
+ * 플랜 화면: 머리글(이름 + [가리기][⋯]) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
  * 체크와 요약은 같은 계획 값에서 매번 계산한다(ADR-007). `now`는 렌더마다 하나만 만들어 표 머리·파일 이름이 같이 쓴다.
  */
 function PlanScreen({

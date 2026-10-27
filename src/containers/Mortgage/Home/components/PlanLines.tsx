@@ -1,3 +1,5 @@
+import Plus from "lucide-react/icons/plus";
+
 import EmptyItems from "./EmptyItems";
 import LineRow from "./LineRow";
 import styles from "./PlanLines.module.css";
@@ -24,10 +26,12 @@ type PlanLinesProps = {
   ) => Promise<InteriorPlanSourceWriteResult>;
 };
 
-const EMPTY_MESSAGE = "아직 줄이 없습니다. [줄 추가]로 공정별 업체 견적을 적어 보세요";
+const EMPTY_MESSAGE = "아직 줄이 없습니다. 오른쪽 아래 [+]를 눌러 공정별 업체 견적을 적어 보세요";
 
 /**
- * 목록 보기: [줄 추가] → 확정 저장 결과 한 줄 → 공정(구분)별 묶음. [줄 추가]는 목록 위라 줄 수와 상관없이 같은 자리다.
+ * 목록 보기: (상한이면 안내) → 확정 저장 결과 한 줄 → 공정(구분)별 묶음 + 떠 있는 [+](줄 추가).
+ * [+]는 화면 오른쪽 아래, 하단 탭 줄 바로 위에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있고
+ * 가리기 중에는 숨긴다(줄 시트를 열지 않는 상태). 시트가 열리면 이 화면과 함께 inert다.
  * 줄 DOM은 key `item.id:quote.id`로 유지돼 저장·폴링 뒤에도 다시 마운트되지 않는다(스크롤 위치 유지).
  */
 function PlanLines({
@@ -41,19 +45,8 @@ function PlanLines({
   const { savingItemIds, notice, toggle } = useLineConfirmToggle(onConfirmWrite);
 
   return (
-    <>
-      <div className={styles.addRow}>
-        <button
-          type="button"
-          className={styles.addButton}
-          aria-haspopup="dialog"
-          disabled={!canAddLine}
-          onClick={(event) => onLineAdd(null, event.currentTarget)}
-        >
-          줄 추가
-        </button>
-        {!canAddLine && <p className={styles.limitNote}>{ITEM_LIMIT_MESSAGE}</p>}
-      </div>
+    <div className={styles.lines}>
+      {!canAddLine && <p className={styles.limitNote}>{ITEM_LIMIT_MESSAGE}</p>}
       {notice !== null && (
         <p
           className={notice.kind === "error" ? styles.errorNotice : styles.infoNotice}
@@ -96,7 +89,19 @@ function PlanLines({
           ))}
         </div>
       )}
-    </>
+      {!isMasked && (
+        <button
+          type="button"
+          className={styles.addFab}
+          aria-label="줄 추가"
+          aria-haspopup="dialog"
+          disabled={!canAddLine}
+          onClick={(event) => onLineAdd(null, event.currentTarget)}
+        >
+          <Plus size={28} aria-hidden="true" />
+        </button>
+      )}
+    </div>
   );
 }
 
