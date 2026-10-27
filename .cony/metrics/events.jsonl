@@ -243,3 +243,9 @@
 {"ts":"2026-10-27T09:46:34.753Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-27T10:15:29.232Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
 {"ts":"2026-10-27T10:15:29.232Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T10:20:52.605Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-27T10:21:00.314Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":2}
+{"ts":"2026-10-27T10:21:08.123Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":3}
+{"ts":"2026-10-27T10:21:25.099Z","type":"hook","hook":"verify-on-stop","decision":"allow-after-max","attempts":4}
+{"ts":"2026-10-27T10:27:57.141Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c43f2613-2353-4c04-a3f5-099935e7042e/scratchpad/full; rm -rf $S; mkdir -p $S; git status --porcelain -- src server | awk '{p"}
+{"ts":"2026-10-27T10:30:07.172Z","type":"hook","hook":"verify-on-stop","decision":"allow-after-max","attempts":5}
