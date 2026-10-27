@@ -275,7 +275,23 @@
 .actions {
   display: flex;
   gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-4);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+/* [인테리어 계획]: 버튼 줄 아래 전체 폭 한 줄(U11). 버튼 줄과 같은 높이·바탕이라 같은 묶음으로 읽힌다. */
+.interiorLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  margin: 0 var(--space-4) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .deleteButton {
