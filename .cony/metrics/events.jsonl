@@ -203,3 +203,7 @@
 {"ts":"2026-10-27T03:48:33.208Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-27T03:48:37.179Z","type":"task","task":3,"from":"review","to":"progress","owner":"fe"}
 {"ts":"2026-10-27T03:50:50.651Z","type":"hook","hook":"guard-bash","decision":"ask","command":"git diff 4e2444c..HEAD -- src ':!*.test.ts' ':!*.test.tsx' | grep -nE '^\\+.*(fetch\\(|axios|useQuery|interiorPlanList)' | head; git diff --stat 4e2444c..HEAD -- src/containers/Mortgage/Listings | tail "}
+{"ts":"2026-10-27T04:35:57.585Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-10-27T04:35:57.623Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T04:35:57.623Z","type":"task","task":4,"from":"todo","to":"progress","owner":"리드"}
+{"ts":"2026-10-27T04:35:57.623Z","type":"status","status":"사용자 대기"}

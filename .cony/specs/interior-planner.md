@@ -225,7 +225,7 @@ CREATE TABLE interior_plan_items (
   - [ ] 2-1. 0007(`--local` 적용 후 AC-0(a) 쿼리로 전후 비교), `PLAN_SCOPE_SQL`과 항목용 한 플랜 범위 조각, 엔드포인트 8개(봉투 `{ plan }`·`{ item }`, `import` 먼저 라우팅, 경로 id 400, id `import` 거부, POST `items` ≤30·서버 발급 id, GET 한 `db.batch`, 항목 POST 404/400 구분, import 항목 가드·상한 식·409 `inHousehold`), 검증은 알려진 키 복사·id 유일성·시각 형식·금액 `isSafeInteger`, 수락·나가기 batch 문장 추가(수락은 마지막 앞, 나가기는 맨 끝 + 이름으로 `cleared` 조회), worker 경로. 0-4 테스트와 기존 `server/**` 테스트 통과 (be)
   - [ ] 2-2. API 훅(`interiorPlanListQueryKey` 함수형, 항목 PUT·POST 응답은 `setQueryData`로 해당 항목만 갱신), 출처 훅(loading·loggedOut·loggedIn·error, `useListingSource` 규칙과 같음, 가구일 때만 30초), 로그인 이전(플랜 1개씩, 본문 실측, `Record<userId, planId[]>` 기록, **가구면 `skipped` — 0-1 규칙 그대로**, 409 `inHousehold`는 건너뜀으로 처리), 수락·나가기 훅의 무효화에 플랜 목록 키 추가, 같은 항목 동시 편집 경고(`updatedAt` 비교), 나가기 확인 문구에 항목 귀속 한 줄(U12) (fe)
   - [ ] 2-3. 하네스로 플랜 핸들러 테스트(범위·404·상한 한 문장·import 재시도(플랜 3개 상태의 같은 id → `imported: 0`)·항목 가드 변이·409 `inHousehold`·라우트 순서·CASCADE·수락 숨김/나가기 복귀·0006 시점 데이터에 0007 적용 후 기존 테스트 그대로), 출처·이전 훅 테스트 (qa)
-- [ ] 3. 매물 연결·추가 비용 가져오기 — AC-6
+- [x] 3. 매물 연결·추가 비용 가져오기 — AC-6
   - [ ] 3-1. 카드 [인테리어 계획] 전체 폭 링크(`#/home?listing={id}`, 플랜 GET 없음), Home의 연결 플랜 찾기 → `#/home/{planId}` replace, 인테리어 분류 줄 → 공간 "전체" 항목 변환(순수 함수), 연결 매물 없음 표시 (fe)
   - [ ] 3-2. 가져오기 변환 함수 표(인테리어 줄 0·1·30개, 이름 30자)·카드 진입(플랜 GET 0회)·replace 테스트, 매물 원문 불변 확인 (qa)
 - [ ] 4. 배포·검증 (리드)
