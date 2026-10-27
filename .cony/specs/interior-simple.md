@@ -153,7 +153,7 @@ X = s1 · 욕실 · 예산 350 · 견적 [q1 하루바스(연락처 010-1234-567
   - [ ] 1-2c. 빼는 기능 코드·테스트 삭제 (담당: fe): "화면에서 빼는 것" 정리(상수 파일은 삭제만), 위 "지울 테스트 감사 규칙"으로 R/T/X 표 작성
   - [ ] 1-3. 결과물·허브 (담당: fe): `buildInteriorPlanTable`·`interiorPlanTableToCsvRows`·`interiorPlanTableHeading`을 줄 모델로(공간 라벨 삭제, 계는 확정만, 머리 지출 예정·남은 예산/예산 초과, 옛 비고 조각 삭제), `summarizeHub`·`MortgageHub`·`HubPlanLine`을 지출 예정으로
   - [ ] 1-4. 검증 (담당: qa): AC-0~AC-6. 새 `AppRoutes.storageKeys.interiorSimple.test.tsx`(로그아웃/로그인 혼자/가구), 옛 번들 계약·서버 하네스 왕복·로그인 이전 새 테스트, 쓰기 입력 표, `git diff --exit-code`/`status --porcelain`/`pnpm build`/`server/**` 결과 기록, 지운 테스트 감사(X 0, 완화 검색, `it` 수 표, 죽은 코드 `rg`), 버그 되살리기 4가지 확인, 수동 확인 목록(레이아웃·스크롤·인쇄 한 장·옛 번들 탭 공존·두 기기 30초 반영)
-- [ ] 2. **만들기 시트 단순화** (태스크 1 머지 뒤)
+- [x] 2. **만들기 시트 단순화** (태스크 1 머지 뒤)
   - [ ] 2-1. 방·욕실 수 삭제, 공간 `[전체]` 하나로 만들기, 가져오기 안내 문구 "줄 이름은 구분, 금액은 비고의 예산으로 넣습니다". `createDefaultSpaces`·방/욕실 상수 삭제. `extraCostsToInteriorItems`는 그대로 (담당: fe)
   - [ ] 2-2. AC-7 + 기존 `listingEntry*` 테스트 통과(AC-0(b) 규칙), 감사 규칙 적용 (담당: qa)
 

@@ -238,3 +238,5 @@
 {"ts":"2026-10-27T09:13:09.015Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorSimpleContract.test.ts"}
 {"ts":"2026-10-27T09:23:56.822Z","type":"task","task":1,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-27T09:23:56.822Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T09:34:13.170Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T09:42:26.578Z","type":"task","task":2,"from":"review","to":"done","owner":null}
