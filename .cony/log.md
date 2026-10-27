@@ -521,3 +521,6 @@
 - AI(fe) 5-1: 순수 함수 5개(`buildInteriorPlanTable`·`interiorPlanExportText`·`interiorPlanTableToCsvRows`·`toCsv`·`downloadTextFile`)·상수 `interiorPlanTable.ts`, `HomeView` `"table"`(`ListView` 분리), `PlanTableView`·`PlanTable`, 전역 인쇄 규칙(`:has()` 허용 목록 `[data-print-area]`). 기존 테스트 1506 통과, 계약·AC-0(g) 파일 diff 빔
 - AI(리드) 화면 확인(워크트리 dev 5199, 로그아웃, Q 시드): 360×780에서 문서 폭 360(가로 밀림 없음)·표 영역만 600px 스크롤, 표 행이 스펙 Q 표와 같음(욕실 rowSpan 2, 계 9,800,000/7,500,000). 인쇄 규칙을 화면에 강제 적용 → 표 머리·표만 남음. CSV 캡처: 파일 이름 `우리 집-인테리어-2026-10-27.csv`, `EF BB BF`, CRLF, 내용 = 스펙 Q CSV, print 1회. 가리기: innerHTML에 금액·메모 없음, 두 버튼 비활성·안내. 보기 전환은 replace(이력 +0), 표 보기에 [항목 추가] 없음. 실제 인쇄 창·모바일 Safari·엑셀은 5-3(배포 후)
 - AI(리드): 표 보기 빈 문구가 없는 [항목 추가]를 가리켜 표 보기 전용 문구로 바꾸게 함
+- AI(qa) 5-2: 새 테스트 144개(1506 → 1650 + 1 todo), 변이 26개 모두 실패(처음 살아남은 `window.localStorage` 쓰기 변이는 Storage.prototype 스파이를 더해 잡음), 결함 0 ([기록](reviews/20261027-1429-qa-task-5.md))
+- AI(리드): code-review-fe(8f150f5..HEAD) 컨벤션 위반 없음. 가독성 1건 — `toCsv.ts` BOM을 보이지 않는 문자 대신 `﻿`로(fe 수정)
+- AI(리드): 5-3(실제 인쇄 창·엑셀·모바일 Safari·카카오톡 인앱)은 배포 후 확인으로 보고서에 미검증으로 남김

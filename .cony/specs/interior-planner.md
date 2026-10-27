@@ -397,7 +397,7 @@ downloadTextFile(fileName: string, text: string): void
 - [ ] 4. 배포·검증 (리드)
   - [ ] 4-1. time-travel 복원 지점 기록 → AC-0(a) 직전 덤프 → **원격 0007 적용**(`pnpm wrangler d1 migrations apply mortgage-fit --remote`) → 직후 덤프·`diff`(새 테이블 2개 0행 확인 포함) → AC-0(e) 옛 Worker 확인
   - [ ] 4-2. **그 다음에** PR 머지(Auto-fix + CI 통과 시 자동 머지라 PR이 곧 배포, CI에는 migrations apply가 없으므로 순서를 사람이 지킨다. 새 Worker + 옛 스키마면 나가기가 막힌다). 배포 후 AC-0(b)~(d)(f), AC-1~10 화면·curl 확인, 원격 플랜 삭제 후 항목 0행 확인
-- [ ] 5. 계획 표 내보내기 (CSV·인쇄) — AC-11, AC-12, AC-0(c)(g) 유지 ("표 내보내기" 절, 사용자 요청 2026-10-27, D6 = ADR-030 B)
+- [x] 5. 계획 표 내보내기 (CSV·인쇄) — AC-11, AC-12, AC-0(c)(g) 유지 ("표 내보내기" 절, 사용자 요청 2026-10-27, D6 = ADR-030 B)
   - [ ] 5-1. 표 내보내기 구현 (fe)
     - 먼저 "함수와 파일"의 타입·시그니처를 커밋한다(구현은 비어 있어도 됨). 이후 5-2의 순수 함수 테스트가 병렬로 시작된다.
     - 순수 함수: `buildInteriorPlanTable`(대표 견적·원 변환·비고·합계, 합 0이면 `0`), `interiorPlanTableHeading`, `interiorPlanExportFileName`(변환 → 앞뒤 정리 → 빈 이름 대체 순서, 제어 문자 U+0000–U+001F·U+007F), `interiorPlanTableToCsvRows`, 범용 `toCsv`(이스케이프·수식 주입 접두를 먼저·이스케이프를 나중·전각 접두·BOM·CRLF), `downloadTextFile`(앵커를 `document.body`에 붙였다 떼고 `revokeObjectURL`은 40초 지연). 새 상수는 `constants/interiorPlanTable.ts`에만.
