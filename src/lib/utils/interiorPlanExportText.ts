@@ -1,4 +1,3 @@
-import { WON_PER_MANWON } from "@/lib/constants/interiorPlan";
 import {
   INTERIOR_PLAN_EXPORT_FILE_EXTENSION,
   INTERIOR_PLAN_EXPORT_FILE_LABEL,
@@ -6,7 +5,7 @@ import {
   INTERIOR_PLAN_TABLE_SEPARATOR,
 } from "@/lib/constants/interiorPlanTable";
 
-import { formatThousands } from "./amount";
+import { formatWon } from "./amount";
 import { tbdExclusionNote } from "./interiorPlanRows";
 
 import type { InteriorPlanSummary } from "./interiorPlanRows";
@@ -26,16 +25,11 @@ export type InteriorPlanTableHeading = {
   line: string;
 };
 
-/** 만원 → `15,000,000`(원, 천 단위 쉼표) */
-function formatWon(manwon: number): string {
-  return formatThousands(manwon * WON_PER_MANWON);
-}
-
-function remainingOf(remaining: number | null): string | undefined {
-  if (remaining === null) return undefined;
-  return remaining < 0
-    ? INTERIOR_PLAN_TABLE_HEADING.overBudget(formatWon(-remaining))
-    : INTERIOR_PLAN_TABLE_HEADING.remaining(formatWon(remaining));
+function remainingOf(remainingWon: number | null): string | undefined {
+  if (remainingWon === null) return undefined;
+  return remainingWon < 0
+    ? INTERIOR_PLAN_TABLE_HEADING.overBudget(formatWon(-remainingWon))
+    : INTERIOR_PLAN_TABLE_HEADING.remaining(formatWon(remainingWon));
 }
 
 /**
@@ -49,14 +43,14 @@ export function interiorPlanTableHeading(
 ): InteriorPlanTableHeading {
   const basis = INTERIOR_PLAN_TABLE_HEADING.basis(today);
   const budget =
-    summary.budget === null
+    summary.budgetWon === null
       ? undefined
-      : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budget));
+      : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budgetWon));
   const tbdNote = tbdExclusionNote(summary.tbdCount);
   const plannedTotal =
-    INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotal)) +
+    INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotalWon)) +
     (tbdNote === "" ? "" : `(${tbdNote})`);
-  const remaining = remainingOf(summary.remaining);
+  const remaining = remainingOf(summary.remainingWon);
   const pieces = [basis, budget, plannedTotal, remaining].filter(
     (piece): piece is string => piece !== undefined,
   );

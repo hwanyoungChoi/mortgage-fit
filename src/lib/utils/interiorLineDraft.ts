@@ -27,7 +27,7 @@ export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
 
 /**
  * 저장된 줄 → 시트 입력. 시트를 연 시점의 값으로만 쓴다(재조회로 바뀌어도 입력을 덮지 않는다).
- * 비고는 `item.memo`뿐이다. 빈 줄의 "예산 n만원"은 표시용이라 넣지 않는다(합성 비고 미저장).
+ * 비고는 `item.memo`뿐이다. 빈 줄의 "예산 n원"은 표시용이라 넣지 않는다(합성 비고 미저장).
  */
 export function toInteriorLineDraft({
   item,

@@ -65,11 +65,11 @@ describe("buildInteriorPlanTable — 예시 P (AC-5)", () => {
     expect(table.confirmedTotal).toBe(8_000_000);
   });
 
-  it("계는 확정 칸만 있고 견적 합계는 두지 않는다(U6), 계 = 지출 예정 × 10,000", () => {
+  it("계는 확정 칸만 있고 견적 합계는 두지 않는다(U6), 계 = 지출 예정(원)", () => {
     const plan = makeSimplePlanP();
     const table = tableOf(plan);
     expect(Object.keys(table).toSorted()).toEqual(["confirmedTotal", "groups", "totalNote"]);
-    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotal * 10_000);
+    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotalWon);
   });
 });
 
@@ -107,7 +107,7 @@ describe("buildInteriorPlanTable — 예시 Q·옛 P (여러 견적 항목)", ()
       ["에어컨", "", "", undefined, undefined, "추후 구매 · 예산 1,500,000원"],
     ]);
     expect(table.confirmedTotal).toBe(7_500_000);
-    expect(summarizeInteriorPlan(plan).plannedTotal).toBe(750);
+    expect(summarizeInteriorPlan(plan).plannedTotalWon).toBe(7_500_000);
   });
 
   it("옛 P: 확정이 최저가 아닌 샷시(D 11,500,000 미확정 · E 12,500,000 확정)도 견적마다 한 줄, 계 15,300,000", () => {
@@ -216,7 +216,7 @@ describe("buildInteriorPlanTable — 최대 금액(정확한 값)", () => {
     const plan = makePlanP({ items: Array.from({ length: 100 }, (_, index) => maxItem(index)) });
     const table = tableOf(plan);
     expect(table.confirmedTotal).toBe(999_999_999_000_000);
-    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotal * 10_000);
+    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotalWon);
     expect(formatThousands(table.confirmedTotal)).toBe("999,999,999,000,000");
     expect(Number.isSafeInteger(table.confirmedTotal)).toBe(true);
   });

@@ -51,7 +51,7 @@ const LOADING = { kind: "loading" } as const;
 const ERROR = { kind: "error" } as const;
 const CORRUPT = { kind: "corrupt" } as const;
 const DRAFT_125000 = { kind: "summary", value: 125000 } as const;
-const P_LINE = { id: "plan-p", name: "우리 집", plannedTotal: 1530, tbdCount: 0 };
+const P_LINE = { id: "plan-p", name: "우리 집", plannedTotalWon: 15_300_000, tbdCount: 0 };
 
 describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 카드의 상태가 다른 카드에 번지지 않음)", () => {
   it.each<[string, Partial<Input>, HubSummary]>([
@@ -128,7 +128,7 @@ describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 �
         listings: { kind: "summary", value: { count: 4, isHousehold: true } },
         home: {
           kind: "summary",
-          value: [{ id: "plan-pa", name: "A 계획", plannedTotal: 1530, tbdCount: 0 }],
+          value: [{ id: "plan-pa", name: "A 계획", plannedTotalWon: 15_300_000, tbdCount: 0 }],
         },
       },
     ],
@@ -216,24 +216,28 @@ describe("AC-6 우리 집 카드: 계획별 지출 예정 (interior-simple U7)",
     ]);
   });
 
-  // 지출 예정 = summarizeInteriorPlan(plan).plannedTotal 그대로(확정한 줄의 견적 합). 지급·예산은 세지 않는다.
+  // 지출 예정 = summarizeInteriorPlan(plan).plannedTotalWon 그대로(확정한 줄의 견적 합). 지급·예산은 세지 않는다.
   it.each<[string, InteriorPlanWithItems, number]>([
-    ["예시 P(새 화면): R1 180 + R3 370 + R5 250 = 800", makeSimplePlanP(), 800],
-    ["옛 P: 도배 A 280 + 샷시 E 1,250 = 1,530(옛 앞으로 낼 돈 1,250이 아님)", makePlanP(), 1530],
+    ["예시 P(새 화면): R1 180 + R3 370 + R5 250 = 800", makeSimplePlanP(), 8_000_000],
+    [
+      "옛 P: 도배 A 280 + 샷시 E 1,250 = 1,530(옛 앞으로 낼 돈 1,250이 아님)",
+      makePlanP(),
+      15_300_000,
+    ],
     [
       "옛 P + 샷시 잔금 지급(paySashBalance): 지급은 세지 않아 1,530 그대로",
       withItem(makePlanP(), "item-sash", paySashBalance),
-      1530,
+      15_300_000,
     ],
     [
       "옛 P + 샷시 확정 E→D(confirmSashD): 280 + 1,150 = 1,430",
       withItem(makePlanP(), "item-sash", confirmSashD),
-      1430,
+      14_300_000,
     ],
     [
       "옛 P + D 확정 + 잔금 지급: 1,430",
       withItem(makePlanP(), "item-sash", (item) => paySashBalance(confirmSashD(item))),
-      1430,
+      14_300_000,
     ],
     ["항목 없음: 0", makePlanP({ items: [] }), 0],
     [
@@ -247,13 +251,13 @@ describe("AC-6 우리 집 카드: 계획별 지출 예정 (interior-simple U7)",
           },
         ],
       }),
-      12500,
+      125_000_000,
     ],
-  ])("%s", (_name, plan, plannedTotal) => {
-    expect(summarizeInteriorPlan(plan).plannedTotal).toBe(plannedTotal);
+  ])("%s", (_name, plan, plannedTotalWon) => {
+    expect(summarizeInteriorPlan(plan).plannedTotalWon).toBe(plannedTotalWon);
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, plannedTotal, tbdCount: 0 }],
+      value: [{ id: plan.id, name: plan.name, plannedTotalWon, tbdCount: 0 }],
     });
   });
 });
@@ -282,13 +286,13 @@ describe("AC-6 금액 경계표 (대출 계산 카드, validateAmount(salePrice)
 // 스펙 interior-tbd-amount AC-4: 확정 미정 줄 수는 우리 집 요약(`summarizeInteriorPlan`)의 값 그대로다.
 describe("우리 집 카드 — 금액 미정 건수 (interior-tbd-amount)", () => {
   it.each<[string, InteriorPlanWithItems, number, number]>([
-    ["P⁺: 지출 예정 800 · 미정 1건(미확정 R7은 세지 않음)", makeSimplePlanPPlus(), 800, 1],
+    ["P⁺: 지출 예정 800 · 미정 1건(미확정 R7은 세지 않음)", makeSimplePlanPPlus(), 8_000_000, 1],
     ["확정이 R6뿐: 지출 예정 0 · 미정 1건", makeSimplePlanP({ items: [r6()] }), 0, 1],
-    ["P: 미정 0건", makeSimplePlanP(), 800, 0],
-  ])("%s", (_name, plan, plannedTotal, tbdCount) => {
+    ["P: 미정 0건", makeSimplePlanP(), 8_000_000, 0],
+  ])("%s", (_name, plan, plannedTotalWon, tbdCount) => {
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, plannedTotal, tbdCount }],
+      value: [{ id: plan.id, name: plan.name, plannedTotalWon, tbdCount }],
     });
   });
 });

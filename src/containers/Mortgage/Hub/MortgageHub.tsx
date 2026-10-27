@@ -6,7 +6,7 @@ import { useInteriorPlanListSource } from "@/hooks/useInteriorPlanListSource";
 import { useListingSource } from "@/hooks/useListingSource";
 import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 import { PATHS } from "@/lib/constants/paths";
-import { formatManwon } from "@/lib/utils/amount";
+import { formatManwon, formatWon } from "@/lib/utils/amount";
 
 import styles from "./MortgageHub.module.css";
 import HubAccount from "./components/HubAccount";
@@ -111,7 +111,7 @@ function MortgageHub({
                 <span key={line.id} className={styles.planLine}>
                   {line.name} · 지출 예정{" "}
                   <MaskedValue isMasked={isPrivacyMode}>
-                    {formatManwon(line.plannedTotal)}
+                    {formatWon(line.plannedTotalWon)}
                   </MaskedValue>
                   {/* 확정 미정 줄 수. 가리기 중에는 구분자까지 통째로 뺀다(U6) */}
                   {line.tbdCount > 0 &&

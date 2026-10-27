@@ -5,7 +5,7 @@ import { LISTING_NAME_MAX_LENGTH } from "../utils/validateListingName";
 
 import type { InteriorItemStatus } from "../types/interiorPlan";
 
-/** 원 = 만원 × 이 값. 옛 키(`amount`·`budget`, 만원)를 원으로 읽을 때와 표·CSV가 쓴다(ADR-034) */
+/** 원 = 만원 × 이 값. 옛 키(`amount`·`budget`·항목 `budget`, 만원)를 원으로 읽을 때 `interiorPlanRows`가 쓴다(ADR-034) */
 export const WON_PER_MANWON = 10_000;
 /**
  * 원 단위 금액(`amountWon`·`budgetWon`) 상한, 13자리. 옛 만원 상한 999,999,999 × 10,000을 담고,

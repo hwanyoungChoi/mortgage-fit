@@ -75,8 +75,8 @@ describe("AC-0(e) 로그인 이전: 새 화면에서 만든 계획", () => {
       ["욕실 욕실나라 철거·방수 (1) 확정", false],
       ["욕실 하루바스 타일 덧방 (2) 확정", true],
     ]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
-    expect(headlineValue("남은 예산")).toBe("200만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
+    expect(headlineValue("남은 예산")).toBe("2,000,000원");
 
     // 로컬 계획 원문은 읽기만 했다(쓰기는 이전 기록과 session-hint뿐)
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY) === raw).toBe(true);
@@ -110,8 +110,8 @@ describe("AC-0(e) 로그인 이전: 새 화면에서 만든 계획", () => {
       ["욕실 하루바스 타일 덧방 확정", false],
       ["도배 확정", false],
     ]);
-    expect(headlineValue("지출 예정")).toBe("370만원");
-    expect(headlineValue("남은 예산")).toBe("2,630만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
+    expect(headlineValue("남은 예산")).toBe("26,300,000원");
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY) === raw).toBe(true);
   });
 });

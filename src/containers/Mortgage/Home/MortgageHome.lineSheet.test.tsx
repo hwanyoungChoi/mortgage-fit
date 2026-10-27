@@ -135,7 +135,7 @@ describe("AC-2 줄 추가", () => {
         .getAllByRole("checkbox")
         .map((box) => box.getAttribute("aria-label")),
     ).toEqual(["도배 동네도배 합지 확정", "도배 육문수 실크 전체 확정"]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
   it("(b) 욕실 묶음의 [+ 욕실에 줄 추가] → 구분 '욕실'이 채워지고 포커스는 세부내용 칸, 구분 칸은 이 계획의 기존 구분을 제안한다", async () => {
@@ -337,7 +337,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     expect(confirm).toHaveBeenCalledWith("이 줄을 지울까요?");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(storedItems(storage).map((item) => item.id)).toEqual(["r1", "r3", "r4", "r5"]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
   it("삭제 확인을 취소하면 쓰지 않는다", async () => {
@@ -370,7 +370,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
       quotes: [{ id: "rq2", vendor: "동네도배", amount: 150 }],
       confirmedQuoteId: "rq2",
     });
-    expect(headlineValue("지출 예정")).toBe("950만원");
+    expect(headlineValue("지출 예정")).toBe("9,500,000원");
   });
 
   // 옛 "견적 중 항목을 [확정]하면 상태가 '확정'으로 바뀐다"의 반전(A4)
@@ -435,7 +435,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     expect(within(dialog).queryByText(/같이 씁니다/)).not.toBeInTheDocument();
   });
 
-  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 200만원' 아님), 육문수·180 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
+  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 2,000,000원' 아님), 육문수·180 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanL()]);
     await renderApp(storage, L_HASH);
@@ -451,7 +451,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
       ...fieldsOf(legacyY()),
       quotes: [{ id: stored?.quotes?.[0].id, vendor: "육문수", amount: 180 }],
     });
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
     expect(screen.getByRole("checkbox", { name: "도배 육문수 확정" })).toBeEnabled();
   });
 
@@ -469,7 +469,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
       ...fieldsOf(x),
       quotes: [x.quotes![0]],
     });
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
   });
 
   it("(c) 타일 덧방 삭제 → removeItem(Z)", async () => {
@@ -496,8 +496,8 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     const { confirmedQuoteId, ...rest } = fieldsOf(legacyX());
     void confirmedQuoteId;
     expect(fieldsOf(stored)).toStrictEqual({ ...rest, quotes: [legacyX().quotes![1]] });
-    expect(headlineValue("지출 예정")).toBe("0만원");
-    expect(headlineValue("남은 예산")).toBe("3,000만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
+    expect(headlineValue("남은 예산")).toBe("30,000,000원");
   });
 
   it("(e) 견적 1개 + 지급 2건 항목의 줄 삭제 → '이 줄을 지울까요? 지급 2건도 함께 지워집니다' 뒤 removeItem, 지급이 없으면 문구 없음", async () => {

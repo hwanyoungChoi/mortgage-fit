@@ -190,7 +190,7 @@ async function expectHubPlanLines() {
       within(screen.getByRole("link", { name: "우리 집 인테리어" }))
         .queryAllByText(/지출 예정/)
         .map((line) => line.textContent),
-    ).toEqual(["옛 계획 · 지출 예정 370만원", "우리 집 · 지출 예정 1,530만원"]),
+    ).toEqual(["옛 계획 · 지출 예정 3,700,000원", "우리 집 · 지출 예정 15,300,000원"]),
   );
 }
 

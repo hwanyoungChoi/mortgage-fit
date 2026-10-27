@@ -80,7 +80,7 @@ describe("AC-0(e) 새 쓰기 함수가 만든 P: 옛 번들이 읽고 다시 써
       expect(item.quotes).toHaveLength(1);
       expect(Object.hasOwn(item, "memo")).toBe(false);
     }
-    expect(buildInteriorPlanRows(plan).plannedTotal).toBe(800);
+    expect(buildInteriorPlanRows(plan).plannedTotalWon).toBe(8_000_000);
     expectOldBundleKeepsRaw(raw);
     expectOldBundleRewriteKeepsItems(storage, planId);
     expectOldBundleKeepsRaw(storage.getItem(INTERIOR_PLANS_STORAGE_KEY));

@@ -79,21 +79,21 @@ afterEach(() => {
 });
 
 describe("목록·요약 (P⁺)", () => {
-  it("R6·R7 금액 자리는 '미정'(0만원 아님), R6만 체크, 지출 예정 800만원 · 남은 예산 200만원 · 요약 안에 문구 한 번", async () => {
+  it("R6·R7 금액 자리는 '미정'(0원 아님), R6만 체크, 지출 예정 8,000,000원 · 남은 예산 2,000,000원 · 요약 안에 문구 한 번", async () => {
     await renderLoggedOut(storageWith([makeSimplePlanPPlus()]));
     expect(openButton(R6_NAME)).toHaveTextContent(/^거실 매입등빛나라조명미정$/);
     expect(openButton(R7_NAME)).toHaveTextContent(/^한솔도배미정$/);
     for (const name of [R6_NAME, R7_NAME]) {
-      expect(openButton(name).textContent).not.toContain("0만원");
+      expect(openButton(name).textContent).not.toContain("0원");
     }
     expect(check(R6_NAME)).toBeChecked();
     expect(check(R7_NAME)).not.toBeChecked();
-    expect(headlineValue("지출 예정")).toBe("800만원");
-    expect(headlineValue("남은 예산")).toBe("200만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
+    expect(headlineValue("남은 예산")).toBe("2,000,000원");
     expect(within(summaryRegion()).getAllByText(TBD_NOTE)).toHaveLength(1);
   });
 
-  it("미정 줄 R7 확정 체크 → 저장(금액 키 없음 그대로), '금액 미정 2건 제외', 지출 예정 800만원 그대로", async () => {
+  it("미정 줄 R7 확정 체크 → 저장(금액 키 없음 그대로), '금액 미정 2건 제외', 지출 예정 8,000,000원 그대로", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanPPlus()]);
     await renderLoggedOut(storage);
@@ -102,21 +102,21 @@ describe("목록·요약 (P⁺)", () => {
     expect(storedItem(storage, "r7")?.confirmedQuoteId).toBe("rq7");
     expect(storedItem(storage, "r7")?.quotes).toStrictEqual([{ id: "rq7", vendor: "한솔도배" }]);
     expect(within(summaryRegion()).getByText("금액 미정 2건 제외")).toBeInTheDocument();
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
-  it("R6 확정을 끄면 문구가 사라지고 800만원 그대로", async () => {
+  it("R6 확정을 끄면 문구가 사라지고 8,000,000원 그대로", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makeSimplePlanPPlus()]));
     await user.click(check(R6_NAME));
     await waitFor(() => expect(check(R6_NAME)).not.toBeChecked());
     expect(within(summaryRegion()).queryByText(/금액 미정/)).not.toBeInTheDocument();
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
-  it("총 예산 700이면 '예산 초과 100만원'과 문구가 함께 보인다", async () => {
+  it("총 예산 700이면 '예산 초과 1,000,000원'과 문구가 함께 보인다", async () => {
     await renderLoggedOut(storageWith([makeSimplePlanPPlus({ budget: 700 })]));
-    expect(headlineValue("남은 예산")).toBe("예산 초과 100만원");
+    expect(headlineValue("남은 예산")).toBe("예산 초과 1,000,000원");
     expect(within(summaryRegion()).getAllByText(TBD_NOTE)).toHaveLength(1);
   });
 });
@@ -137,7 +137,7 @@ describe("줄 시트 1단계 (P⁺ R6)", () => {
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(raw);
   });
 
-  it("120을 넣어 저장하면 amount 120이 더해지고 지출 예정 920만원 · 남은 예산 80만원, 문구가 사라진다", async () => {
+  it("120을 넣어 저장하면 amount 120이 더해지고 지출 예정 9,200,000원 · 남은 예산 800,000원, 문구가 사라진다", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanPPlus()]);
     await renderLoggedOut(storage);
@@ -149,8 +149,8 @@ describe("줄 시트 1단계 (P⁺ R6)", () => {
     expect(storedItem(storage, "r6")?.quotes).toStrictEqual([
       { id: "rq6", vendor: "빛나라조명", amount: 120, memo: "거실 매입등" },
     ]);
-    expect(headlineValue("지출 예정")).toBe("920만원");
-    expect(headlineValue("남은 예산")).toBe("80만원");
+    expect(headlineValue("지출 예정")).toBe("9,200,000원");
+    expect(headlineValue("남은 예산")).toBe("800,000원");
     expect(within(summaryRegion()).queryByText(/금액 미정/)).not.toBeInTheDocument();
   });
 });
@@ -186,7 +186,7 @@ describe("표 보기 (P⁺, 기기 날짜 2026-10-27)", () => {
 });
 
 describe("가리기 (P⁺, 목록·표 두 보기)", () => {
-  const SECRETS = ["미정", "800만원", "거실 매입등"];
+  const SECRETS = ["미정", "8,000,000원", "거실 매입등"];
 
   it.each([
     ["목록", P_HASH],

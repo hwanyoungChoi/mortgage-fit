@@ -2,7 +2,7 @@
 // 스펙 interior-simple AC-7(태스크 2-2, qa): 만들기 시트 단순화.
 // - 방·욕실 입력이 없고, 만든 계획의 `spaces`는 정확히 `[{ id, name: "전체" }]`(id는 createRandomId 값을 모듈 mock으로 고정).
 // - 이름 빈칸·공백·41자 오류(저장 0회·포커스), 40자 통과.
-// - 매물 추가 비용 인테리어 2줄(도배 300·조명 120) 가져오기 → 견적 없는 줄 2개, 비고 "예산 300만원"·"예산 120만원",
+// - 매물 추가 비용 인테리어 2줄(도배 300·조명 120) 가져오기 → 견적 없는 줄 2개, 비고 "예산 3,000,000원"·"예산 1,200,000원",
 //   확정 체크 비활성, 지출 예정 0(예산 합 420이 세어지지 않음), 안내 문구 전체.
 // - 로그아웃(로컬 원본)·로그인 혼자·가구 모두 같은 입력: 저장소 / POST 본문의 spaces가 하나.
 // 화면 단위(시트 직접 렌더)로 입력 전체를 `toStrictEqual`로 묶고, 앱 단위로 화면 → 출처 → 저장 연결을 본다.
@@ -307,7 +307,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
     expect(plan.items).toStrictEqual([]);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "우리 집" })).toBeInTheDocument();
-    expect(headlineValue("지출 예정")).toBe("0만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
   });
 
   it("이름 41자 → 오류·포커스, 저장소 쓰기 0회, 고쳐서 만들면 저장", async () => {
@@ -371,16 +371,16 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
       );
     }
     // 예산 합 420은 지출 예정에 세어지지 않는다
-    expect(headlineValue("지출 예정")).toBe("0만원");
-    expect(headlineValue("남은 예산")).toBe("420만원");
-    expect(detailValue("총 예산")).toBe("420만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
+    expect(headlineValue("남은 예산")).toBe("4,200,000원");
+    expect(detailValue("총 예산")).toBe("4,200,000원");
 
     // 확정 체크를 강제로 눌러도 쓰기 0회
     const rawAfterCreate = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
     const setItem = vi.spyOn(storage, "setItem");
     fireEvent.click(screen.getByRole("checkbox", { name: "도배 확정" }));
     expect(setItem).not.toHaveBeenCalled();
-    expect(headlineValue("지출 예정")).toBe("0만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
 
     // 다시 매물 카드 → 만들기 시트가 아니라 그 계획
     window.location.hash = "#/listings";
@@ -476,8 +476,8 @@ describe("AC-7 로그인(혼자·가구): POST 본문의 spaces가 하나", () =
         ["도배", [["견적 없음", false, true]]],
         ["조명", [["견적 없음", false, true]]],
       ]);
-      expect(headlineValue("지출 예정")).toBe("0만원");
-      expect(headlineValue("남은 예산")).toBe("420만원");
+      expect(headlineValue("지출 예정")).toBe("0원");
+      expect(headlineValue("남은 예산")).toBe("4,200,000원");
       // 매물 쪽 쓰기 0회
       expect(
         api.server.calls.filter(

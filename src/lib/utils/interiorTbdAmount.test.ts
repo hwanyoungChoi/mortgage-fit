@@ -59,32 +59,32 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
         ["조명", ["r6"]],
       ],
     );
-    expect(rows.plannedTotal).toBe(800);
+    expect(rows.plannedTotalWon).toBe(8_000_000);
     expect(rows.tbdCount).toBe(1);
   });
 
   it("R7을 확정하면 미정 2건, 지출 예정 800 그대로", () => {
     const plan = makeSimplePlanPPlus();
     plan.items[6] = confirmed(r7());
-    expect(buildInteriorPlanRows(plan)).toMatchObject({ plannedTotal: 800, tbdCount: 2 });
+    expect(buildInteriorPlanRows(plan)).toMatchObject({ plannedTotalWon: 8_000_000, tbdCount: 2 });
   });
 
   it("R6 확정을 끄면 미정 0건, 지출 예정 800 그대로", () => {
     const plan = makeSimplePlanPPlus();
     plan.items[5] = unconfirmed(r6());
-    expect(buildInteriorPlanRows(plan)).toMatchObject({ plannedTotal: 800, tbdCount: 0 });
+    expect(buildInteriorPlanRows(plan)).toMatchObject({ plannedTotalWon: 8_000_000, tbdCount: 0 });
   });
 
   it("확정이 R6뿐이면 지출 예정 0, 미정 1건", () => {
     expect(buildInteriorPlanRows({ items: [r6(), r7()] })).toMatchObject({
-      plannedTotal: 0,
+      plannedTotalWon: 0,
       tbdCount: 1,
     });
   });
 
   it("확정한 금액 0 줄은 미정이 아니다(지출 예정 0, 미정 0건)", () => {
     expect(buildInteriorPlanRows({ items: [zeroAmountRow()] })).toMatchObject({
-      plannedTotal: 0,
+      plannedTotalWon: 0,
       tbdCount: 0,
     });
   });
@@ -96,15 +96,15 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
 
 describe("summarizeInteriorPlan — 남은 예산도 미정 줄을 더하지 않는다", () => {
   it.each([
-    [1000, 200],
+    [1000, 2_000_000],
     [800, 0],
-    [700, -100],
-  ])("총 예산 %i → 남은 예산 %i, 미정 1건", (budget, remaining) => {
+    [700, -1_000_000],
+  ])("총 예산 %i만원 → 남은 예산 %i원, 미정 1건", (budget, remainingWon) => {
     expect(summarizeInteriorPlan(makeSimplePlanPPlus({ budget }))).toEqual({
-      budget,
-      plannedTotal: 800,
+      budgetWon: budget * 10_000,
+      plannedTotalWon: 8_000_000,
       tbdCount: 1,
-      remaining,
+      remainingWon,
     });
   });
 });

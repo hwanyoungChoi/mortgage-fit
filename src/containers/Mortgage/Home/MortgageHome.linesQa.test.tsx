@@ -96,7 +96,7 @@ describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 �
         .getAllByRole("checkbox")
         .map((box) => box.getAttribute("aria-label")),
     ).toEqual(["도배 확정", "도배 육문수 확정"]);
-    expect(headlineValue("지출 예정")).toBe("550만원");
+    expect(headlineValue("지출 예정")).toBe("5,500,000원");
   });
 });
 
@@ -140,7 +140,7 @@ describe("확정 토글 실패: 쓰지 않거나 원래대로, 목록 위 이유
     expect(api.callsTo("PUT", "/api/interior-plans/plan-l/items/item-x")).toHaveLength(1);
     expect(screen.getByRole("checkbox", { name: X_Q2_CHECK })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: "욕실 하루바스 철거·방수 확정" })).toBeChecked();
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
   });
 
   // 401은 기존 세션 만료 처리(useInteriorPlanSource, diff 0)로 간다: 화면 전체가 만료 안내로 바뀌고 로컬 계획에 쓰지 않는다
