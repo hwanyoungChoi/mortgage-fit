@@ -1,5 +1,6 @@
-import LinkCopyActions from "./LinkCopyActions";
-import styles from "./ShareSheet.module.css";
+import LinkCopyActions from "@/components/LinkCopyActions";
+import styles from "@/components/SheetBody.module.css";
+
 import { useRevokeShare } from "../hooks/useRevokeShare";
 
 import type { SentShareStore } from "@/lib/types/sentShare";

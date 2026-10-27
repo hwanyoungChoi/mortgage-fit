@@ -77,6 +77,25 @@ describe("저장 목록 머리에 로그인·로그아웃이 없다 (AC-3)", () 
   });
 });
 
+describe("저장 목록 머리에 함께 쓰기·함께 쓰는 중·나가기가 없다 (AC-3, U3)", () => {
+  it.each<Mode>(["loggedOut", "solo", "household"])("%s", async (mode) => {
+    const { api } = renderApp(mode, "#/listings");
+    expect(await screen.findByRole("heading", { level: 1, name: "저장 목록" })).toBeInTheDocument();
+    if (mode === "loggedOut") {
+      expect(await screen.findByRole("list", { name: "저장한 매물 1개" })).toBeInTheDocument();
+    } else {
+      expect(await screen.findByText("저장한 매물이 없습니다")).toBeInTheDocument();
+    }
+    await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
+
+    const main = screen.getByRole("main");
+    expect(within(main).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
+    expect(within(main).queryByRole("button", { name: "함께 쓰기에서 나가기" })).toBeNull();
+    expect(within(main).queryByText(/함께 쓰는 중/)).toBeNull();
+    expect(within(main).queryByText("나가기", { exact: false })).toBeNull();
+  });
+});
+
 describe("다른 화면의 세션 만료 안내에 [홈에서 로그인] (U4)", () => {
   it("저장 목록: 서버 목록 401 → 안내 줄에 #/로 가는 [홈에서 로그인], 누르면 홈", async () => {
     const user = userEvent.setup();

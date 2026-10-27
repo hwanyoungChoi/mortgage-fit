@@ -22,7 +22,8 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
-const REASON = "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 함께 볼 수 있어요";
+const REASON =
+  "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요";
 const STATUS = "카카오 계정에 저장 중";
 
 const LOGGED_IN_SEED = {

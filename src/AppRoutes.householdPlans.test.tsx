@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 함께 쓰기 수락·나가기와 인테리어 계획(스펙 interior-planner AC-9·10, "동기화·이전 규칙", U12).
-// 화면(저장 목록 [나가기]·초대 [함께 쓰기 시작]) → 훅 → 계획 이전 연결을 본다.
+// 화면(홈 [나가기]·초대 [함께 쓰기 시작]) → 훅 → 계획 이전 연결을 본다.
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -67,7 +67,7 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
     const { storage, api, planImports } = renderApp({
       isInHousehold: true,
       localPlans: [devicePlan()],
-      hash: "#/listings",
+      hash: "#/",
     });
     const leaveButton = await screen.findByRole("button", { name: "함께 쓰기에서 나가기" });
     // 가구 중에는 보내지 않는다
@@ -108,7 +108,7 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
     const { api, planImports } = renderApp({
       isInHousehold: true,
       localPlans: [devicePlan()],
-      hash: "#/listings",
+      hash: "#/",
     });
     await user.click(await screen.findByRole("button", { name: "함께 쓰기에서 나가기" }));
     expect(api.callsTo("POST", "/api/household/leave")).toHaveLength(0);

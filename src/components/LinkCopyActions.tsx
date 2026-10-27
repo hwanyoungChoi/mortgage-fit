@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import styles from "./ShareSheet.module.css";
+import styles from "./SheetBody.module.css";
 
 type LinkCopyActionsProps = {
   url: string;

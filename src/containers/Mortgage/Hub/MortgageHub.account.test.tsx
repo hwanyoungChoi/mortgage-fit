@@ -22,7 +22,8 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
-const REASON = "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 함께 볼 수 있어요";
+const REASON =
+  "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요";
 const STATUS = "카카오 계정에 저장 중";
 
 /** 이 기기 데이터 이전이 이 사용자로 끝난 로그인 브라우저 */
@@ -91,7 +92,7 @@ describe("홈 계정 자리", () => {
     expectNoStorageWrites(spies);
   });
 
-  it("로그인: 로그인 링크 대신 상태 줄과 [로그아웃](홈의 버튼은 이것 하나)", async () => {
+  it("로그인: 로그인 링크 대신 상태 줄과 [로그아웃], 그 아래 [함께 쓰기](홈의 버튼은 이 둘)", async () => {
     const { spies } = renderHub({ seed: LOGGED_IN_SEED, userId: USER_ID });
     const hub = await findHub();
 
@@ -99,7 +100,10 @@ describe("홈 계정 자리", () => {
     expect(within(hub).getByText(STATUS)).toBeVisible();
     expect(within(hub).queryByRole("link", { name: LOGIN })).not.toBeInTheDocument();
     expect(within(hub).queryByText(REASON)).not.toBeInTheDocument();
-    expect(within(hub).queryAllByRole("button")).toEqual([logout]);
+    expect(within(hub).queryAllByRole("button")).toEqual([
+      logout,
+      within(hub).getByRole("button", { name: "함께 쓰기" }),
+    ]);
     expectNoStorageWrites(spies);
   });
 

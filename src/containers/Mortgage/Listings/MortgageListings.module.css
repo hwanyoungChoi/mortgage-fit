@@ -14,7 +14,7 @@
   margin-bottom: var(--space-1);
 }
 
-/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]·함께 쓰기). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
+/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
 .titleRow {
   display: flex;
   flex-wrap: wrap;
@@ -39,10 +39,6 @@
   font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;
-}
-
-.headerButton:disabled {
-  color: var(--color-text-muted);
 }
 
 /* 가리기: 켜진 동안 주 동작 색으로 채운다. */
@@ -142,19 +138,4 @@
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-muted);
   font-size: var(--fs-tiny);
-}
-
-/* 함께 쓰는 중: "2명이 함께 쓰는 중"과 [나가기]를 한 덩어리로 둔다(줄이 바뀌어도 둘이 떨어지지 않게). */
-.householdGroup {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.householdStatus {
-  color: var(--color-text-muted);
-  font-size: var(--fs-small);
-  font-weight: 600;
-  white-space: nowrap;
 }

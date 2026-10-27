@@ -19,7 +19,7 @@ type AcceptHouseholdInviteOptions = {
 };
 
 /**
- * 초대 수락. 성공하면 me에 가구를 바로 넣고(저장 목록 머리글이 곧바로 "함께 쓰는 중"), 목록·예산·순서·인테리어 계획은
+ * 초대 수락. 성공하면 me에 가구를 바로 넣고(홈 계정 자리가 곧바로 "함께 쓰는 중"), 목록·예산·순서·인테리어 계획은
  * 가구 단위로 바뀌었으므로 다시 조회한다.
  */
 export function useAcceptHouseholdInvite({ onAccepted }: AcceptHouseholdInviteOptions) {

@@ -20,6 +20,13 @@
   visibility: hidden;
 }
 
+/* 로그인: 계정 줄 → 함께 쓰기 줄 */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 /* 상태 한 줄 + 작은 버튼. 글자가 커져 한 줄에 다 들어가지 않으면 버튼이 다음 줄로 내려간다. */
 .row {
   display: flex;

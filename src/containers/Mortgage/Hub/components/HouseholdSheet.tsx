@@ -1,26 +1,27 @@
 import KakaoLoginLink from "@/components/KakaoLoginLink";
 import Sheet from "@/components/Sheet";
+import styles from "@/components/SheetBody.module.css";
 import { ApiRequestError } from "@/lib/api/client";
 
 import HouseholdInviteResult from "./HouseholdInviteResult";
-import styles from "./ShareSheet.module.css";
 import { useCreateHouseholdInvite } from "../hooks/useCreateHouseholdInvite";
 
 import type { Household } from "@/lib/types/household";
 import type { ListingSourceStatus } from "@/lib/types/listing";
 
 type HouseholdSheetProps = {
+  /** 홈은 로그인 상태에서만 연다. 열어 둔 동안 세션이 끝나면(401) loggedOut이 된다. */
   status: ListingSourceStatus;
   /** 이미 함께 쓰는 중이면 그 요약. 열어 둔 동안 상대가 수락하면(재조회) 여기서 바뀐다. */
   household: Household | null;
-  /** 초대를 만들다 401이면 목록과 같은 세션 만료 처리 */
+  /** 초대를 만들다 401이면 홈과 같은 세션 만료 처리 */
   onUnauthorized: () => void;
   onClose: () => void;
 };
 
 const FULL_MESSAGE = "이미 2명이 함께 쓰고 있습니다";
 
-/** 이미 2명(409)은 안내 문구 그대로, 그 밖에는 연결 확인 안내. 401은 제목 아래 안내가 알린다. */
+/** 이미 2명(409)은 안내 문구 그대로, 그 밖에는 연결 확인 안내. 401은 본문이 로그인 안내로 바뀌고 홈 안내 줄이 알린다. */
 function describeCreateError(error: Error): string {
   if (error instanceof ApiRequestError && error.body?.error === "householdFull") {
     return FULL_MESSAGE;
@@ -29,7 +30,7 @@ function describeCreateError(error: Error): string {
 }
 
 /**
- * 함께 쓰기 시트: 로그아웃이면 로그인 안내, 로그인·혼자면 초대 링크 만들기 → 복사·공유하기·끊기(공유 시트와 같은 모양).
+ * 함께 쓰기 시트: 열어 둔 동안 세션이 끝나면 로그인 안내, 로그인·혼자면 초대 링크 만들기 → 복사·공유하기·끊기(공유 시트와 같은 모양).
  * 닫았다 다시 열면 새로 만들기부터다(시트가 새로 그려진다).
  */
 function HouseholdSheet({ status, household, onUnauthorized, onClose }: HouseholdSheetProps) {
@@ -56,9 +57,6 @@ function HouseholdSheet({ status, household, onUnauthorized, onClose }: Househol
         </>
       );
     }
-    if (status !== "loggedIn") {
-      return <p className={styles.notice}>계정 상태를 확인하는 중입니다</p>;
-    }
     if (household !== null) {
       return <p className={styles.notice}>{FULL_MESSAGE}</p>;
     }
@@ -70,11 +68,12 @@ function HouseholdSheet({ status, household, onUnauthorized, onClose }: Househol
     return (
       <>
         <p className={styles.notice}>
-          초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록 하나를 함께 씁니다.
+          초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록과 인테리어 계획을 함께
+          씁니다.
         </p>
         <p className={styles.hint}>
-          받은 사람의 원래 목록은 숨겨지고 내 목록·예산·순서를 함께 씁니다. 둘 다 함께 쓰는 매물을
-          보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.
+          받은 사람의 원래 목록·인테리어 계획은 숨겨지고 내 목록·예산·순서·인테리어 계획을 함께
+          씁니다. 둘 다 보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.
         </p>
         {createInvite.isError && !isUnauthorized && (
           <p role="alert" className={styles.error}>
