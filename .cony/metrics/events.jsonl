@@ -208,3 +208,4 @@
 {"ts":"2026-10-27T04:35:57.623Z","type":"task","task":4,"from":"todo","to":"progress","owner":"리드"}
 {"ts":"2026-10-27T04:35:57.623Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-27T04:39:12.963Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T04:40:09.265Z","type":"status","status":"사용자 대기"}

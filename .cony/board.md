@@ -1,6 +1,6 @@
 # 인테리어 공정·예산 플래너
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-27 13:39
+> 상태: 사용자 대기 · 마지막 업데이트: 2026-10-27 13:40
 
 ## 태스크
 
@@ -27,7 +27,7 @@
 
 ## 지금 하는 일
 
-원격 0007 적용·AC-0(a) diff 빔. PR 생성·CI 대기 → 머지. 다음: 표 내보내기(사용자 요청)
+PR #35 CI 대기 → 통과 시 squash 머지 → 배포 후 운영 확인. 다음: 표 내보내기(CSV·인쇄, 원 단위)
 
 ## 최근 결정
 
@@ -44,7 +44,7 @@
 
 ## PR
 
-[#34](https://github.com/hwanyoungChoi/mortgage-fit/pull/34) 태스크 0 머지
+[#35](https://github.com/hwanyoungChoi/mortgage-fit/pull/35) · CI 진행 중 · 원격 0007 적용 끝(머지 가능 순서)
 
 <!-- spec: specs/interior-planner.md -->
 <!-- lead: local_7518e4f1-f79d-4eb8-83b3-4e5da502a093 -->
