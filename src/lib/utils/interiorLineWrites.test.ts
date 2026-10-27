@@ -87,7 +87,7 @@ function omit<T extends object>(value: T, keys: readonly string[]): Partial<T> {
 const values = (patch: Partial<InteriorLineValues> = {}): InteriorLineValues => ({
   trade: "욕실",
   vendor: "새업체",
-  amount: 999,
+  amountWon: 9_990_000,
   isConfirmed: false,
   ...patch,
 });
@@ -121,15 +121,15 @@ const EDIT_KEYS = ["trade", "memo", "quotes", "confirmedQuoteId"] as const;
 
 const WRITE_CASES: WriteCase[] = [
   {
-    name: "줄 수정(견적 1개): 업체·금액 바꾸고 세부내용·비고·확정 비우기",
+    name: "줄 수정(견적 1개, 옛 만원 키 fq1): 업체·금액 바꾸고 세부내용·비고·확정 비우기",
     item: singleQuoteItem,
     write: (item) => editLineInput(item, "fq1", values({ trade: "도배" }), fixedId),
     changedKeys: EDIT_KEYS,
     expectChanged: (input, item) => {
       expect(input.trade).toBe("도배");
-      // 견적 id·연락처는 그대로, 비운 세부내용은 키가 없다
+      // 견적 id·연락처는 그대로, 비운 세부내용은 키가 없다. 금액은 원 키로만 쓰고 옛 `amount`는 지운다(ADR-034 조건 4)
       expect(input.quotes).toStrictEqual([
-        { id: "fq1", vendor: "새업체", contact: item.quotes![0].contact, amount: 999 },
+        { id: "fq1", vendor: "새업체", contact: item.quotes![0].contact, amountWon: 9_990_000 },
       ]);
       expect("memo" in input).toBe(false);
       expect("confirmedQuoteId" in input).toBe(false);
@@ -148,7 +148,13 @@ const WRITE_CASES: WriteCase[] = [
     changedKeys: EDIT_KEYS,
     expectChanged: (input, item) => {
       expect(input.quotes).toStrictEqual([
-        { id: "fq1", vendor: "새업체", contact: "010-1234-5678", amount: 999, memo: "철거만" },
+        {
+          id: "fq1",
+          vendor: "새업체",
+          contact: "010-1234-5678",
+          amountWon: 9_990_000,
+          memo: "철거만",
+        },
         item.quotes![1],
       ]);
       expect(input.memo).toBe("새 비고");
@@ -161,7 +167,9 @@ const WRITE_CASES: WriteCase[] = [
     write: (item) => editLineInput(item, null, values({ trade: item.trade }), fixedId),
     changedKeys: ["trade", "memo", "quotes"],
     expectChanged: (input) => {
-      expect(input.quotes).toStrictEqual([{ id: "new-quote", vendor: "새업체", amount: 999 }]);
+      expect(input.quotes).toStrictEqual([
+        { id: "new-quote", vendor: "새업체", amountWon: 9_990_000 },
+      ]);
       expect("memo" in input).toBe(false);
       expect("confirmedQuoteId" in input).toBe(false);
     },
@@ -262,7 +270,7 @@ describe("줄 추가 (AC-2(a))", () => {
       values({
         trade: "도배",
         vendor: "육문수",
-        amount: 180,
+        amountWon: 1_800_000,
         detail: "실크 전체",
         isConfirmed: true,
       }),
@@ -270,7 +278,7 @@ describe("줄 추가 (AC-2(a))", () => {
     expect(input).toStrictEqual({
       spaceId: "sp-whole",
       trade: "도배",
-      quotes: [{ id: "nq", vendor: "육문수", amount: 180, memo: "실크 전체" }],
+      quotes: [{ id: "nq", vendor: "육문수", amountWon: 1_800_000, memo: "실크 전체" }],
       confirmedQuoteId: "nq",
       status: "planned",
     });
@@ -282,7 +290,7 @@ describe("줄 추가 (AC-2(a))", () => {
     expect(input).toStrictEqual({
       spaceId: "sp-whole",
       trade: "욕실",
-      quotes: [{ id: "nq", vendor: "새업체", amount: 999 }],
+      quotes: [{ id: "nq", vendor: "새업체", amountWon: 9_990_000 }],
       status: "planned",
       memo: "포함 조건",
     });
@@ -328,32 +336,32 @@ describe("확정 토글 (AC-3)", () => {
 });
 
 describe("옛 계획 L 고치기 (AC-4, D2 a)", () => {
-  it("(a) 욕실나라 400 → 380: X와 quotes[1].amount만 다르다(예산·지급·상태·날짜·연락처·공간·확정·메모 그대로)", () => {
+  it("(a) 욕실나라 400만 → 3,800,000원: X와 quotes[1]의 금액 키만 다르다(예산·지급·상태·날짜·연락처·공간·확정·메모 그대로)", () => {
     const x = legacyX();
     const input = editLineInput(
       x,
       "q2",
-      values({ trade: "욕실", vendor: "욕실나라", amount: 380, note: "폐기물 포함" }),
+      values({ trade: "욕실", vendor: "욕실나라", amountWon: 3_800_000, note: "폐기물 포함" }),
       fixedId,
     );
     expect(input).toStrictEqual({
       ...fieldsOf(x),
-      quotes: [x.quotes![0], { id: "q2", vendor: "욕실나라", amount: 380 }],
+      quotes: [x.quotes![0], { id: "q2", vendor: "욕실나라", amountWon: 3_800_000 }],
     });
   });
 
-  it("(b) Y에 육문수·180 채우기: memo 키 없음, 예산 200·상태·공간 s0 유지, 견적 1개, 확정 없음", () => {
+  it("(b) Y에 육문수·1,800,000원 채우기: memo 키 없음, 예산 200·상태·공간 s0 유지, 견적 1개, 확정 없음", () => {
     const input = editLineInput(
       legacyY(),
       null,
-      values({ trade: "도배", vendor: "육문수", amount: 180 }),
+      values({ trade: "도배", vendor: "육문수", amountWon: 1_800_000 }),
       fixedId,
     );
     expect(input).toStrictEqual({
       spaceId: "s0",
       trade: "도배",
       budget: 200,
-      quotes: [{ id: "new-quote", vendor: "육문수", amount: 180 }],
+      quotes: [{ id: "new-quote", vendor: "육문수", amountWon: 1_800_000 }],
       status: "planned",
     });
   });
@@ -407,7 +415,12 @@ describe("로컬 스토어 왕복: 쓴 입력이 그대로 저장된다", () => 
     const input = editLineInput(
       legacyX(),
       "q1",
-      values({ vendor: "하루바스2", amount: 360, detail: "철거·방수", note: "폐기물 포함" }),
+      values({
+        vendor: "하루바스2",
+        amountWon: 3_600_000,
+        detail: "철거·방수",
+        note: "폐기물 포함",
+      }),
       fixedId,
     );
     expect(store.updateItem("plan-l", "item-x", input)).toEqual({ ok: true });
@@ -422,9 +435,9 @@ describe("로컬 스토어 왕복: 쓴 입력이 그대로 저장된다", () => 
   });
 });
 
-// ADR-034 조건 4(qa Q8): 1단계 줄 쓰기는 고친 견적만 만원 `amount`로 쓰고 원 `amountWon`은 지운다.
-// 형제 견적은 원래 금액 키 그대로다(옛 줄을 다시 쓰지 않는다, AC-0).
-describe("1단계 금액 쓰기 — editedQuote(ADR-034 조건 4)", () => {
+// ADR-034 조건 4(qa Q8)·ADR-033 조건 5: 2단계 줄 쓰기는 고친 견적만 원 `amountWon`으로 쓰고 옛 만원 `amount`는 지운다.
+// 금액을 비우면(미정) 두 키 모두 없다. 0원은 금액이다. 형제 견적은 원래 금액 키 그대로다(옛 줄을 다시 쓰지 않는다, AC-0).
+describe("2단계 금액 쓰기 — editedQuote(ADR-034 조건 4, ADR-033 조건 5)", () => {
   /** 견적 [w 원 1,230,000(확정), m 만원 800, z 원 0] 항목 */
   const mixedItem = (): InteriorItem => ({
     id: "item-w",
@@ -441,83 +454,129 @@ describe("1단계 금액 쓰기 — editedQuote(ADR-034 조건 4)", () => {
     updatedAt: makeSimplePlanP().updatedAt,
   });
 
-  it("원 키 견적 w(시트 '123')를 저장 → w는 amount 123만 있고 amountWon 키가 없다, m·z는 그대로", () => {
+  /** 견적 하나를 고친 결과에서 그 견적 */
+  const editedQuoteOf = (
+    item: InteriorItem,
+    quoteId: string,
+    patch: Partial<InteriorLineValues>,
+  ) => {
+    const input = editLineInput(item, quoteId, values({ trade: item.trade, ...patch }), fixedId);
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+    return { input, quote: input.quotes!.find((quote) => quote.id === quoteId)! };
+  };
+
+  it("원 키 견적 w를 1,234,500원으로 저장 → w는 amountWon만, m·z는 그대로", () => {
     const item = mixedItem();
-    const input = editLineInput(
-      item,
-      "w",
-      values({ trade: "도배", vendor: "원업체", amount: 123, detail: "실크", isConfirmed: true }),
-      fixedId,
-    );
+    const { input } = editedQuoteOf(item, "w", {
+      vendor: "원업체",
+      amountWon: 1_234_500,
+      detail: "실크",
+      isConfirmed: true,
+    });
     expect(input.quotes).toStrictEqual([
-      { id: "w", vendor: "원업체", amount: 123, memo: "실크" },
+      { id: "w", vendor: "원업체", amountWon: 1_234_500, memo: "실크" },
       item.quotes![1],
       item.quotes![2],
     ]);
-    expect(Object.hasOwn(input.quotes![0], "amountWon")).toBe(false);
-    expect(validateInteriorItemFields(input)).toStrictEqual(input);
   });
 
-  it("만원 키 견적 m을 저장 → m은 amount만, 형제 w·z의 amountWon 그대로", () => {
+  it("옛 만원 키 견적 m(800)을 9,000,000원으로 저장 → m은 amountWon만 있고 amount 키가 없다, 형제 w·z 그대로", () => {
     const item = mixedItem();
-    const input = editLineInput(
-      item,
-      "m",
-      values({ trade: "도배", vendor: "만원업체", amount: 900 }),
-      fixedId,
-    );
+    const { input, quote } = editedQuoteOf(item, "m", { vendor: "만원업체", amountWon: 9_000_000 });
+    expect(quote).toStrictEqual({ id: "m", vendor: "만원업체", amountWon: 9_000_000 });
+    expect(Object.hasOwn(quote, "amount")).toBe(false);
     expect(input.quotes).toStrictEqual([
       item.quotes![0],
-      { id: "m", vendor: "만원업체", amount: 900 },
+      { id: "m", vendor: "만원업체", amountWon: 9_000_000 },
       item.quotes![2],
     ]);
-    expect(validateInteriorItemFields(input)).toStrictEqual(input);
   });
 
-  it("미정 줄(R6)에 금액을 넣으면 amount만 생기고 amountWon은 없다", () => {
+  it.each([
+    ["원 키 w", "w", "원업체"],
+    ["옛 만원 키 m", "m", "만원업체"],
+    ["원 0 z", "z", "셀프"],
+  ])(
+    "%s의 금액을 비우면(미정) amount·amountWon 키가 모두 없다(undefined 값도 아님)",
+    (_, id, vendor) => {
+      const { quote } = editedQuoteOf(mixedItem(), id, { vendor, amountWon: undefined });
+      expect(quote).toStrictEqual({ id, vendor });
+      expect(Object.hasOwn(quote, "amount")).toBe(false);
+      expect(Object.hasOwn(quote, "amountWon")).toBe(false);
+    },
+  );
+
+  it("0원(셀프 시공)은 미정이 아니라 amountWon: 0으로 쓴다", () => {
+    const { quote } = editedQuoteOf(mixedItem(), "m", { vendor: "만원업체", amountWon: 0 });
+    expect(quote).toStrictEqual({ id: "m", vendor: "만원업체", amountWon: 0 });
+  });
+
+  it("미정 줄(R6)에 1,200,000원을 넣으면 amountWon만 생기고 amount는 없다", () => {
     const input = editLineInput(
       r6(),
       "rq6",
-      values({ trade: "조명", vendor: "빛나라조명", amount: 120, detail: "거실 매입등" }),
+      values({ trade: "조명", vendor: "빛나라조명", amountWon: 1_200_000, detail: "거실 매입등" }),
       fixedId,
     );
     expect(input.quotes).toStrictEqual([
-      { id: "rq6", vendor: "빛나라조명", amount: 120, memo: "거실 매입등" },
+      { id: "rq6", vendor: "빛나라조명", amountWon: 1_200_000, memo: "거실 매입등" },
     ]);
   });
 
-  it("줄 추가·빈 줄 채우기도 amount만 쓴다", () => {
+  it("줄 추가·빈 줄 채우기도 amountWon만 쓰고, 금액을 비우면 금액 키가 없다", () => {
     const added = addLineInput("sp-whole", "nq", values());
-    expect(added.quotes).toStrictEqual([{ id: "nq", vendor: "새업체", amount: 999 }]);
+    expect(added.quotes).toStrictEqual([{ id: "nq", vendor: "새업체", amountWon: 9_990_000 }]);
     const filled = editLineInput(legacyY(), null, values({ trade: "도배" }), fixedId);
-    expect(filled.quotes).toStrictEqual([{ id: "new-quote", vendor: "새업체", amount: 999 }]);
+    expect(filled.quotes).toStrictEqual([
+      { id: "new-quote", vendor: "새업체", amountWon: 9_990_000 },
+    ]);
+    const { amountWon, ...tbd } = values();
+    void amountWon;
+    expect(addLineInput("sp-whole", "nq", tbd).quotes).toStrictEqual([
+      { id: "nq", vendor: "새업체" },
+    ]);
   });
 
-  it("로컬 저장 왕복: w 저장 뒤 원문의 w에 amountWon이 없고 형제 z의 amountWon: 0은 남는다", () => {
+  it("로컬 저장 왕복: m 저장 뒤 원문의 m에 amount가 없고, w를 비운 뒤 w에 금액 키가 없으며 형제 z의 amountWon: 0은 남는다", () => {
     const plan = makeSimplePlanP({ items: [mixedItem()] });
     const storage = createMemoryStorage({
       [INTERIOR_PLANS_STORAGE_KEY]: JSON.stringify({ plans: [plan] }),
     });
+    let minute = 0;
     const store = createInteriorPlanStore({
       storage,
       createId: () => "unused",
-      now: () => "2026-10-27T09:00:00.000Z",
+      now: () => `2026-10-27T09:0${(minute += 1)}:00.000Z`,
     });
-    const input = editLineInput(
+    const storedQuotes = () =>
+      (
+        JSON.parse(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)!) as {
+          plans: InteriorPlanWithItems[];
+        }
+      ).plans[0].items[0];
+    const first = editLineInput(
       mixedItem(),
-      "w",
-      values({ trade: "도배", vendor: "원업체", amount: 123, detail: "실크", isConfirmed: true }),
+      "m",
+      values({ trade: "도배", vendor: "만원업체", amountWon: 9_000_000 }),
       fixedId,
     );
-    expect(store.updateItem("plan-simple", "item-w", input)).toEqual({ ok: true });
-    const [stored] = (
-      JSON.parse(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)!) as {
-        plans: InteriorPlanWithItems[];
-      }
-    ).plans;
-    expect(stored.items[0].quotes).toStrictEqual([
-      { id: "w", vendor: "원업체", amount: 123, memo: "실크" },
-      { id: "m", vendor: "만원업체", amount: 800 },
+    expect(store.updateItem("plan-simple", "item-w", first)).toEqual({ ok: true });
+    const second = editLineInput(
+      storedQuotes(),
+      "w",
+      values({
+        trade: "도배",
+        vendor: "원업체",
+        amountWon: undefined,
+        detail: "실크",
+        isConfirmed: true,
+      }),
+      fixedId,
+    );
+    expect(store.updateItem("plan-simple", "item-w", second)).toEqual({ ok: true });
+    expect(storedQuotes().quotes).toStrictEqual([
+      { id: "w", vendor: "원업체", memo: "실크" },
+      { id: "m", vendor: "만원업체", amountWon: 9_000_000 },
       { id: "z", vendor: "셀프", amountWon: 0 },
     ]);
   });

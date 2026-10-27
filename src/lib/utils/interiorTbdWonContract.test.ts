@@ -134,7 +134,7 @@ describe("옛 번들 계약: 새 파서는 원문을 받은 그대로 돌려준�
 const values = (overrides: Partial<InteriorLineValues> = {}): InteriorLineValues => ({
   trade: "도배",
   vendor: "새업체",
-  amount: 999,
+  amountWon: 9_990_000,
   isConfirmed: false,
   ...overrides,
 });
@@ -191,7 +191,7 @@ const Y_WRITES: [string, (seed: Seeded) => { ok: boolean }][] = [
       store.addItem("plan-y", addLineInput("sp-whole", "nq", values({ isConfirmed: true }))),
   ],
   [
-    "줄 수정(editLineInput, R1 금액 200)",
+    "줄 수정(editLineInput, R1 금액 2,000,000원)",
     ({ store, item }) =>
       store.updateItem(
         "plan-y",
@@ -199,7 +199,12 @@ const Y_WRITES: [string, (seed: Seeded) => { ok: boolean }][] = [
         editLineInput(
           item("plan-y", "r1"),
           "rq1",
-          values({ vendor: "육문수", amount: 200, detail: "실크 전체", isConfirmed: true }),
+          values({
+            vendor: "육문수",
+            amountWon: 2_000_000,
+            detail: "실크 전체",
+            isConfirmed: true,
+          }),
           () => "unused",
         ),
       ),
@@ -222,7 +227,10 @@ const Y_WRITES: [string, (seed: Seeded) => { ok: boolean }][] = [
     ({ store }) =>
       store.updatePlan(
         "plan-y",
-        planSettingsPatch({ name: "Y 집", budget: "1000" }, { name: "Y 새집", budget: "1000" }),
+        planSettingsPatch(
+          { name: "Y 집", budget: "10000000" },
+          { name: "Y 새집", budget: "10000000" },
+        ),
       ),
   ],
   [
@@ -230,7 +238,10 @@ const Y_WRITES: [string, (seed: Seeded) => { ok: boolean }][] = [
     ({ store }) =>
       store.updatePlan(
         "plan-y",
-        planSettingsPatch({ name: "Y 집", budget: "1000" }, { name: "Y 집", budget: "2000" }),
+        planSettingsPatch(
+          { name: "Y 집", budget: "10000000" },
+          { name: "Y 집", budget: "20000000" },
+        ),
       ),
   ],
   [
@@ -282,7 +293,7 @@ describe("X 안의 쓰기: 고친 견적만 바뀌고 미정·0원·원 키 형�
     );
   });
 
-  it("M2(원 키 1,234,500) 시트 저장 123 → amount 123만, amountWon 없음, 다른 줄(M1 만원·M5 미정) 그대로", () => {
+  it("M2(원 키 1,234,500) 시트 저장 1,234,000 → amountWon 1,234,000만, amount 없음, 다른 줄(M1 만원·M5 미정) 그대로", () => {
     const seed = seeded();
     const m2 = seed.item("plan-m", "m2");
     expect(
@@ -292,13 +303,13 @@ describe("X 안의 쓰기: 고친 견적만 바뀌고 미정·0원·원 키 형�
         editLineInput(
           m2,
           "mq2",
-          values({ trade: "욕실", vendor: "하루바스", amount: 123, isConfirmed: true }),
+          values({ trade: "욕실", vendor: "하루바스", amountWon: 1_234_000, isConfirmed: true }),
           () => "x",
         ),
       ).ok,
     ).toBe(true);
     expect(seed.item("plan-m", "m2").quotes).toStrictEqual([
-      { id: "mq2", vendor: "하루바스", amount: 123 },
+      { id: "mq2", vendor: "하루바스", amountWon: 1_234_000 },
     ]);
     expect(seed.stored()[1].items.filter((item) => item.id !== "m2")).toStrictEqual(
       makePlanM().items.filter((item) => item.id !== "m2"),
@@ -306,20 +317,21 @@ describe("X 안의 쓰기: 고친 견적만 바뀌고 미정·0원·원 키 형�
     expectNoDoubleKeys(seed.stored());
   });
 
-  it("0원 계획 z2: 형제 zq3(만원 120)만 수정 → zq2의 amountWon: 0·확정 그대로, zq3은 amount만", () => {
+  it("0원 계획 z2: 형제 zq3(만원 120)만 수정 → zq2의 amountWon: 0·확정 그대로, zq3은 amountWon만(amount 지움)", () => {
     const seed = seeded([planMWon(), zeroPlan()]);
     const z2 = seed.item("plan-zero", "z2");
     const input = editLineInput(
       z2,
       "zq3",
-      values({ trade: "조명", vendor: "빛나라조명", amount: 130, detail: "거실" }),
+      values({ trade: "조명", vendor: "빛나라조명", amountWon: 1_300_000, detail: "거실" }),
       () => "x",
     );
     expect(seed.store.updateItem("plan-zero", "z2", input).ok).toBe(true);
     expect(seed.item("plan-zero", "z2").quotes).toStrictEqual([
       { id: "zq2", vendor: "셀프조명", amountWon: 0 },
-      { id: "zq3", vendor: "빛나라조명", amount: 130, memo: "거실" },
+      { id: "zq3", vendor: "빛나라조명", amountWon: 1_300_000, memo: "거실" },
     ]);
+    expectNoDoubleKeys(seed.stored());
     expect(seed.item("plan-zero", "z2").confirmedQuoteId).toBe("zq2");
   });
 
@@ -332,10 +344,22 @@ describe("X 안의 쓰기: 고친 견적만 바뀌고 미정·0원·원 키 형�
     ]
   >([
     [
-      "원 예산 계획에 만원 예산(설정 시트)",
+      "원 예산 계획에 총 예산 15,000,000원(설정 시트)",
       "plan-m-won",
-      planSettingsPatch({ name: "원 예산 집", budget: "" }, { name: "원 예산 집", budget: "1500" }),
-      { budget: 1500 },
+      planSettingsPatch(
+        { name: "원 예산 집", budget: "12000000" },
+        { name: "원 예산 집", budget: "15000000" },
+      ),
+      { budgetWon: 15_000_000 },
+    ],
+    [
+      "만원 예산 계획에 총 예산 15,000,000원(설정 시트) → budget 지움",
+      "plan-m",
+      planSettingsPatch(
+        { name: "섞인 집", budget: "10000000" },
+        { name: "섞인 집", budget: "15000000" },
+      ),
+      { budgetWon: 15_000_000 },
     ],
     [
       "만원 예산 계획에 원 예산(PATCH)",
@@ -346,7 +370,10 @@ describe("X 안의 쓰기: 고친 견적만 바뀌고 미정·0원·원 키 형�
     [
       "원 예산 계획 이름만(설정 시트) → budgetWon 그대로",
       "plan-m-won",
-      planSettingsPatch({ name: "원 예산 집", budget: "" }, { name: "새 이름", budget: "" }),
+      planSettingsPatch(
+        { name: "원 예산 집", budget: "12000000" },
+        { name: "새 이름", budget: "12000000" },
+      ),
       { budgetWon: 12_000_000 },
     ],
     ["원 예산 계획 예산 비우기(PATCH budget null)", "plan-m-won", { budget: null }, {}],
@@ -399,7 +426,7 @@ describe("F⁺ (q1 하루바스 370 확정, q2 욕실나라 금액 없음)", () 
     expect([rows.plannedTotalWon, rows.tbdCount]).toEqual([0, 1]);
   });
 
-  it("q1 금액 수정(370 → 380) → q2는 금액 키 없는 채 그대로, 지급·연락처·날짜 그대로", () => {
+  it("q1 금액 수정(370만 → 3,800,000원) → q1은 amountWon만, q2는 금액 키 없는 채 그대로, 지급·연락처·날짜 그대로", () => {
     const item = fPlus();
     const input = editLineInput(
       item,
@@ -407,17 +434,20 @@ describe("F⁺ (q1 하루바스 370 확정, q2 욕실나라 금액 없음)", () 
       values({
         trade: "욕실",
         vendor: "하루바스",
-        amount: 380,
+        amountWon: 3_800_000,
         detail: "철거·방수",
         note: "폐기물 포함",
         isConfirmed: true,
       }),
       () => "unused",
     );
+    const { amount, ...q1 } = item.quotes![0];
+    void amount;
     expect(input).toStrictEqual({
       ...inputOf(item),
-      quotes: [{ ...item.quotes![0], amount: 380 }, item.quotes![1]],
+      quotes: [{ ...q1, amountWon: 3_800_000 }, item.quotes![1]],
     });
+    expect(Object.hasOwn(input.quotes![0], "amount")).toBe(false);
     expect(Object.hasOwn(input.quotes![1], "amount")).toBe(false);
     expect(Object.hasOwn(input.quotes![1], "amountWon")).toBe(false);
   });

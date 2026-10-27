@@ -137,7 +137,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("interior"))).toEqual([]);
   });
 
-  it("카드 → 만들기 시트(이름 '래미안 84', 총 예산 1,500, '추가 비용 인테리어 2줄 가져오기' 체크) → 만들기 → 항목 전체/도배 300·전체/샷시 1,200(계획), 냉장고 없음, listingId", async () => {
+  it("카드 → 만들기 시트(이름 '래미안 84', 총 예산 15,000,000원, '추가 비용 인테리어 2줄 가져오기' 체크) → 만들기 → 항목 전체/도배 300·전체/샷시 1,200(계획), 냉장고 없음, listingId", async () => {
     const user = userEvent.setup();
     const storage = storageWith();
     renderApp(storage, "#/listings");
@@ -147,7 +147,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     // 시트를 연 뒤 주소에서 listing을 지운다
     await waitFor(() => expect(window.location.hash).toBe("#/home"));
     expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");
-    expect(within(sheet).getByLabelText("총 예산(선택)")).toHaveValue("1,500");
+    expect(within(sheet).getByLabelText("총 예산(선택)")).toHaveValue("15,000,000");
     const importBox = within(sheet).getByRole("checkbox", {
       name: "추가 비용 인테리어 2줄 가져오기",
     });
@@ -159,7 +159,8 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     const [plan] = storedPlans(storage);
     expect(window.location.hash).toBe(`#/home/${plan.id}`);
     expect(plan.name).toBe("래미안 84");
-    expect(plan.budget).toBe(1500);
+    expect(plan.budgetWon).toBe(15_000_000);
+    expect(Object.hasOwn(plan, "budget")).toBe(false);
     expect(plan.listingId).toBe(RAEMIAN_ID);
     const whole = plan.spaces[0];
     expect(whole.name).toBe(INTERIOR_WHOLE_SPACE_NAME);
@@ -272,7 +273,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
 
     const [plan] = storedPlans(storage);
     expect(plan.items).toEqual([]);
-    expect(plan).toMatchObject({ name: "래미안 84", budget: 1500, listingId: RAEMIAN_ID });
+    expect(plan).toMatchObject({ name: "래미안 84", budgetWon: 15_000_000, listingId: RAEMIAN_ID });
     expect(screen.queryByRole("button", { name: "도배 열기" })).not.toBeInTheDocument();
   });
 
@@ -291,6 +292,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     expect(plan.items).toEqual([]);
     expect(plan.listingId).toBe(XI_ID);
     expect("budget" in plan).toBe(false);
+    expect("budgetWon" in plan).toBe(false);
   });
 
   it("같은 카드를 다시 누르면 #/home/{planId}로 replace(이력은 링크 클릭 1개만 늘고, 뒤로 가기는 저장 목록)", async () => {

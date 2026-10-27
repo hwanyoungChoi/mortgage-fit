@@ -259,3 +259,13 @@
 {"ts":"2026-10-27T11:23:41.981Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c43f2613-2353-4c04-a3f5-099935e7042e/scratchpad/t1probe && rm -rf $S && mkdir -p $S/old $S/cur $S/probe && git archive cc056"}
 {"ts":"2026-10-27T12:21:58.971Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
 {"ts":"2026-10-27T12:31:58.545Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T12:37:29.529Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-27T12:44:31.720Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T12:44:31.720Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T12:53:22.531Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-27T12:53:32.594Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":2}
+{"ts":"2026-10-27T12:53:51.095Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":3}
+{"ts":"2026-10-27T12:54:05.852Z","type":"hook","hook":"verify-on-stop","decision":"allow-after-max","attempts":4}
+{"ts":"2026-10-27T13:03:06.427Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T13:24:09.708Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T13:24:09.708Z","type":"status","status":"사용자 대기"}

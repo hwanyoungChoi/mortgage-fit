@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // 스펙 interior-simple 화면 "줄 시트": AC-2(a)~(d)(줄 쓰기·입력 경계)·AC-3(견적 비운 시트)·AC-4(a)~(e)(옛 계획 고치기, D2 a).
 // 로그아웃(로컬 스토어)에서 저장된 원문을 읽어 쓰기 입력을 본다. 같은 항목 동시 편집은 MortgageHome.loggedIn.test.tsx.
+// 견적 칸은 2단계(스펙 interior-tbd-amount AC-2 2단계, ADR-034): 원 단위, 비우면 미정, 저장하면 `amountWon`(옛 `amount` 지움).
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -25,6 +26,7 @@ import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPl
 type User = ReturnType<typeof userEvent.setup>;
 
 const P_HASH = "#/home/plan-simple";
+const AMOUNT = "견적(비우면 미정)";
 const L_HASH = "#/home/plan-l";
 
 function stubLoggedOutApi() {
@@ -116,7 +118,7 @@ describe("AC-2 줄 추가", () => {
     await user.type(field(dialog, "구분"), "도배");
     await user.type(field(dialog, "업체"), "육문수");
     await user.type(field(dialog, "세부내용(선택)"), "실크 전체");
-    await user.type(field(dialog, "견적"), "180");
+    await user.type(field(dialog, AMOUNT), "1800000");
     await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
     await saveAndClose(user, dialog);
 
@@ -125,7 +127,7 @@ describe("AC-2 줄 추가", () => {
     expect(fieldsOf(added)).toStrictEqual({
       spaceId: "sp-whole",
       trade: "도배",
-      quotes: [{ id: quoteId, vendor: "육문수", amount: 180, memo: "실크 전체" }],
+      quotes: [{ id: quoteId, vendor: "육문수", amountWon: 1_800_000, memo: "실크 전체" }],
       confirmedQuoteId: quoteId,
       status: "planned",
     });
@@ -168,7 +170,7 @@ describe("AC-2 줄 추가", () => {
 });
 
 describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 0회), 입력 유지", () => {
-  it("구분·업체·견적이 비면 각 칸 아래 필수 오류, 첫 오류(구분)로 포커스, 쓰기 0회 → 채우면 저장", async () => {
+  it("구분·업체가 비면 각 칸 아래 필수 오류(견적은 비워도 오류 없음), 첫 오류(구분)로 포커스, 쓰기 0회 → 채우면 저장", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanP()]);
     await renderApp(storage);
@@ -179,11 +181,12 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
 
     const trade = field(dialog, "구분");
     const vendor = field(dialog, "업체");
-    const amount = field(dialog, "견적");
+    const amount = field(dialog, AMOUNT);
     expect(trade).toHaveAccessibleDescription(expect.stringContaining("구분을 입력하세요"));
     expect(vendor).toHaveAccessibleDescription(expect.stringContaining("업체 이름을 입력하세요"));
-    expect(amount).toHaveAccessibleDescription(expect.stringContaining("견적 금액을 입력하세요"));
-    for (const input of [trade, vendor, amount]) {
+    expect(amount).toHaveAttribute("aria-invalid", "false");
+    expect(document.getElementById(`${amount.id}-error`)).toBeNull();
+    for (const input of [trade, vendor]) {
       const error = document.getElementById(`${input.id}-error`) as HTMLElement;
       // 오류 문구는 그 칸 바로 뒤(같은 칸 묶음 안)에 있다
       expect(error.parentElement).toContainElement(input);
@@ -195,48 +198,59 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
 
     await user.type(trade, "도배");
     await user.type(vendor, "가나");
-    await user.type(amount, "150");
+    await user.type(amount, "1500000");
     await saveAndClose(user, dialog);
     expect(setItem).toHaveBeenCalledTimes(1);
   });
 
-  it("업체만 채우고 견적을 비운 시트는 저장이 막힌다(AC-3)", async () => {
-    const user = userEvent.setup();
-    const storage = storageWith([makeSimplePlanP()]);
-    await renderApp(storage);
-    const before = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
-    const dialog = await openNewLine(user);
-    await user.type(field(dialog, "구분"), "도배");
-    await user.type(field(dialog, "업체"), "가나");
-    await save(user, dialog);
-    expect(field(dialog, "견적")).toHaveAccessibleDescription(
-      expect.stringContaining("견적 금액을 입력하세요"),
-    );
-    expect(field(dialog, "견적")).toHaveFocus();
-    expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(before);
-  });
+  // 스펙 interior-tbd-amount AC-2 2단계(U1): 옛 "견적을 비운 시트는 저장이 막힌다(AC-3)"의 반전
+  it.each(["", "   "])(
+    "업체만 채우고 견적 %j로 저장 → 미정 줄(금액 키 없음), 목록 금액 자리에 '미정'",
+    async (typed) => {
+      const user = userEvent.setup();
+      const storage = storageWith([makeSimplePlanP({ items: [] })]);
+      await renderApp(storage);
+      const dialog = await openNewLine(user);
+      await user.type(field(dialog, "구분"), "도배");
+      await user.type(field(dialog, "업체"), "가나");
+      if (typed !== "") await user.type(field(dialog, AMOUNT), typed);
+      await saveAndClose(user, dialog);
+      const [quote] = storedItems(storage)[0].quotes ?? [];
+      expect(quote).toStrictEqual({ id: quote.id, vendor: "가나" });
+      expect(Object.hasOwn(quote, "amount")).toBe(false);
+      expect(Object.hasOwn(quote, "amountWon")).toBe(false);
+      expect(screen.getByRole("button", { name: "도배 가나 열기" })).toHaveTextContent("미정");
+    },
+  );
 
   it.each([
-    ["1", 1, "10,000"],
-    ["999999999", 999_999_999, "9,999,999,990,000"],
-  ])("견적 %j → 저장 %i, 표 %s원", async (typed, amount, won) => {
+    ["0", 0, "0"],
+    ["1", 1, "1"],
+    ["1234500", 1_234_500, "1,234,500"],
+    ["9999999999999", 9_999_999_999_999, "9,999,999,999,999"],
+  ])("견적 %j → 저장 amountWon %i, 표 견적 칸 %s", async (typed, amountWon, won) => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanP({ items: [] })]);
     await renderApp(storage);
     const dialog = await openNewLine(user);
     await user.type(field(dialog, "구분"), "도배");
     await user.type(field(dialog, "업체"), "가나");
-    await user.type(field(dialog, "견적"), typed);
+    await user.type(field(dialog, AMOUNT), typed);
     await saveAndClose(user, dialog);
-    expect(storedItems(storage)[0].quotes?.[0].amount).toBe(amount);
+    expect(storedItems(storage)[0].quotes).toStrictEqual([
+      { id: storedItems(storage)[0].quotes?.[0].id, vendor: "가나", amountWon },
+    ]);
     await user.click(screen.getByRole("radio", { name: "표" }));
-    expect(within(screen.getByRole("table")).getAllByRole("row")[1]).toHaveTextContent(won);
+    const cells = within(within(screen.getByRole("table")).getAllByRole("row")[1]).getAllByRole(
+      "cell",
+    );
+    expect(cells.map((cell) => cell.textContent)).toContain(won);
   });
 
   it.each([
-    ["0", "0보다 큰 금액을 입력하세요"],
-    ["1.5", "정수(만원 단위)로 입력하세요"],
-    ["1000000000", "최대 9자리(999,999,999만원)까지 입력할 수 있습니다"],
+    ["-1", "숫자만 입력하세요"],
+    ["1.5", "정수(원 단위)로 입력하세요"],
+    ["10000000000000", "최대 13자리(9,999,999,999,999원)까지 입력할 수 있습니다"],
     ["12a", "숫자만 입력하세요"],
   ])("견적 %j → 칸 아래 '%s', 쓰기 0회", async (typed, message) => {
     const user = userEvent.setup();
@@ -246,23 +260,23 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
     const dialog = await openNewLine(user);
     await user.type(field(dialog, "구분"), "도배");
     await user.type(field(dialog, "업체"), "가나");
-    await user.type(field(dialog, "견적"), typed);
+    await user.type(field(dialog, AMOUNT), typed);
     await save(user, dialog);
-    expect(field(dialog, "견적")).toHaveAccessibleDescription(expect.stringContaining(message));
+    expect(field(dialog, AMOUNT)).toHaveAccessibleDescription(expect.stringContaining(message));
     expect(setItem).not.toHaveBeenCalled();
   });
 
-  it("붙여넣기 '1,000' → 1000으로 저장", async () => {
+  it("붙여넣기 '1,234,500' → 1234500으로 저장", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanP({ items: [] })]);
     await renderApp(storage);
     const dialog = await openNewLine(user);
     await user.type(field(dialog, "구분"), "도배");
     await user.type(field(dialog, "업체"), "가나");
-    await user.click(field(dialog, "견적"));
-    await user.paste("1,000");
+    await user.click(field(dialog, AMOUNT));
+    await user.paste("1,234,500");
     await saveAndClose(user, dialog);
-    expect(storedItems(storage)[0].quotes?.[0].amount).toBe(1000);
+    expect(storedItems(storage)[0].quotes?.[0].amountWon).toBe(1_234_500);
   });
 
   it("구분 31자는 '30자 이하로 입력하세요(현재 31자)', 30자는 저장(직접 입력 구분은 새 묶음)", async () => {
@@ -273,7 +287,7 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
     const trade = field(dialog, "구분");
     await user.type(trade, "가".repeat(31));
     await user.type(field(dialog, "업체"), "가나");
-    await user.type(field(dialog, "견적"), "10");
+    await user.type(field(dialog, AMOUNT), "10");
     await save(user, dialog);
     expect(trade).toHaveAccessibleDescription(
       expect.stringContaining("30자 이하로 입력하세요(현재 31자)"),
@@ -293,14 +307,14 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
     await user.type(field(dialog, "구분"), "  도배  ");
     await user.type(field(dialog, "업체"), "가나");
     await user.type(field(dialog, "세부내용(선택)"), "   ");
-    await user.type(field(dialog, "견적"), "10");
+    await user.type(field(dialog, AMOUNT), "10");
     await user.type(field(dialog, "비고(선택)"), "   ");
     await saveAndClose(user, dialog);
     const added = storedItems(storage).at(-1);
     expect(fieldsOf(added)).toStrictEqual({
       spaceId: "sp-whole",
       trade: "도배",
-      quotes: [{ id: added?.quotes?.[0].id, vendor: "가나", amount: 10 }],
+      quotes: [{ id: added?.quotes?.[0].id, vendor: "가나", amountWon: 10 }],
       status: "planned",
     });
     expect(
@@ -315,7 +329,7 @@ describe("AC-2(c) 입력 경계: 오류는 그 칸 아래, 저장 막힘(쓰기 
     const dialog = await openNewLine(user);
     await user.type(field(dialog, "구분"), "도배");
     await user.type(field(dialog, "업체"), "가나");
-    await user.type(field(dialog, "견적"), "10");
+    await user.type(field(dialog, AMOUNT), "10");
     vi.spyOn(storage, "setItem").mockImplementation(() => {
       throw new Error("QuotaExceededError");
     });
@@ -352,7 +366,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     expect(screen.getByRole("dialog", { name: "줄" })).toBe(dialog);
   });
 
-  it("R2를 열면 값이 채워져 있고, 세부내용을 비우고 확정을 켜면 quote.memo 키 없음·확정 R2, 상태 그대로", async () => {
+  it("R2를 열면 값이 채워져 있고(만원 150 → 원 글자), 세부내용을 비우고 확정을 켜면 quote.memo 키 없음·확정 R2·금액은 원 키로, 상태 그대로", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanP()]);
     await renderApp(storage);
@@ -360,14 +374,14 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     expect(field(dialog, "구분")).toHaveValue("도배");
     expect(field(dialog, "업체")).toHaveValue("동네도배");
     expect(field(dialog, "세부내용(선택)")).toHaveValue("합지");
-    expect(field(dialog, "견적")).toHaveValue("150");
+    expect(field(dialog, AMOUNT)).toHaveValue("1,500,000");
     expect(within(dialog).getByRole("checkbox", { name: "확정" })).not.toBeChecked();
     await user.clear(field(dialog, "세부내용(선택)"));
     await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
     await saveAndClose(user, dialog);
     expect(fieldsOf(storedItem(storage, "r2"))).toStrictEqual({
       ...fieldsOf(r2()),
-      quotes: [{ id: "rq2", vendor: "동네도배", amount: 150 }],
+      quotes: [{ id: "rq2", vendor: "동네도배", amountWon: 1_500_000 }],
       confirmedQuoteId: "rq2",
     });
     expect(headlineValue("지출 예정")).toBe("9,500,000원");
@@ -388,6 +402,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     await saveAndClose(user, dialog);
     expect(fieldsOf(storedItem(storage, "r4"))).toStrictEqual({
       ...fieldsOf(r4()),
+      quotes: [{ id: "rq4", vendor: "욕실나라", amountWon: 4_000_000, memo: "철거·방수 (1)" }],
       status: "quoting",
       confirmedQuoteId: "rq4",
     });
@@ -404,12 +419,15 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     expect(stored !== undefined && Object.hasOwn(stored, "confirmedQuoteId")).toBe(false);
     const { confirmedQuoteId, ...rest } = fieldsOf(r1());
     void confirmedQuoteId;
-    expect(fieldsOf(stored)).toStrictEqual(rest);
+    expect(fieldsOf(stored)).toStrictEqual({
+      ...rest,
+      quotes: [{ id: "rq1", vendor: "육문수", amountWon: 1_800_000, memo: "실크 전체" }],
+    });
   });
 });
 
 describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
-  it("(a)(d) 욕실나라 견적 400 → 380: X와 quotes[1].amount만 다르다, 시트 아래 '같은 항목의 견적 2개가 구분·비고·확정을 같이 씁니다'", async () => {
+  it("(a)(d) 욕실나라 견적 400만 → 3,800,000원: X와 quotes[1]의 금액 키만 다르다, 시트 아래 '같은 항목의 견적 2개가 구분·비고·확정을 같이 씁니다'", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanL()]);
     await renderApp(storage, L_HASH);
@@ -418,13 +436,13 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
       within(dialog).getByText("같은 항목의 견적 2개가 구분·비고·확정을 같이 씁니다"),
     ).toBeInTheDocument();
     expect(field(dialog, "비고(선택)")).toHaveValue("폐기물 포함");
-    await user.clear(field(dialog, "견적"));
-    await user.type(field(dialog, "견적"), "380");
+    await user.clear(field(dialog, AMOUNT));
+    await user.type(field(dialog, AMOUNT), "3800000");
     await saveAndClose(user, dialog);
     const x = legacyX();
     expect(fieldsOf(storedItem(storage, "item-x"))).toStrictEqual({
       ...fieldsOf(x),
-      quotes: [x.quotes![0], { id: "q2", vendor: "욕실나라", amount: 380 }],
+      quotes: [x.quotes![0], { id: "q2", vendor: "욕실나라", amountWon: 3_800_000 }],
     });
   });
 
@@ -435,21 +453,21 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     expect(within(dialog).queryByText(/같이 씁니다/)).not.toBeInTheDocument();
   });
 
-  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 2,000,000원' 아님), 육문수·180 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
+  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 2,000,000원' 아님), 육문수·1,800,000원 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanL()]);
     await renderApp(storage, L_HASH);
     const dialog = await openLine(user, "도배");
     expect(field(dialog, "비고(선택)")).toHaveValue("");
     expect(field(dialog, "업체")).toHaveValue("");
-    expect(field(dialog, "견적")).toHaveValue("");
+    expect(field(dialog, AMOUNT)).toHaveValue("");
     await user.type(field(dialog, "업체"), "육문수");
-    await user.type(field(dialog, "견적"), "180");
+    await user.type(field(dialog, AMOUNT), "1800000");
     await saveAndClose(user, dialog);
     const stored = storedItem(storage, "item-y");
     expect(fieldsOf(stored)).toStrictEqual({
       ...fieldsOf(legacyY()),
-      quotes: [{ id: stored?.quotes?.[0].id, vendor: "육문수", amount: 180 }],
+      quotes: [{ id: stored?.quotes?.[0].id, vendor: "육문수", amountWon: 1_800_000 }],
     });
     expect(headlineValue("지출 예정")).toBe("3,700,000원");
     expect(screen.getByRole("checkbox", { name: "도배 육문수 확정" })).toBeEnabled();
@@ -530,7 +548,7 @@ describe("줄 시트 입력 순서 (스펙 interior-tbd-amount 추가 요청)", 
   it("칸 순서는 구분 → 세부내용(선택) → 업체 → 견적 → 비고(선택) → 확정이다(새 줄·기존 줄 같음)", async () => {
     const user = userEvent.setup();
     await renderApp(storageWith([makeSimplePlanP()]));
-    const order = ["구분", "세부내용(선택)", "업체", "견적", "비고(선택)", "확정"];
+    const order = ["구분", "세부내용(선택)", "업체", AMOUNT, "비고(선택)", "확정"];
     const labelsIn = (dialog: HTMLElement) =>
       Array.from(dialog.querySelectorAll("input, textarea"), (input) =>
         input.getAttribute("type") === "checkbox"
@@ -555,7 +573,7 @@ describe("줄 시트 입력 순서 (스펙 interior-tbd-amount 추가 요청)", 
     // 붙여넣기로 한 번에 넣는다(201자를 한 글자씩 치지 않는다)
     await user.click(detail);
     await user.paste("가".repeat(201));
-    await user.type(field(dialog, "견적"), "150");
+    await user.type(field(dialog, AMOUNT), "1500000");
     await save(user, dialog);
     expect(detail).toHaveFocus();
     expect(field(dialog, "업체")).toHaveAccessibleDescription(

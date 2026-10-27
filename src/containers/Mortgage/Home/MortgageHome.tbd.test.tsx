@@ -20,6 +20,7 @@ const TABLE_HASH = "#/home/plan-simple?view=table";
 const R6_NAME = "조명 빛나라조명 거실 매입등";
 const R7_NAME = "도배 한솔도배";
 const TBD_NOTE = "금액 미정 1건 제외";
+const AMOUNT = "견적(비우면 미정)";
 
 /** 기기 날짜 2026-10-27(로컬 생성자라 시간대와 무관) */
 const OCT_27_NOON = new Date(2026, 9, 27, 12, 0, 0);
@@ -121,37 +122,93 @@ describe("목록·요약 (P⁺)", () => {
   });
 });
 
-describe("줄 시트 1단계 (P⁺ R6)", () => {
-  it("열면 견적 칸은 빈칸, 금액 없이 저장하면 견적 칸 아래 필수 오류이고 원문 그대로", async () => {
+describe("줄 시트 2단계 (P⁺, AC-2 2단계)", () => {
+  // 1단계의 "금액 없이 저장하면 필수 오류"의 반전(U1): 견적 칸이 비어도 저장되고 금액 키는 생기지 않는다
+  it("R6을 열면 견적 칸은 빈칸, 비고만 고쳐 저장하면 견적은 미정 그대로(금액 키 없음)이고 비고만 더해진다", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanPPlus()]);
-    const raw = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
     await renderLoggedOut(storage);
     await user.click(openButton(R6_NAME));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    const amount = within(dialog).getByLabelText("견적");
-    expect(amount).toHaveValue("");
+    expect(within(dialog).getByLabelText(AMOUNT)).toHaveValue("");
     await user.type(within(dialog).getByLabelText("비고(선택)"), "메모");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
-    expect(amount).toHaveAccessibleDescription(expect.stringContaining("견적 금액을 입력하세요"));
-    expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(raw);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const stored = storedItem(storage, "r6");
+    expect(stored?.quotes).toStrictEqual([
+      { id: "rq6", vendor: "빛나라조명", memo: "거실 매입등" },
+    ]);
+    expect(stored?.memo).toBe("메모");
+    expect(within(summaryRegion()).getAllByText(TBD_NOTE)).toHaveLength(1);
   });
 
-  it("120을 넣어 저장하면 amount 120이 더해지고 지출 예정 9,200,000원 · 남은 예산 800,000원, 문구가 사라진다", async () => {
+  it("1200000을 넣어 저장하면 amountWon 1,200,000이 더해지고 지출 예정 9,200,000원 · 남은 예산 800,000원, 문구가 사라진다", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makeSimplePlanPPlus()]);
     await renderLoggedOut(storage);
     await user.click(openButton(R6_NAME));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    await user.type(within(dialog).getByLabelText("견적"), "120");
+    await user.type(within(dialog).getByLabelText(AMOUNT), "1200000");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(storedItem(storage, "r6")?.quotes).toStrictEqual([
-      { id: "rq6", vendor: "빛나라조명", amount: 120, memo: "거실 매입등" },
+      { id: "rq6", vendor: "빛나라조명", amountWon: 1_200_000, memo: "거실 매입등" },
     ]);
     expect(headlineValue("지출 예정")).toBe("9,200,000원");
     expect(headlineValue("남은 예산")).toBe("800,000원");
     expect(within(summaryRegion()).queryByText(/금액 미정/)).not.toBeInTheDocument();
+  });
+
+  it("R1 금액을 지우고 저장하면 금액 키 둘 다 없음, 지출 예정 6,200,000원 · 남은 예산 3,800,000원 · '금액 미정 2건 제외'", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith([makeSimplePlanPPlus()]);
+    await renderLoggedOut(storage);
+    await user.click(openButton("도배 육문수 실크 전체"));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(within(dialog).getByLabelText(AMOUNT));
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const [quote] = storedItem(storage, "r1")?.quotes ?? [];
+    expect(quote).toStrictEqual({ id: "rq1", vendor: "육문수", memo: "실크 전체" });
+    expect(Object.hasOwn(quote, "amount")).toBe(false);
+    expect(Object.hasOwn(quote, "amountWon")).toBe(false);
+    expect(headlineValue("지출 예정")).toBe("6,200,000원");
+    expect(headlineValue("남은 예산")).toBe("3,800,000원");
+    expect(within(summaryRegion()).getAllByText("금액 미정 2건 제외")).toHaveLength(1);
+  });
+
+  it("[줄 추가]로 R6를 견적 칸을 비운 채 확정 켜고 저장 → 견적에 금액 키 없음, 목록 '미정'", async () => {
+    const user = userEvent.setup();
+    const plan = makeSimplePlanPPlus();
+    const storage = storageWith([
+      { ...plan, items: plan.items.filter((item) => item.id !== "r6") },
+    ]);
+    await renderLoggedOut(storage);
+    await user.click(screen.getByRole("button", { name: "줄 추가" }));
+    const dialog = screen.getByRole("dialog", { name: "줄 추가" });
+    await user.type(within(dialog).getByLabelText("구분"), "조명");
+    await user.type(within(dialog).getByLabelText("세부내용(선택)"), "거실 매입등");
+    await user.type(within(dialog).getByLabelText("업체"), "빛나라조명");
+    await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const items = (
+      JSON.parse(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)!) as {
+        plans: InteriorPlanWithItems[];
+      }
+    ).plans[0].items;
+    const { id, createdAt, updatedAt, ...added } = items.at(-1)!;
+    void [id, createdAt, updatedAt];
+    const quoteId = added.quotes![0].id;
+    expect(added).toStrictEqual({
+      spaceId: "sp-whole",
+      trade: "조명",
+      quotes: [{ id: quoteId, vendor: "빛나라조명", memo: "거실 매입등" }],
+      confirmedQuoteId: quoteId,
+      status: "planned",
+    });
+    expect(openButton(R6_NAME)).toHaveTextContent("미정");
+    expect(within(summaryRegion()).getAllByText(TBD_NOTE)).toHaveLength(1);
   });
 });
 

@@ -2,12 +2,12 @@ import { useRef, useState, type FormEvent } from "react";
 
 import AmountInput from "@/components/AmountInput";
 import Sheet from "@/components/Sheet";
-import { INTERIOR_PLAN_NAME_MAX_LENGTH } from "@/lib/constants/interiorPlan";
+import { INTERIOR_PLAN_NAME_MAX_LENGTH, PLAN_BUDGET_MIN_WON } from "@/lib/constants/interiorPlan";
 import { INTERIOR_WHOLE_SPACE_NAME } from "@/lib/constants/interiorSpaces";
-import { validateAmount } from "@/lib/utils/amount";
+import { validateWonAmount } from "@/lib/utils/amount";
 import { createRandomId } from "@/lib/utils/createRandomId";
-import { sumExtraCosts } from "@/lib/utils/extraCosts";
 import {
+  extraCostsBudgetWon,
   extraCostsToInteriorItems,
   interiorExtraCostsOf,
 } from "@/lib/utils/extraCostsToInteriorItems";
@@ -38,13 +38,13 @@ const BUDGET_INPUT_ID = "interior-plan-budget";
 const IMPORT_NOTE_ID = "interior-plan-import-note";
 
 function budgetErrorOf(raw: string): string | null {
-  const validation = validateAmount(raw);
+  const validation = validateWonAmount(raw, PLAN_BUDGET_MIN_WON);
   return validation.status === "error" ? validation.message : null;
 }
 
 /**
  * 계획 만들기: 이름·총 예산(선택). 공간은 화면에 없고 "전체" 하나로 만든다(저장 형식이 공간 1개 이상을 요구, 스펙 interior-simple U11).
- * 매물에서 왔으면 이름 = 매물 이름, 총 예산 = 추가 비용 인테리어 줄 합계로 채우고, 그 줄이 있으면 "n줄 가져오기"(기본 체크)를 둔다.
+ * 총 예산은 원으로 입력해 `budgetWon`으로 쓴다(ADR-034). 매물에서 왔으면 이름 = 매물 이름, 총 예산 = 추가 비용 인테리어 줄 합계(원)로 채우고, 그 줄이 있으면 "n줄 가져오기"(기본 체크)를 둔다.
  * 가져온 줄은 견적 없는 줄(비고에 예산)이 되고 그 뒤로 매물 추가 비용과 동기화하지 않는다(1회 복사).
  */
 function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
@@ -53,7 +53,7 @@ function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
   const importCount = interiorExtraCosts.length;
   const [name, setName] = useState(listing?.name ?? "");
   const [budget, setBudget] = useState(
-    importCount === 0 ? "" : String(sumExtraCosts(interiorExtraCosts)),
+    importCount === 0 ? "" : String(extraCostsBudgetWon(interiorExtraCosts)),
   );
   const [isImportChecked, setIsImportChecked] = useState(true);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -76,13 +76,13 @@ function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
       document.getElementById(BUDGET_INPUT_ID)?.focus();
       return;
     }
-    const budgetValidation = validateAmount(budget);
+    const budgetValidation = validateWonAmount(budget, PLAN_BUDGET_MIN_WON);
     const wholeSpaceId = createRandomId();
     const shouldImport = listing !== null && importCount > 0 && isImportChecked;
     setIsSaving(true);
     const result = await onCreate({
       name: name.trim(),
-      ...(budgetValidation.status === "valid" && { budget: budgetValidation.value }),
+      ...(budgetValidation.status === "valid" && { budgetWon: budgetValidation.value }),
       ...(listing !== null && { listingId: listing.id }),
       spaces: [{ id: wholeSpaceId, name: INTERIOR_WHOLE_SPACE_NAME }],
       ...(shouldImport && { items: extraCostsToInteriorItems(listing.extraCosts, wholeSpaceId) }),
@@ -132,6 +132,7 @@ function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
         <AmountInput
           id={BUDGET_INPUT_ID}
           label="총 예산(선택)"
+          unit="won"
           value={budget}
           error={budgetError}
           onChange={(value) => {

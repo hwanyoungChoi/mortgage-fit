@@ -5,15 +5,11 @@ import Sheet from "@/components/Sheet";
 import {
   INTERIOR_PLAN_MAX_COUNT,
   INTERIOR_PLAN_NAME_MAX_LENGTH,
+  PLAN_BUDGET_MIN_WON,
 } from "@/lib/constants/interiorPlan";
-import { validateAmount } from "@/lib/utils/amount";
+import { validateWonAmount } from "@/lib/utils/amount";
 import { planBudgetWonOf } from "@/lib/utils/interiorPlanRows";
 import { interiorPlanNameError } from "@/lib/utils/interiorTextErrors";
-import {
-  isWonOnlyAmount,
-  manwonInputTextOf,
-  WON_ONLY_AMOUNT_NOTICE,
-} from "@/lib/utils/manwonInputOfWon";
 import { countChars } from "@/lib/utils/validateListingName";
 
 import styles from "./SheetForm.module.css";
@@ -45,7 +41,7 @@ const BUDGET_INPUT_ID = "interior-plan-settings-budget";
 const DISCARD_CONFIRM_MESSAGE = "고친 내용을 버리고 닫을까요?";
 
 function budgetErrorOf(raw: string): string | null {
-  const validation = validateAmount(raw);
+  const validation = validateWonAmount(raw, PLAN_BUDGET_MIN_WON);
   return validation.status === "error" ? validation.message : null;
 }
 
@@ -64,13 +60,11 @@ function PlanSettingsSheet({
   onClose,
 }: PlanSettingsSheetProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const budgetWon = planBudgetWonOf(plan);
-  // 1단계 임시(ADR-034 조건 6, 2단계에서 삭제): 만원으로 떨어지지 않는 원 단위 총 예산은 빈칸으로 열고 안내한다
-  const [initialFields] = useState(() => ({
-    name: plan.name,
-    budget: manwonInputTextOf(budgetWon),
-  }));
-  const [isBudgetWonOnly] = useState(() => isWonOnlyAmount(budgetWon));
+  // 총 예산은 원 글자로 채운다(옛 만원 `budget`도 `planBudgetWonOf`가 원으로 읽은 값)
+  const [initialFields] = useState(() => {
+    const budgetWon = planBudgetWonOf(plan);
+    return { name: plan.name, budget: budgetWon === undefined ? "" : String(budgetWon) };
+  });
   const [name, setName] = useState(initialFields.name);
   const [budget, setBudget] = useState(initialFields.budget);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -169,6 +163,7 @@ function PlanSettingsSheet({
         <AmountInput
           id={BUDGET_INPUT_ID}
           label="총 예산(선택)"
+          unit="won"
           value={budget}
           error={budgetError}
           onChange={(value) => {
@@ -177,8 +172,6 @@ function PlanSettingsSheet({
           }}
           onBlur={() => setBudgetError(budgetErrorOf(budget))}
         />
-        {/* 1단계 임시(ADR-034 조건 6): 2단계에서 원 입력으로 바꿀 때 지운다 */}
-        {isBudgetWonOnly && <p className={styles.note}>{WON_ONLY_AMOUNT_NOTICE}</p>}
         {writeError !== null && (
           <p role="alert" className={styles.error}>
             {writeError}

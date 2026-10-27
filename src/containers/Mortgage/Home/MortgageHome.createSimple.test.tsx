@@ -37,7 +37,7 @@ const IMPORT_LABEL = "추가 비용 인테리어 2줄 가져오기";
 const IMPORT_NOTE =
   "줄 이름은 구분, 금액은 비고의 예산으로 넣습니다. 그 뒤로 매물의 추가 비용과는 따로 관리돼요";
 const HOME_INTRO = "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다";
-const NO_QUOTE_DESCRIPTION = "견적이 없어 확정할 수 없습니다. 줄을 열어 업체와 견적을 적으세요";
+const NO_QUOTE_DESCRIPTION = "견적이 없어 확정할 수 없습니다. 줄을 열어 업체를 적으세요";
 
 /** AC-7 예시 매물: 인테리어/도배 300, 인테리어/조명 120, 가전/냉장고 400(가져오지 않음) */
 const listingAc7 = makeListing({
@@ -148,16 +148,16 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
     expect(validateInteriorPlanFields(input)).toStrictEqual(input);
   });
 
-  it("총 예산 1,000 → budget 1000, 공간은 그래도 '전체' 하나", async () => {
+  it("총 예산 10,000,000원 → budgetWon 10000000(budget 키 없음), 공간은 그래도 '전체' 하나", async () => {
     const user = userEvent.setup();
     const { onCreate, dialog } = renderSheet();
     await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "우리 집");
-    await user.type(within(dialog).getByLabelText("총 예산(선택)"), "1000");
+    await user.type(within(dialog).getByLabelText("총 예산(선택)"), "10000000");
     await user.click(within(dialog).getByRole("button", { name: "만들기" }));
     await waitFor(() => expect(onCreate).toHaveBeenCalledTimes(1));
     expect(onCreate.mock.calls[0][0]).toStrictEqual({
       name: "우리 집",
-      budget: 1000,
+      budgetWon: 10_000_000,
       spaces: [{ id: "rid0001", name: "전체" }],
     });
   });
@@ -206,11 +206,11 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
     });
   });
 
-  it("매물에서 왔으면: 이름·총 예산 420 채움, '2줄 가져오기' 체크·안내 문구 전체 → 입력은 전체 공간 하나 + 견적 없는 항목 2개(예산 300·120, 계획), 냉장고 없음", async () => {
+  it("매물에서 왔으면: 이름·총 예산 4,200,000원(줄 합계 420만원) 채움, '2줄 가져오기' 체크·안내 문구 전체 → 입력은 전체 공간 하나 + 견적 없는 항목 2개(예산 300·120, 계획), 냉장고 없음", async () => {
     const user = userEvent.setup();
     const { onCreate, dialog } = renderSheet(listingAc7);
     expect(within(dialog).getByRole("textbox", { name: "계획 이름" })).toHaveValue(LISTING_NAME);
-    expect(within(dialog).getByLabelText("총 예산(선택)")).toHaveValue("420");
+    expect(within(dialog).getByLabelText("총 예산(선택)")).toHaveValue("4,200,000");
     const importBox = within(dialog).getByRole("checkbox", { name: IMPORT_LABEL });
     expect(importBox).toBeChecked();
     expect(importBox).toHaveAccessibleDescription(IMPORT_NOTE);
@@ -223,7 +223,7 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
     const [input] = onCreate.mock.calls[0];
     expect(input).toStrictEqual({
       name: LISTING_NAME,
-      budget: 420,
+      budgetWon: 4_200_000,
       listingId: LISTING_ID,
       spaces: [{ id: "rid0001", name: "전체" }],
       items: [
@@ -242,7 +242,7 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
     await waitFor(() => expect(onCreate).toHaveBeenCalledTimes(1));
     expect(onCreate.mock.calls[0][0]).toStrictEqual({
       name: LISTING_NAME,
-      budget: 420,
+      budgetWon: 4_200_000,
       listingId: LISTING_ID,
       spaces: [{ id: "rid0001", name: "전체" }],
     });
@@ -342,7 +342,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
 
     const dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
     expect(within(dialog).getByRole("textbox", { name: "계획 이름" })).toHaveValue(LISTING_NAME);
-    expect(within(dialog).getByLabelText("총 예산(선택)")).toHaveValue("420");
+    expect(within(dialog).getByLabelText("총 예산(선택)")).toHaveValue("4,200,000");
     expect(
       within(dialog).getByRole("checkbox", { name: IMPORT_LABEL }),
     ).toHaveAccessibleDescription(IMPORT_NOTE);
@@ -354,7 +354,8 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
 
     const spaceId = issuedIds()[issuedBefore];
     expect(plan.spaces).toStrictEqual([{ id: spaceId, name: "전체" }]);
-    expect(plan).toMatchObject({ name: LISTING_NAME, budget: 420, listingId: LISTING_ID });
+    expect(plan).toMatchObject({ name: LISTING_NAME, budgetWon: 4_200_000, listingId: LISTING_ID });
+    expect(Object.hasOwn(plan, "budget")).toBe(false);
     expect(itemFieldsOf(plan)).toStrictEqual([
       { spaceId, trade: "도배", budget: 300, status: "planned" },
       { spaceId, trade: "조명", budget: 120, status: "planned" },
@@ -463,7 +464,7 @@ describe("AC-7 로그인(혼자·가구): POST 본문의 spaces가 하나", () =
 
       expect(postedPlan(api)).toStrictEqual({
         name: LISTING_NAME,
-        budget: 420,
+        budgetWon: 4_200_000,
         listingId: LISTING_ID,
         spaces: [{ id: "rid0001", name: "전체" }],
         items: [

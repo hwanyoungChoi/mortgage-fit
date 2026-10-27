@@ -9,7 +9,11 @@ import {
 } from "@/lib/constants/interiorPlan";
 import { MAX_AMOUNT } from "@/lib/utils/amount";
 
-import { extraCostsToInteriorItems, interiorExtraCostsOf } from "./extraCostsToInteriorItems";
+import {
+  extraCostsBudgetWon,
+  extraCostsToInteriorItems,
+  interiorExtraCostsOf,
+} from "./extraCostsToInteriorItems";
 import { validateInteriorItemFields } from "./validateInteriorPlan";
 import { validateExtraCostLabel } from "./validateListingFields";
 
@@ -168,5 +172,22 @@ describe("extraCostsToInteriorItems (AC-6·U7)", () => {
     items[0].trade = "바뀜";
     items[0].budget = 1;
     expect(JSON.stringify(extraCosts)).toBe(before);
+  });
+});
+
+describe("extraCostsBudgetWon (만들기 시트 총 예산 미리 채움, ADR-034)", () => {
+  it("줄 금액(만원) 합 × 10,000 = 원: 300 + 120 → 4,200,000, 빈 목록 → 0, 상한 줄도 안전 정수", () => {
+    expect(
+      extraCostsBudgetWon([
+        { category: "interior", label: "도배", amount: 300 },
+        { category: "interior", label: "조명", amount: 120 },
+      ]),
+    ).toBe(4_200_000);
+    expect(extraCostsBudgetWon([])).toBe(0);
+    expect(
+      Number.isSafeInteger(
+        extraCostsBudgetWon([{ category: "interior", label: "도배", amount: MAX_AMOUNT }]),
+      ),
+    ).toBe(true);
   });
 });

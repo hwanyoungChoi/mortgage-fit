@@ -12,11 +12,29 @@ import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 
 /** 예시 P의 줄 R1~R5(스펙 "수용 기준") — 화면에서 [줄 추가]로 적은 값 */
 export const SIMPLE_P_LINES: InteriorLineValues[] = [
-  { trade: "도배", vendor: "육문수", detail: "실크 전체", amount: 180, isConfirmed: true },
-  { trade: "도배", vendor: "동네도배", detail: "합지", amount: 150, isConfirmed: false },
-  { trade: "욕실", vendor: "하루바스", detail: "철거·방수 (1)", amount: 370, isConfirmed: true },
-  { trade: "욕실", vendor: "욕실나라", detail: "철거·방수 (1)", amount: 400, isConfirmed: false },
-  { trade: "욕실", vendor: "하루바스", detail: "타일 덧방 (2)", amount: 250, isConfirmed: true },
+  { trade: "도배", vendor: "육문수", detail: "실크 전체", amountWon: 1_800_000, isConfirmed: true },
+  { trade: "도배", vendor: "동네도배", detail: "합지", amountWon: 1_500_000, isConfirmed: false },
+  {
+    trade: "욕실",
+    vendor: "하루바스",
+    detail: "철거·방수 (1)",
+    amountWon: 3_700_000,
+    isConfirmed: true,
+  },
+  {
+    trade: "욕실",
+    vendor: "욕실나라",
+    detail: "철거·방수 (1)",
+    amountWon: 4_000_000,
+    isConfirmed: false,
+  },
+  {
+    trade: "욕실",
+    vendor: "하루바스",
+    detail: "타일 덧방 (2)",
+    amountWon: 2_500_000,
+    isConfirmed: true,
+  },
 ];
 
 /** 32자 hex(로컬 id 모양, ADR-010). 부를 때마다 1씩 는다 */
