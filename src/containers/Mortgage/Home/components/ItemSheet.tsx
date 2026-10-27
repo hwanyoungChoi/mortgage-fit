@@ -17,6 +17,7 @@ import {
   validateInteriorLineDraft,
 } from "@/lib/utils/interiorLineDraft";
 import { removeLineWrite } from "@/lib/utils/interiorLineWrites";
+import { isWonOnlyAmount, WON_ONLY_AMOUNT_NOTICE } from "@/lib/utils/manwonInputOfWon";
 import { countChars } from "@/lib/utils/validateListingName";
 
 import formStyles from "./SheetForm.module.css";
@@ -178,6 +179,8 @@ function ItemSheet({
   const isChanged = !isSameLineDraft(draft, initialDraft);
   const sharedQuoteCount = (openedRow?.item.quotes ?? []).length;
   const isTradePrefilled = openedRow === null && initialTrade !== "";
+  // 1단계 임시(ADR-034 조건 6, 2단계에서 삭제): 만원으로 떨어지지 않는 원 단위 견적은 빈칸으로 열고 안내한다
+  const isAmountWonOnly = isWonOnlyAmount(openedRow?.quoteWon);
 
   const errorOf = (field: InteriorLineDraftField): string | null => {
     if (!isSubmitted && !blurredFields.has(field)) return null;
@@ -261,6 +264,8 @@ function ItemSheet({
           onChange={(amount) => update({ amount })}
           onBlur={() => markBlurred("amount")}
         />
+        {/* 1단계 임시(ADR-034 조건 6): 2단계에서 원 입력으로 바꿀 때 지운다 */}
+        {isAmountWonOnly && <p className={formStyles.note}>{WON_ONLY_AMOUNT_NOTICE}</p>}
         <TextField
           {...textFieldProps("note")}
           label="비고(선택)"

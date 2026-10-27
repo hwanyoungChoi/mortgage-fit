@@ -7,10 +7,17 @@ import {
   INTERIOR_PLAN_NAME_MAX_LENGTH,
 } from "@/lib/constants/interiorPlan";
 import { validateAmount } from "@/lib/utils/amount";
+import { planBudgetWonOf } from "@/lib/utils/interiorPlanRows";
 import { interiorPlanNameError } from "@/lib/utils/interiorTextErrors";
+import {
+  isWonOnlyAmount,
+  manwonInputTextOf,
+  WON_ONLY_AMOUNT_NOTICE,
+} from "@/lib/utils/manwonInputOfWon";
 import { countChars } from "@/lib/utils/validateListingName";
 
 import styles from "./SheetForm.module.css";
+import { planSettingsPatch } from "../planSettingsPatch";
 import { planWriteFailureMessage, PLAN_LIMIT_MESSAGE } from "../planWriteFailure";
 
 import type { InteriorPlanPatch, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
@@ -44,7 +51,7 @@ function budgetErrorOf(raw: string): string | null {
 
 /**
  * 계획 관리(⋯): 이름·총 예산 바꾸기, 매물 연결 해제(연결돼 있을 때만), 다른 계획 만들기, 이 계획 삭제.
- * 총 예산을 비우고 저장하면 지운다.
+ * 저장은 바뀐 칸만 보낸다(`planSettingsPatch`). 총 예산을 비우고 저장하면 지운다.
  */
 function PlanSettingsSheet({
   plan,
@@ -57,16 +64,23 @@ function PlanSettingsSheet({
   onClose,
 }: PlanSettingsSheetProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const initialBudget = plan.budget === undefined ? "" : String(plan.budget);
-  const [name, setName] = useState(plan.name);
-  const [budget, setBudget] = useState(initialBudget);
+  const budgetWon = planBudgetWonOf(plan);
+  // 1단계 임시(ADR-034 조건 6, 2단계에서 삭제): 만원으로 떨어지지 않는 원 단위 총 예산은 빈칸으로 열고 안내한다
+  const [initialFields] = useState(() => ({
+    name: plan.name,
+    budget: manwonInputTextOf(budgetWon),
+  }));
+  const [isBudgetWonOnly] = useState(() => isWonOnlyAmount(budgetWon));
+  const [name, setName] = useState(initialFields.name);
+  const [budget, setBudget] = useState(initialFields.budget);
   const [nameError, setNameError] = useState<string | null>(null);
   const [budgetError, setBudgetError] = useState<string | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUnlinked, setIsUnlinked] = useState(false);
   const isLinked = plan.listingId !== undefined;
-  const isChanged = name !== plan.name || budget !== initialBudget;
+  const patch = planSettingsPatch(initialFields, { name, budget });
+  const isChanged = Object.keys(patch).length > 0;
   const canCreateAnother = planCount < INTERIOR_PLAN_MAX_COUNT;
 
   // 시트가 먼저 자기에게 포커스를 둔 뒤(자식 effect가 먼저 돈다) 예산 칸으로 옮긴다.
@@ -93,12 +107,8 @@ function PlanSettingsSheet({
       document.getElementById(BUDGET_INPUT_ID)?.focus();
       return;
     }
-    const budgetValidation = validateAmount(budget);
     setIsSaving(true);
-    const result = await onSave({
-      name: name.trim(),
-      budget: budgetValidation.status === "valid" ? budgetValidation.value : null,
-    });
+    const result = await onSave(patch);
     setIsSaving(false);
     setWriteError(result.ok ? null : planWriteFailureMessage(result.reason));
   };
@@ -167,6 +177,8 @@ function PlanSettingsSheet({
           }}
           onBlur={() => setBudgetError(budgetErrorOf(budget))}
         />
+        {/* 1단계 임시(ADR-034 조건 6): 2단계에서 원 입력으로 바꿀 때 지운다 */}
+        {isBudgetWonOnly && <p className={styles.note}>{WON_ONLY_AMOUNT_NOTICE}</p>}
         {writeError !== null && (
           <p role="alert" className={styles.error}>
             {writeError}

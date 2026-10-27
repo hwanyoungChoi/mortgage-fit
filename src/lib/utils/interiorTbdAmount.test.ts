@@ -217,8 +217,9 @@ describe("시트 입력 — 1단계 (AC-2 1단계)", () => {
     });
   });
 
-  it("금액 0인 줄은 견적 칸 '0'", () => {
-    expect(toInteriorLineDraft(rowOf({ items: [zeroAmountRow()] }, "r6:rq6")).amount).toBe("0");
+  // ADR-034 조건 6: 1단계 만원 입력이 받지 않는 0은 빈칸으로 연다(안내를 붙인다, 2단계에서 원 입력으로)
+  it("금액 0인 줄은 견적 칸 ''", () => {
+    expect(toInteriorLineDraft(rowOf({ items: [zeroAmountRow()] }, "r6:rq6")).amount).toBe("");
   });
 });
 

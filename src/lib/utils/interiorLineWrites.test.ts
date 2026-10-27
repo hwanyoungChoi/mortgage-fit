@@ -14,6 +14,7 @@ import {
   makeSimplePlanP,
   r1,
   r4,
+  r6,
 } from "@/test/interiorSimpleFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 
@@ -418,5 +419,106 @@ describe("로컬 스토어 왕복: 쓴 입력이 그대로 저장된다", () => 
     const input = addLineInput("sp-whole", "nq", values({ detail: "합지", note: "비고" }));
     expect(store.addItem("plan-simple", input).ok).toBe(true);
     expect(fieldsOf(storedItem("created-item"))).toStrictEqual(input);
+  });
+});
+
+// ADR-034 조건 4(qa Q8): 1단계 줄 쓰기는 고친 견적만 만원 `amount`로 쓰고 원 `amountWon`은 지운다.
+// 형제 견적은 원래 금액 키 그대로다(옛 줄을 다시 쓰지 않는다, AC-0).
+describe("1단계 금액 쓰기 — editedQuote(ADR-034 조건 4)", () => {
+  /** 견적 [w 원 1,230,000(확정), m 만원 800, z 원 0] 항목 */
+  const mixedItem = (): InteriorItem => ({
+    id: "item-w",
+    spaceId: "sp-whole",
+    trade: "도배",
+    quotes: [
+      { id: "w", vendor: "원업체", amountWon: 1_230_000, memo: "실크" },
+      { id: "m", vendor: "만원업체", amount: 800 },
+      { id: "z", vendor: "셀프", amountWon: 0 },
+    ],
+    confirmedQuoteId: "w",
+    status: "planned",
+    createdAt: makeSimplePlanP().createdAt,
+    updatedAt: makeSimplePlanP().updatedAt,
+  });
+
+  it("원 키 견적 w(시트 '123')를 저장 → w는 amount 123만 있고 amountWon 키가 없다, m·z는 그대로", () => {
+    const item = mixedItem();
+    const input = editLineInput(
+      item,
+      "w",
+      values({ trade: "도배", vendor: "원업체", amount: 123, detail: "실크", isConfirmed: true }),
+      fixedId,
+    );
+    expect(input.quotes).toStrictEqual([
+      { id: "w", vendor: "원업체", amount: 123, memo: "실크" },
+      item.quotes![1],
+      item.quotes![2],
+    ]);
+    expect(Object.hasOwn(input.quotes![0], "amountWon")).toBe(false);
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+  });
+
+  it("만원 키 견적 m을 저장 → m은 amount만, 형제 w·z의 amountWon 그대로", () => {
+    const item = mixedItem();
+    const input = editLineInput(
+      item,
+      "m",
+      values({ trade: "도배", vendor: "만원업체", amount: 900 }),
+      fixedId,
+    );
+    expect(input.quotes).toStrictEqual([
+      item.quotes![0],
+      { id: "m", vendor: "만원업체", amount: 900 },
+      item.quotes![2],
+    ]);
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+  });
+
+  it("미정 줄(R6)에 금액을 넣으면 amount만 생기고 amountWon은 없다", () => {
+    const input = editLineInput(
+      r6(),
+      "rq6",
+      values({ trade: "조명", vendor: "빛나라조명", amount: 120, detail: "거실 매입등" }),
+      fixedId,
+    );
+    expect(input.quotes).toStrictEqual([
+      { id: "rq6", vendor: "빛나라조명", amount: 120, memo: "거실 매입등" },
+    ]);
+  });
+
+  it("줄 추가·빈 줄 채우기도 amount만 쓴다", () => {
+    const added = addLineInput("sp-whole", "nq", values());
+    expect(added.quotes).toStrictEqual([{ id: "nq", vendor: "새업체", amount: 999 }]);
+    const filled = editLineInput(legacyY(), null, values({ trade: "도배" }), fixedId);
+    expect(filled.quotes).toStrictEqual([{ id: "new-quote", vendor: "새업체", amount: 999 }]);
+  });
+
+  it("로컬 저장 왕복: w 저장 뒤 원문의 w에 amountWon이 없고 형제 z의 amountWon: 0은 남는다", () => {
+    const plan = makeSimplePlanP({ items: [mixedItem()] });
+    const storage = createMemoryStorage({
+      [INTERIOR_PLANS_STORAGE_KEY]: JSON.stringify({ plans: [plan] }),
+    });
+    const store = createInteriorPlanStore({
+      storage,
+      createId: () => "unused",
+      now: () => "2026-10-27T09:00:00.000Z",
+    });
+    const input = editLineInput(
+      mixedItem(),
+      "w",
+      values({ trade: "도배", vendor: "원업체", amount: 123, detail: "실크", isConfirmed: true }),
+      fixedId,
+    );
+    expect(store.updateItem("plan-simple", "item-w", input)).toEqual({ ok: true });
+    const [stored] = (
+      JSON.parse(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)!) as {
+        plans: InteriorPlanWithItems[];
+      }
+    ).plans;
+    expect(stored.items[0].quotes).toStrictEqual([
+      { id: "w", vendor: "원업체", amount: 123, memo: "실크" },
+      { id: "m", vendor: "만원업체", amount: 800 },
+      { id: "z", vendor: "셀프", amountWon: 0 },
+    ]);
   });
 });

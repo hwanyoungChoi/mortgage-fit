@@ -7,6 +7,7 @@ import {
 
 import { validateAmount } from "./amount";
 import { optionalTextError, requiredTextError } from "./interiorTextErrors";
+import { manwonInputTextOf } from "./manwonInputOfWon";
 
 import type { InteriorPlanRow } from "./interiorPlanRows";
 import type {
@@ -32,13 +33,15 @@ export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
 export function toInteriorLineDraft({
   item,
   quote,
+  quoteWon,
   isConfirmed,
 }: InteriorPlanRow): InteriorLineDraft {
   return {
     trade: item.trade,
     vendor: quote?.vendor ?? "",
-    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게)
-    amount: quote?.amount === undefined ? "" : String(quote.amount),
+    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게).
+    // 1단계 입력은 만원이라 만원으로 떨어지지 않는 원 금액(1,234,500·0)도 빈칸이다(ADR-034 조건 6, 2단계에서 원으로)
+    amount: manwonInputTextOf(quoteWon),
     detail: quote?.memo ?? "",
     note: item.memo ?? "",
     isConfirmed,
