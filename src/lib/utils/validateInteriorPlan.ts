@@ -64,9 +64,14 @@ export function isInteriorPlanId(value: unknown): value is string {
   return isInteriorId(value) && value !== RESERVED_PLAN_ID;
 }
 
-/** 예산·견적·지급 금액: 만원 정수 1~999,999,999. 소수·문자열·NaN은 아니다 */
+/** 예산·지급 금액: 만원 정수 1~999,999,999. 소수·문자열·NaN은 아니다 */
 export function isInteriorAmount(value: unknown): value is number {
   return Number.isSafeInteger(value) && (value as number) >= 1 && (value as number) <= MAX_AMOUNT;
+}
+
+/** 견적 금액: 만원 정수 0~999,999,999. 0은 셀프 시공처럼 금액이 정해진 0이다(미정 아님, ADR-033 개정) */
+function isInteriorQuoteAmount(value: unknown): value is number {
+  return value === 0 || isInteriorAmount(value);
 }
 
 export function isInteriorItemStatus(value: unknown): value is InteriorItemStatus {
@@ -144,12 +149,12 @@ export function parseInteriorSpaces(value: unknown): InteriorSpace[] | null {
   return hasUniqueIds(spaces) ? spaces : null;
 }
 
-/** 견적 금액은 선택이다. 키 없음 = 금액 미정(ADR-033) */
+/** 견적 금액은 선택이다. 키 없음 = 금액 미정, 0은 금액이 0인 견적(ADR-033) */
 function parseQuote(value: unknown): InteriorQuote | null {
   if (!isRecord(value) || !isInteriorId(value.id)) return null;
   const vendor = parseRequiredText(value.vendor, INTERIOR_VENDOR_MAX_LENGTH);
   const contact = parseOptionalText(value, "contact", INTERIOR_CONTACT_MAX_LENGTH);
-  const amount = parseOptional(value, "amount", isInteriorAmount);
+  const amount = parseOptional(value, "amount", isInteriorQuoteAmount);
   const memo = parseOptionalText(value, "memo", INTERIOR_QUOTE_MEMO_MAX_LENGTH);
   if (vendor === null || contact === null || amount === null || memo === null) return null;
   return {

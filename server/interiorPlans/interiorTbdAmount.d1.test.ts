@@ -1,7 +1,8 @@
 // 스펙 interior-tbd-amount AC-0(a)·(d), ADR-033 조건 3: 견적 금액은 선택 필드다(키 없음 = 미정). 서버 코드는 바꾸지 않고
 // 공용 검증(`validateInteriorPlan.ts` `parseQuote`)만 넓어졌으므로, Worker 진입점(실제 마이그레이션 + D1)으로
 // `/import`·계획 POST·항목 POST·PUT이 금액 없는 견적을 받고 GET이 보낸 값과 같은 값을 돌려주는지, 미정이 아닌 잘못된 금액
-// (`null`·0·문자열·소수·상한 초과)은 지금처럼 400인지 본다. server/는 `@/` 별칭을 못 쓰므로 예시 P⁺ 값을 여기 그대로 적는다.
+// (`null`·문자열·소수·음수·상한 초과)은 지금처럼 400인지 본다. 개정(셀프 시공): 견적 금액 0은 금액이 정해진 0이라
+// 같은 네 경로에서 통과하고 GET이 `amount: 0`을 그대로 돌려준다. server/는 `@/` 별칭을 못 쓰므로 예시 P⁺ 값을 여기 그대로 적는다.
 import { env } from "cloudflare:workers";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -198,11 +199,51 @@ describe("금액 없는 견적: 쓰기 200(201)이고 GET이 같은 값 (AC-0(a)
   });
 });
 
+describe("견적 금액 0(셀프 시공): 쓰기 200(201)이고 GET이 amount: 0을 그대로 (ADR-033 개정)", () => {
+  /** 확정한 셀프 시공 0원 줄 */
+  const SELF = line("rq0", "도배", "셀프시공", null, 0, true);
+
+  it("/import·계획 POST에 0 견적 → 200·201, GET이 보낸 값과 같다", async () => {
+    const plan = { ...planPPlus(), items: [{ ...planPPlus().items[0], ...SELF }] };
+    const imported = await importPlan(alice, plan);
+    expect(imported.status).toBe(200);
+    expect(await imported.json()).toStrictEqual({ imported: 1 });
+
+    const created = await createPlan(alice, { ...PLAN_FIELDS, items: [SELF] });
+    expect(created.status).toBe(201);
+    const createdPlan = ((await created.json()) as { plan: InteriorPlanWithItems }).plan;
+    expect(createdPlan.items.map(fieldsOf)).toStrictEqual([SELF]);
+
+    const plans = await getPlans(alice);
+    expect(plans.find((stored) => stored.id === plan.id)).toStrictEqual(plan);
+    expect(plans.find((stored) => stored.id === createdPlan.id)).toStrictEqual(createdPlan);
+  });
+
+  it("항목 POST 0 → 201, 120으로 PUT → 200, 다시 0으로 PUT → 200, GET이 매번 입력과 같다", async () => {
+    expect((await importPlan(alice, { ...planPPlus(), items: [] })).status).toBe(200);
+
+    const posted = await postItem(alice, "plan-p-plus", SELF);
+    expect(posted.status).toBe(201);
+    const { item } = (await posted.json()) as { item: InteriorItem };
+    expect(fieldsOf(item)).toStrictEqual(SELF);
+    expect(fieldsOf((await getPlans(alice))[0].items[0])).toStrictEqual(SELF);
+
+    const priced = { ...SELF, quotes: [{ ...SELF.quotes![0], amount: 120 }] };
+    for (const input of [priced, SELF]) {
+      const put = await putItem(alice, "plan-p-plus", item.id, input);
+      expect(put.status).toBe(200);
+      expect(fieldsOf(((await put.json()) as { item: InteriorItem }).item)).toStrictEqual(input);
+      expect(fieldsOf((await getPlans(alice))[0].items[0])).toStrictEqual(input);
+    }
+    expect((await getPlans(alice))[0].items[0].quotes![0].amount).toBe(0);
+  });
+});
+
 describe("미정이 아닌 잘못된 금액은 지금처럼 400이고 아무것도 바뀌지 않는다 (AC-0(a))", () => {
   const REJECTED: [string, unknown][] = [
     ["null", null],
     ['"100"', "100"],
-    ["0", 0],
+    ["-1", -1],
     ["1.5", 1.5],
     ["1,000,000,000", 1_000_000_000],
   ];

@@ -357,7 +357,12 @@ describe("금액: 만원 정수 1~999,999,999 (ADR-029 조건 2·11)", () => {
     else expect(result).toBeNull();
   });
 
-  it.each(amountCases)("견적 금액 %s", (_, amount, isValid) => {
+  // ADR-033 개정 의도된 반전: 견적 금액만 0을 받는다(셀프 시공). 예산·지급의 0 거부는 위아래 표 그대로다.
+  it.each(
+    amountCases.map(([label, amount, isValid]): [string, unknown, boolean] =>
+      amount === 0 ? [label, amount, true] : [label, amount, isValid],
+    ),
+  )("견적 금액 %s", (_, amount, isValid) => {
     const result = itemFields({ quotes: [quote({ amount })] });
     if (isValid) expect(result?.quotes?.[0].amount).toBe(amount);
     else expect(result).toBeNull();
@@ -390,16 +395,35 @@ describe("금액: 만원 정수 1~999,999,999 (ADR-029 조건 2·11)", () => {
     ["null", null],
     ["빈 문자열", ""],
     ['"100"', "100"],
-    ["0", 0],
+    ["-1", -1],
     ["1.5", 1.5],
     ["1,000,000,000", 1_000_000_000],
+    ["1e9", 1e9],
   ])("견적 금액 %s는 미정이 아니라 거부 (ADR-033)", (_, amount) => {
     expect(itemFields({ quotes: [quote({ amount })] })).toBeNull();
   });
 
-  it.each([1, 999_999_999])("견적 금액 %s는 통과하고 그대로 돌려준다 (ADR-033)", (amount) => {
+  it.each([0, 1, 999_999_999])("견적 금액 %s는 통과하고 그대로 돌려준다 (ADR-033)", (amount) => {
     const result = itemFields({ quotes: [quote({ amount })] });
     expect(result?.quotes?.[0]).toStrictEqual({ id: "q1", vendor: "가나 인테리어", amount });
+  });
+
+  it("견적 0은 받아도 예산·지급 0은 계속 거부 (ADR-033 개정)", () => {
+    expect(isInteriorAmount(0)).toBe(false);
+    expect(itemFields({ quotes: [quote({ amount: 0 })] })?.quotes?.[0].amount).toBe(0);
+    expect(planFields({ budget: 0 })).toBeNull();
+    expect(itemFields({ budget: 0 })).toBeNull();
+    expect(itemFields({ payments: [payment({ amount: 0 })] })).toBeNull();
+  });
+
+  it("저장된 항목 읽기(parseInteriorItem)도 견적 0을 그대로 돌려준다", () => {
+    const stored = {
+      id: "i1",
+      ...itemFields({ quotes: [quote({ amount: 0 })] }),
+      createdAt: CREATED_AT,
+      updatedAt: UPDATED_AT,
+    };
+    expect(parseInteriorItem(stored)).toStrictEqual(stored);
   });
 });
 
