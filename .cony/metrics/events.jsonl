@@ -253,3 +253,8 @@
 {"ts":"2026-10-27T10:39:15.516Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c43f2613-2353-4c04-a3f5-099935e7042e/scratchpad && rm -rf $S/old $S/cur && mkdir -p $S/old $S/cur && git archive db36b56 src"}
 {"ts":"2026-10-27T10:42:05.596Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
 {"ts":"2026-10-27T10:46:52.944Z","type":"hook","hook":"guard-bash","decision":"ask","command":"python3 - <<'EOF'\np=\".cony/reviews/20261027-1937-qa-won-unit.md\"\ns=open(p,encoding=\"utf-8\").read()\ns=s.replace(\"총 예산 `9_999_999_999_999`이면 남은 예산 `-989_999_999_999_901`(= 9,999,999,999,999 − 999,999,99"}
+{"ts":"2026-10-27T10:57:49.113Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorWonUnit.test.ts"}
+{"ts":"2026-10-27T11:02:29.505Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-27T11:18:30.299Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T11:23:41.981Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c43f2613-2353-4c04-a3f5-099935e7042e/scratchpad/t1probe && rm -rf $S && mkdir -p $S/old $S/cur $S/probe && git archive cc056"}
+{"ts":"2026-10-27T12:21:58.971Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}

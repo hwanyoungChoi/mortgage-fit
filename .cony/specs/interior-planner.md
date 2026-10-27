@@ -157,6 +157,7 @@ CREATE TABLE interior_plan_items (
 
 - **라우팅**: `/api/interior-plans/import`는 `/api/interior-plans/{id}`보다 **먼저** 라우팅한다(라우터는 첫 일치라 뒤면 POST import가 405). 경로 id 형식이 틀리면 매물과 같은 400 `invalidParams`, id `import`는 검증에서 거부한다(PATCH·DELETE가 import 경로에 가려지지 않게).
 - 플랜·항목 조회·쓰기는 위 범위 조각으로 찾고, 다른 사람·숨긴 플랜은 404.
+- **원 단위 키(ADR-034)**: 견적 `amountWon?`·플랜 `budgetWon?`과 PATCH `budgetWon`(두 예산 키를 함께 정하는 규칙)은 [interior-tbd-amount "API 계약"](interior-tbd-amount.md#원-단위-키adr-034-태스크-1-4)을 따른다.
 - **항목 넣기 가드(import·POST 공통)**: 항목 INSERT는 같은 batch의 **직전 플랜 INSERT가 1행을 넣었을 때만** 돈다(예: `changes()` 가드 또는 INSERT가 만든 표식 — D1 batch에서 되는지 be가 하네스로 확인해 고른다). 따라서 import 재시도 때 사용자가 지운 항목이 되살아나지 않고, POST에서 플랜 3개 초과로 플랜이 0행이면 항목도 0행이다. 하네스 변이 테스트로 고정한다(가드 삭제 시 실패).
 - **이전(import) batch**: 플랜 INSERT…SELECT는 "같은 id가 범위에 없을 때만 개수 < 3을 비교"한다(`importListings`의 `IMPORT_OVER_LIMIT_SQL`과 같은 식). 그래서 플랜이 이미 있으면 상한에 걸린 상태여도 400이 아니라 `imported: 0`이다. 항목 INSERT…SELECT FROM json_each는 위 가드를 쓴다.
 - **항목 POST의 404/400 구분**: 개수 검사와 넣기는 한 문장이고, 같은 batch의 두 번째 문장이 플랜 범위 존재를 읽어 0행이면 404, 있으면 400(100개)을 낸다.
