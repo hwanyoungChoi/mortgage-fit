@@ -512,6 +512,8 @@
 - AI(리드) AC-0(e): 운영 옛 Worker + 새 스키마에서 `/` 200, `/api/me` 200, listings·budget·listing-order 401(쿠키 없음, 배포 전과 같음)
 - 요청: 입력한 내용을 스샷처럼 "구분·업체·세부내용·견적·확정·비고 + 합계" 표로 뽑는 기능. 사용자 선택: 이번 배포 후 바로 다음 PR, CSV 내려받기 + 인쇄·PDF, 금액은 원 단위(입력은 만원 그대로)
 
+- `놓침` 흐름 규칙 건너뜀 (태스크 4는 리드 배포 태스크라 qa 기록 대신 log·보고서에 원격 0007 diff·운영 응답 기록): 태스크 4: qa 검증 기록이 없습니다. qa에게 기록 파일 .cony/reviews/{YYYYMMDD-HHmm}-qa-task-4.md 를 남기게 하세요.
+
 ## 태스크 5. 계획 표 내보내기
 
 - 요청: PR #35 머지(db36b56) 뒤 main 최신에서 시작. 공유 폴더의 브랜치를 바꾸지 않으려고 별도 워크트리(`../loan-calculator-plan-export`, 브랜치 `cony/interior-plan-export`)에서 진행

@@ -394,7 +394,7 @@ downloadTextFile(fileName: string, text: string): void
 - [x] 3. 매물 연결·추가 비용 가져오기 — AC-6
   - [ ] 3-1. 카드 [인테리어 계획] 전체 폭 링크(`#/home?listing={id}`, 플랜 GET 없음), Home의 연결 플랜 찾기 → `#/home/{planId}` replace, 인테리어 분류 줄 → 공간 "전체" 항목 변환(순수 함수), 연결 매물 없음 표시 (fe)
   - [ ] 3-2. 가져오기 변환 함수 표(인테리어 줄 0·1·30개, 이름 30자)·카드 진입(플랜 GET 0회)·replace 테스트, 매물 원문 불변 확인 (qa)
-- [ ] 4. 배포·검증 (리드)
+- [x] 4. 배포·검증 (리드)
   - [ ] 4-1. time-travel 복원 지점 기록 → AC-0(a) 직전 덤프 → **원격 0007 적용**(`pnpm wrangler d1 migrations apply mortgage-fit --remote`) → 직후 덤프·`diff`(새 테이블 2개 0행 확인 포함) → AC-0(e) 옛 Worker 확인
   - [ ] 4-2. **그 다음에** PR 머지(Auto-fix + CI 통과 시 자동 머지라 PR이 곧 배포, CI에는 migrations apply가 없으므로 순서를 사람이 지킨다. 새 Worker + 옛 스키마면 나가기가 막힌다). 배포 후 AC-0(b)~(d)(f), AC-1~10 화면·curl 확인, 원격 플랜 삭제 후 항목 0행 확인
 - [x] 5. 계획 표 내보내기 (CSV·인쇄) — AC-11, AC-12, AC-0(c)(g) 유지 ("표 내보내기" 절, 사용자 요청 2026-10-27, D6 = ADR-030 B)
