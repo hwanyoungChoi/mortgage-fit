@@ -65,6 +65,12 @@
   overflow-wrap: anywhere;
 }
 
+.notice {
+  color: var(--color-warning-text);
+  font-size: var(--fs-body);
+  text-align: right;
+}
+
 .error {
   color: var(--color-error);
   font-size: var(--fs-body);

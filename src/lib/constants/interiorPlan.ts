@@ -12,6 +12,9 @@ export const WON_PER_MANWON = 10_000;
  * 항목 100개를 더해도 `Number.MAX_SAFE_INTEGER` 안이다(ADR-034 조건 3)
  */
 export const MAX_WON = 9_999_999_999_999;
+/** 원 입력 칸의 하한. 견적은 0원(셀프 시공, ADR-033 개정)부터, 총 예산은 1원부터(ADR-034 조건 3) */
+export const QUOTE_MIN_WON = 0;
+export const PLAN_BUDGET_MIN_WON = 1;
 
 /** 계정(가구 범위)·기기마다 플랜 수 상한 */
 export const INTERIOR_PLAN_MAX_COUNT = 3;
