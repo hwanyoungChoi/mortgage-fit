@@ -92,6 +92,7 @@ function PlanScreen({
         options={VIEW_OPTIONS}
         value={view}
         columns={VIEW_OPTIONS.length}
+        isOnBackground
         onChange={onViewChange}
       />
       {view === "table" ? (

@@ -12,6 +12,8 @@ type ChoiceGroupProps<T extends string> = {
   value: T;
   /** 한 줄에 놓을 선택지 수 */
   columns: number;
+  /** 흰 카드가 아니라 화면 바탕 위에 놓인다(칸 채움을 한 단계 진하게) */
+  isOnBackground?: boolean;
   onChange: (value: T) => void;
 };
 
@@ -22,10 +24,11 @@ function ChoiceGroup<T extends string>({
   options,
   value,
   columns,
+  isOnBackground = false,
   onChange,
 }: ChoiceGroupProps<T>) {
   return (
-    <fieldset className={styles.group}>
+    <fieldset className={isOnBackground ? styles.groupOnBackground : styles.group}>
       <legend className={styles.legend}>{legend}</legend>
       <div className={styles.options} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {options.map((option) => (
