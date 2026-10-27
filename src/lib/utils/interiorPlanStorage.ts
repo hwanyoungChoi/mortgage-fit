@@ -43,8 +43,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** 플랜 하나와 그 항목. 하나라도 어긋나면 null이다. 알려진 키만 담은 새 객체다. */
-function parsePlanWithItems(value: unknown): InteriorPlanWithItems | null {
+/** 플랜 하나와 그 항목. 하나라도 어긋나면 null이다. 알려진 키만 담은 새 객체다(로컬 원문·서버 응답 공통). */
+export function parseInteriorPlanWithItems(value: unknown): InteriorPlanWithItems | null {
   if (!isRecord(value) || !Array.isArray(value.items)) return null;
   const plan = parseInteriorPlan(value);
   if (plan === null) return null;
@@ -72,7 +72,7 @@ export function parseInteriorPlans(rawText: string | null): InteriorPlanSnapshot
   if (!isRecord(value) || !Array.isArray(value.plans)) return { status: "corrupt", rawText };
   const plans: InteriorPlanWithItems[] = [];
   for (const raw of value.plans as unknown[]) {
-    const plan = parsePlanWithItems(raw);
+    const plan = parseInteriorPlanWithItems(raw);
     if (plan === null) return { status: "corrupt", rawText };
     plans.push(plan);
   }
