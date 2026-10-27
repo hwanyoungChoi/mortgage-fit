@@ -505,3 +505,9 @@
 - AI(qa) 3-2: `7eb05aa` 변환·상태표·화면(로그아웃·로그인)·스파이 Storage 77개, 변이 22개 중 21 실패. 살아남은 1개(같은 listingId 한 번만 ref)가 결함을 드러냄: Home 마운트 중 같은 `?listing=` 재진입 시 "매물을 확인하는 중"에 멈춤 ([기록](reviews/20261027-1246-qa-task-3.md))
 - AI(fe): `0761b34` listingId가 없어지면 ref 초기화. AI(qa): `e723e77` 회귀 테스트 2개, ref 초기화 삭제 변이에서 실패
 - AI(리드): code-review-fe(4e2444c..HEAD) 위반 없음 — 카드 코드에 계획 쿼리 없음, 변환·판단은 순수 함수
+
+## 태스크 4. 배포·검증
+
+- 요청(사용자 승인): 원격 D1 0007 적용. bookmark 000000c1-…30c81fb3b1c649405f5fe54803f2c94a, AC-0(a) 직전·직후 덤프 diff 빔(users 2·sessions 11·listings 46·shares 3·households 1·invites 1), 새 테이블 2개 0행·새 객체 3개
+- AI(리드) AC-0(e): 운영 옛 Worker + 새 스키마에서 `/` 200, `/api/me` 200, listings·budget·listing-order 401(쿠키 없음, 배포 전과 같음)
+- 요청: 입력한 내용을 스샷처럼 "구분·업체·세부내용·견적·확정·비고 + 합계" 표로 뽑는 기능. 사용자 선택: 이번 배포 후 바로 다음 PR, CSV 내려받기 + 인쇄·PDF, 금액은 원 단위(입력은 만원 그대로)
