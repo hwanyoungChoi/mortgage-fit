@@ -11,19 +11,6 @@ import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 
 import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 
-const P_DEFAULT_SPACE_NAMES = [
-  "전체",
-  "현관",
-  "거실",
-  "주방",
-  "욕실1",
-  "욕실2",
-  "방1",
-  "방2",
-  "방3",
-  "베란다",
-];
-
 /** 로그아웃 상태(`/api/me` → user null). 우리 집은 로컬 스토어가 원본이다 */
 function stubLoggedOutApi() {
   vi.stubGlobal(
@@ -72,30 +59,23 @@ describe("우리 집 화면: 만들기·계획 수 상한 (스펙 interior-plann
   });
 
   describe("AC-1 빈 상태 → 만들기 → 공간", () => {
-    it("빈 상태 → [계획 만들기] 이름 '우리 집'·방 3·욕실 2 → #/home/{planId}, 공간 10개 순서, 새로고침 후 그대로", async () => {
+    it("빈 상태 → [계획 만들기] 이름 '우리 집' → #/home/{planId}, 공간은 '전체' 하나, 새로고침 후 그대로", async () => {
       const user = userEvent.setup();
       const storage = createMemoryStorage();
       const { unmount } = await renderApp(storage);
 
       expect(
-        screen.getByText("계약한 집의 인테리어 예산·견적·지급을 정리합니다"),
+        screen.getByText("공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"),
       ).toBeInTheDocument();
       expect(screen.getByText("저장 목록의 매물 카드에서도 만들 수 있어요")).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "우리 집" })).toHaveAttribute("aria-current", "page");
 
       await user.click(screen.getByRole("button", { name: "계획 만들기" }));
       const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
-      // 기본값 방 3·욕실 2
-      expect(
-        within(within(dialog).getByRole("group", { name: "방 수" })).getByRole("radio", {
-          name: "3개",
-        }),
-      ).toBeChecked();
-      expect(
-        within(within(dialog).getByRole("group", { name: "욕실 수" })).getByRole("radio", {
-          name: "2개",
-        }),
-      ).toBeChecked();
+      // 방·욕실 수는 고르지 않는다(스펙 interior-simple U11)
+      expect(within(dialog).queryByRole("group", { name: "방 수" })).not.toBeInTheDocument();
+      expect(within(dialog).queryByRole("group", { name: "욕실 수" })).not.toBeInTheDocument();
+      expect(within(dialog).queryByRole("radio")).not.toBeInTheDocument();
       await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "우리 집");
       await user.click(within(dialog).getByRole("button", { name: "만들기" }));
 
@@ -106,9 +86,7 @@ describe("우리 집 화면: 만들기·계획 수 상한 (스펙 interior-plann
       expect(storedPlans(storage).map((plan) => [plan.id, plan.name])).toEqual([
         [planId, "우리 집"],
       ]);
-      expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual(
-        P_DEFAULT_SPACE_NAMES,
-      );
+      expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual(["전체"]);
       const storedRaw = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
 
       // 새로고침: 같은 저장소로 앱을 다시 띄운다
@@ -116,36 +94,6 @@ describe("우리 집 화면: 만들기·계획 수 상한 (스펙 interior-plann
       await renderApp(storage, `#/home/${planId}`);
       expect(screen.getByRole("heading", { level: 1, name: "우리 집" })).toBeInTheDocument();
       expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(storedRaw);
-    });
-
-    it("방 1·욕실 1이면 공간 7개(욕실1·방1만)", async () => {
-      const user = userEvent.setup();
-      const storage = createMemoryStorage();
-      await renderApp(storage);
-      await user.click(screen.getByRole("button", { name: "계획 만들기" }));
-      const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
-      await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "작은 집");
-      await user.click(
-        within(within(dialog).getByRole("group", { name: "방 수" })).getByRole("radio", {
-          name: "1개",
-        }),
-      );
-      await user.click(
-        within(within(dialog).getByRole("group", { name: "욕실 수" })).getByRole("radio", {
-          name: "1개",
-        }),
-      );
-      await user.click(within(dialog).getByRole("button", { name: "만들기" }));
-      await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));
-      expect(storedPlans(storage)[0].spaces.map((space) => space.name)).toEqual([
-        "전체",
-        "현관",
-        "거실",
-        "주방",
-        "욕실1",
-        "방1",
-        "베란다",
-      ]);
     });
   });
 

@@ -100,7 +100,7 @@ function MortgageHub({
           <HubCard
             title="우리 집 인테리어"
             href={PATHS.home()}
-            intro="계약한 집의 인테리어 예산·견적·지급을 정리합니다"
+            intro="공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"
             summary={summary.home}
             renderSummary={(lines) =>
               lines.map((line) => (

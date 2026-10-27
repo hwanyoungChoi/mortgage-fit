@@ -46,7 +46,7 @@ const USER_ID = "user-a";
 const INTRO = {
   calculator: "매매가와 KB시세로 예상 한도와 필요한 자기자금을 계산합니다",
   listings: "본 매물을 저장해 자기자금·추가 비용을 비교합니다",
-  home: "계약한 집의 인테리어 예산·견적·지급을 정리합니다",
+  home: "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다",
 };
 
 const CARD = {
