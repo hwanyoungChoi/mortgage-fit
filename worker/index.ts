@@ -12,6 +12,16 @@ import {
 } from "../server/household/handleHousehold";
 import { routeApi } from "../server/http/router";
 import {
+  createInteriorItem,
+  createInteriorPlan,
+  deleteInteriorItem,
+  deleteInteriorPlan,
+  importInteriorPlan,
+  listInteriorPlans,
+  replaceInteriorItem,
+  updateInteriorPlan,
+} from "../server/interiorPlans/handleInteriorPlans";
+import {
   getListingOrder,
   importListingOrder,
   putListingOrder,
@@ -136,6 +146,58 @@ const API_ROUTES: ApiRoute<Env>[] = [
     methods: {
       POST: (request, env) =>
         withSession(request, env.DB, now, (userId) => importListingOrder(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/interior-plans",
+    methods: {
+      GET: (request, env) =>
+        withSession(request, env.DB, now, (userId) => listInteriorPlans(env.DB, userId)),
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) =>
+          createInteriorPlan(request, env.DB, userId, now),
+        ),
+    },
+  },
+  // `/api/interior-plans/:id`보다 먼저 둔다(첫 번째로 맞는 경로를 쓴다). 플랜 id "import"는 검증에서 거부한다.
+  {
+    path: "/api/interior-plans/import",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => importInteriorPlan(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/interior-plans/:id",
+    methods: {
+      PATCH: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) =>
+          updateInteriorPlan(request, id, env.DB, userId, now),
+        ),
+      DELETE: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) => deleteInteriorPlan(id, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/interior-plans/:id/items",
+    methods: {
+      POST: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) =>
+          createInteriorItem(request, id, env.DB, userId, now),
+        ),
+    },
+  },
+  {
+    path: "/api/interior-plans/:id/items/:itemId",
+    methods: {
+      PUT: (request, env, { id, itemId }) =>
+        withSession(request, env.DB, now, (userId) =>
+          replaceInteriorItem(request, id, itemId, env.DB, userId, now),
+        ),
+      DELETE: (request, env, { id, itemId }) =>
+        withSession(request, env.DB, now, (userId) =>
+          deleteInteriorItem(id, itemId, env.DB, userId),
+        ),
     },
   },
   {

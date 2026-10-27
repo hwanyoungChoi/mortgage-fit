@@ -3,12 +3,14 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 import TabNav from "@/components/TabNav";
 import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
+import MortgageHome from "@/containers/Mortgage/Home/MortgageHome";
 import MortgageInvite from "@/containers/Mortgage/Invite/MortgageInvite";
 import MortgageListings from "@/containers/Mortgage/Listings/MortgageListings";
 import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useListingsScrollRestoration";
 import MortgageShare from "@/containers/Mortgage/Share/MortgageShare";
 import { useAccountImport } from "@/hooks/useAccountImport";
 import { useHashRoute } from "@/hooks/useHashRoute";
+import { useInteriorPlanImport } from "@/hooks/useInteriorPlanImport";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 import { PATHS } from "@/lib/constants/paths";
@@ -18,6 +20,8 @@ import { createBudgetImportStore } from "@/lib/utils/budgetImportStorage";
 import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
+import { createInteriorPlanImportStore } from "@/lib/utils/interiorPlanImportStorage";
+import { createInteriorPlanStore } from "@/lib/utils/interiorPlanStorage";
 import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportStorage";
 import { createListingOrderStore } from "@/lib/utils/listingOrderStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
@@ -54,6 +58,12 @@ function createStores(storage: Storage) {
     accountImportStore: createAccountImportStore({ storage }),
     privacyModeStore: createPrivacyModeStore({ storage }),
     textSizeStore: createTextSizeStore({ storage }),
+    interiorPlanStore: createInteriorPlanStore({
+      storage,
+      createId: createRandomId,
+      now: () => new Date().toISOString(),
+    }),
+    interiorPlanImportStore: createInteriorPlanImportStore({ storage }),
   };
 }
 
@@ -73,6 +83,8 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       accountImportStore,
       privacyModeStore,
       textSizeStore,
+      interiorPlanStore,
+      interiorPlanImportStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -91,6 +103,17 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     listingStore,
     accountImportStore,
     onImported: handleAccountImported,
+  });
+  // [우리 집]에 한 번 보일 알림. 매물 이전 알림(저장 목록)과 따로 두어 서로 덮지 않는다.
+  const [homeNotice, setHomeNotice] = useState<string | null>(null);
+  const handleInteriorPlanImported = useCallback(() => {
+    setHomeNotice("이 기기의 인테리어 계획을 계정으로 옮겼습니다");
+  }, []);
+  // 로그인 확인 직후 이 기기의 인테리어 계획을 계정으로 옮긴다. 매물 이전과 같은 자리(화면들 위)에서 한 번만 한다.
+  const planImport = useInteriorPlanImport({
+    interiorPlanStore,
+    interiorPlanImportStore,
+    onImported: handleInteriorPlanImported,
   });
 
   /**
@@ -127,6 +150,25 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           listingOrderImportStore={listingOrderImportStore}
           draftStore={draftStore}
           onAccepted={goToListingsWithNotice}
+        />
+      );
+    }
+    if (route.name === "home") {
+      // 플랜을 바꾸면(고르기 → 플랜, 뒤로 가기) 화면 상태와 열린 시트를 새로 시작한다.
+      return (
+        <MortgageHome
+          key={route.planId ?? ""}
+          interiorPlanStore={interiorPlanStore}
+          sessionHintStore={sessionHintStore}
+          planImport={planImport}
+          privacyModeStore={privacyModeStore}
+          listingStore={listingStore}
+          accountImport={accountImport}
+          planId={route.planId}
+          listingId={route.listingId}
+          view={route.view ?? "space"}
+          notice={homeNotice}
+          onNoticeChange={setHomeNotice}
         />
       );
     }

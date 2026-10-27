@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiRequestError } from "@/lib/api/client";
+import { selectAccountSourceStatus } from "@/lib/utils/accountSourceStatus";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { householdOf, householdRefetchInterval } from "@/lib/utils/household";
 import { toListingFields } from "@/lib/utils/listingStore";
@@ -19,7 +20,6 @@ import { useUpdateListingMemo } from "./useUpdateListingMemo";
 import { useUpdateListingName } from "./useUpdateListingName";
 import { useUpdateListingStatus } from "./useUpdateListingStatus";
 
-import type { MeResponse } from "@/lib/types/account";
 import type { Household } from "@/lib/types/household";
 import type {
   Listing,
@@ -78,26 +78,6 @@ export type ListingSource = {
 
 const NOT_READY: ListingSourceWriteFailure = { ok: false, reason: "notReady" };
 
-/**
- * `/api/me` 결과 → 출처. 받아 둔 응답이 있으면 재조회가 실패해도 그 값을 쓴다.
- * 로그인했으면 이 기기 매물의 이전이 끝난 뒤에 loggedIn이다(이전 중 빈 서버 목록이 보이지 않게, AC-13c).
- * 응답이 없이 실패하면, 로그인했던 브라우저만 error로 막는다. 로그인한 적 없는 사용자는
- * 서버 장애와 상관없이 지금처럼 로컬로 쓴다(AC-0).
- */
-function selectSourceStatus(
-  me: MeResponse | undefined,
-  isMeError: boolean,
-  hasSessionHint: boolean,
-  accountImport: AccountImport,
-): ListingSourceStatus {
-  if (me !== undefined) {
-    if (me.user === null) return "loggedOut";
-    return isAccountImportSettled(accountImport.state, me.user.id) ? "loggedIn" : "loading";
-  }
-  if (!isMeError) return "loading";
-  return hasSessionHint ? "error" : "loggedOut";
-}
-
 function isUnauthorized(error: unknown): boolean {
   return error instanceof ApiRequestError && error.status === 401;
 }
@@ -136,7 +116,12 @@ export function useListingSource({
   const queryClient = useQueryClient();
   const localSnapshot = useListings(listingStore);
   const me = useMe();
-  const status = selectSourceStatus(me.data, me.isError, sessionHintStore.has(), accountImport);
+  const status = selectAccountSourceStatus({
+    me: me.data,
+    isMeError: me.isError,
+    hasSessionHint: sessionHintStore.has(),
+    isImportSettled: (userId) => isAccountImportSettled(accountImport.state, userId),
+  });
   const household = status === "loggedIn" ? householdOf(me.data) : null;
   const serverList = useListingList({
     enabled: status === "loggedIn",

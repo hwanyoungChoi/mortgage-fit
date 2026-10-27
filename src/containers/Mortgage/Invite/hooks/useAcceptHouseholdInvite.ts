@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { budgetQueryKey } from "@/hooks/useAccountBudget";
 import { listingOrderQueryKey } from "@/hooks/useAccountListingOrder";
+import { interiorPlanListQueryKey } from "@/hooks/useInteriorPlanList";
 import { listingListQueryKey } from "@/hooks/useListingList";
 import { meQueryKey } from "@/hooks/useMe";
 import { apiClient } from "@/lib/api/client";
@@ -18,7 +19,7 @@ type AcceptHouseholdInviteOptions = {
 };
 
 /**
- * 초대 수락. 성공하면 me에 가구를 바로 넣고(저장 목록 머리글이 곧바로 "함께 쓰는 중"), 목록·예산·순서는
+ * 초대 수락. 성공하면 me에 가구를 바로 넣고(저장 목록 머리글이 곧바로 "함께 쓰는 중"), 목록·예산·순서·인테리어 계획은
  * 가구 단위로 바뀌었으므로 다시 조회한다.
  */
 export function useAcceptHouseholdInvite({ onAccepted }: AcceptHouseholdInviteOptions) {
@@ -33,6 +34,7 @@ export function useAcceptHouseholdInvite({ onAccepted }: AcceptHouseholdInviteOp
       void queryClient.invalidateQueries({ queryKey: listingListQueryKey() });
       void queryClient.invalidateQueries({ queryKey: budgetQueryKey() });
       void queryClient.invalidateQueries({ queryKey: listingOrderQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: interiorPlanListQueryKey() });
     },
   });
 }

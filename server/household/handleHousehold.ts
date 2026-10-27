@@ -162,11 +162,13 @@ async function describeAcceptFailure(
 /**
  * POST /api/household/invites/{token}/accept → 200 `{ household: { memberCount } }`. batch 한 번:
  * ① 초대를 쓴 것으로 표시(조건 전부 `ACCEPT_GUARD_SQL`) ② 가구 만들기(초대자 A의 예산·순서를 복사, `inviter_id` = A)
- * ③ B의 보이는 매물 전부를 숨김(`hidden_household_id` = 가구) ④ 두 사람의 미사용 초대 삭제 ⑤ 두 사람 `household_id` 설정.
- * B의 `users.budget`·`listing_order`는 건드리지 않는다(나가기 때 B의 원래 값으로 쓴다). A·B 매물 id가 같아도 B 쪽은
- * 숨긴 행이라 가구 범위(`LISTING_SCOPE_SQL`)에 섞이지 않으므로 id를 바꾸지 않는다.
- * ②는 ①이 이 사용자로 표시한 초대가 있을 때만, ③~⑤는 이 요청이 만든 가구 행(새 id)이 있을 때만 행을 바꾼다.
- * 성공은 ⑤가 바꾼 행 수(2)로 판정한다. 검사는 ①에만 있어 실패하면 아무것도 바뀌지 않는다.
+ * ③ B의 보이는 매물 전부를 숨김(`hidden_household_id` = 가구) ④ 두 사람의 미사용 초대 삭제
+ * ⑤ B의 보이는 인테리어 플랜 전부를 숨김(매물과 같은 규칙, ADR-029 D4. 항목은 플랜을 따라 숨는다)
+ * ⑥ 두 사람 `household_id` 설정(항상 마지막 문장).
+ * B의 `users.budget`·`listing_order`는 건드리지 않는다(나가기 때 B의 원래 값으로 쓴다). A·B 매물·플랜 id가 같아도 B 쪽은
+ * 숨긴 행이라 가구 범위(`LISTING_SCOPE_SQL`·`PLAN_SCOPE_SQL`)에 섞이지 않으므로 id를 바꾸지 않는다.
+ * ②는 ①이 이 사용자로 표시한 초대가 있을 때만, ③~⑥은 이 요청이 만든 가구 행(새 id)이 있을 때만 행을 바꾼다.
+ * 성공은 마지막 문장이 바꾼 행 수(2)로 판정한다. 검사는 ①에만 있어 실패하면 아무것도 바뀌지 않는다.
  */
 export async function acceptHouseholdInvite(
   token: string,
@@ -221,6 +223,12 @@ export async function acceptHouseholdInvite(
       .bind(userId, inviterId, householdId),
     db
       .prepare(
+        `UPDATE interior_plans SET hidden_household_id = ?3
+         WHERE user_id = ?1 AND hidden_household_id IS NULL AND ${householdExists}`,
+      )
+      .bind(userId, inviterId, householdId),
+    db
+      .prepare(
         `UPDATE users SET household_id = ?3
          WHERE id IN (?1, ?2) AND household_id IS NULL AND ${householdExists}`,
       )
@@ -238,9 +246,11 @@ export async function acceptHouseholdInvite(
  * 돌아간다(개정 2026-10-26). batch 한 번:
  * ① 초대자 A의 `users` 예산·순서에 가구 값 복사(A는 누가 나가든 가구 값을 그대로 가진다)
  * ② 이 가구에 숨긴 행(수락자 B의 수락 전 매물)을 다시 보이게 한다
- * ③ 구성원의 미사용 초대 삭제 ④ `household_id = NULL` ⑤ 가구 행 삭제.
+ * ③ 구성원의 미사용 초대 삭제 ④ `household_id = NULL` ⑤ 가구 행 삭제
+ * ⑥ 이 가구에 숨긴 인테리어 플랜(B의 수락 전 플랜)을 다시 보이게 한다(FK가 없어 ⑤ 뒤여도 된다).
  * 수락자 B의 `users` 예산·순서는 함께 쓰는 동안 쓰지 않았으므로(householdScope는 가구 값만 읽고 씀) 수락 전 값 그대로다.
  * 함께 쓰는 동안 넣은 매물은 행의 `user_id`(넣은 사람)의 목록이 된다. B에게는 숨겼던 매물 + B가 넣은 매물이 돌아온다.
+ * 플랜은 만든 사람(`user_id`)의 것이고 항목은 플랜을 따라간다(상대가 내 플랜에 넣은 항목은 내 플랜에 남는다).
  * B의 숨긴 행과 B가 넣은 행은 PK(user_id, id)로 id가 겹칠 수 없다. A가 지운 매물은 돌아오지 않는다.
  * 모든 문장이 읽어 둔 가구 id로 한정돼 두 사람이 동시에 나가도 뒤의 요청은 0행이 되어 404다.
  */
@@ -253,7 +263,10 @@ export async function leaveHousehold(db: D1Database, userId: string): Promise<Re
   const householdNotFound = () => errorResponse(404, "notFound", "함께 쓰는 목록이 없습니다");
   if (householdId === null) return householdNotFound();
 
-  const [, , , cleared] = await db.batch([
+  const clearMembers = db
+    .prepare("UPDATE users SET household_id = NULL WHERE household_id = ?1")
+    .bind(householdId);
+  const statements = [
     db
       .prepare(
         `UPDATE users
@@ -271,8 +284,16 @@ export async function leaveHousehold(db: D1Database, userId: string): Promise<Re
          WHERE used_at IS NULL AND inviter_id IN (SELECT id FROM users WHERE household_id = ?1)`,
       )
       .bind(householdId),
-    db.prepare("UPDATE users SET household_id = NULL WHERE household_id = ?1").bind(householdId),
+    clearMembers,
     db.prepare("DELETE FROM households WHERE id = ?1").bind(householdId),
-  ]);
+    db
+      .prepare(
+        "UPDATE interior_plans SET hidden_household_id = NULL WHERE hidden_household_id = ?1",
+      )
+      .bind(householdId),
+  ];
+  const results = await db.batch(statements);
+  // 성공 판정은 ④(구성원 해제)의 행 수다. 문장을 더해도 밀리지 않게 위치가 아니라 문장으로 찾는다.
+  const cleared = results[statements.indexOf(clearMembers)];
   return cleared.meta.changes === 0 ? householdNotFound() : noContentResponse();
 }

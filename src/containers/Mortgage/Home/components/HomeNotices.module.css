@@ -1,0 +1,49 @@
+/* 저장 목록 제목 아래 안내와 같은 모양 */
+.notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 흰 면 한 줄. [다시 시도]가 붙으면 오른쪽 끝에 둔다. */
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.errorLine {
+  composes: line;
+  color: var(--color-error);
+}
+
+/* 받아 둔 계획은 그대로 두고 다시 조회에 실패했다는 작은 경고 */
+.warning {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-small);
+}
+
+.retryButton {
+  flex: none;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  white-space: nowrap;
+}

@@ -1,12 +1,7 @@
-/** `loan-calculator/account-imports`: 사용자별로 이 기기에서 그 계정으로 옮긴(또는 옮기지 않기로 한) 매물 id */
-export type AccountImports = Record<string, string[]>;
+import type { IdsByUserStore } from "./storage";
 
-export type AccountImportStore = {
-  /** 읽지 못하거나 형식이 어긋나면 빈 기록이다. */
-  read: () => AccountImports;
-  /** 그 사용자의 기록에 id를 더한다. 빈 배열이면 기록 키만 만든다(이 계정의 첫 이전을 정했다는 뜻). */
-  add: (userId: string, ids: string[]) => void;
-};
+/** `loan-calculator/account-imports`: 사용자별로 이 기기에서 그 계정으로 옮긴(또는 옮기지 않기로 한) 매물 id */
+export type AccountImportStore = IdsByUserStore;
 
 /** import 실패. limit: 400(계정 500개 상한), network: 연결·서버 오류 */
 export type AccountImportFailureReason = "limit" | "network";

@@ -1,0 +1,66 @@
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.title {
+  color: var(--color-error);
+  font-size: var(--fs-section);
+  font-weight: 600;
+}
+
+.description {
+  font-size: var(--fs-body);
+}
+
+/* 저장 원문(JSON)을 그대로 보여 주는 칸이라 고정폭 글꼴을 쓴다. */
+.rawText {
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  font-family: ui-monospace, monospace;
+  /* iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다. */
+  font-size: var(--fs-input);
+  resize: vertical;
+}
+
+.status {
+  font-size: var(--fs-body);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--fs-body);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.secondaryButton,
+.dangerButton {
+  flex: 1;
+  min-height: 48px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-control);
+  background: var(--color-surface);
+}
+
+/* 되돌릴 수 없는 동작은 오류색 테두리 버튼. 채운 빨강은 쓰지 않는다. */
+.dangerButton {
+  border: 1px solid var(--color-error);
+  background: var(--color-surface);
+  color: var(--color-error);
+}

@@ -14,12 +14,14 @@ type TabNavProps = {
   onTextSizeOpen: (button: HTMLButtonElement) => void;
 };
 
+/** 적은 순서가 화면 순서다. `Record`라 탭(TabName)을 더하고 여기 빠뜨리면 타입 검사에서 걸린다. */
 const TABS: Record<TabName, { label: string; href: string }> = {
   calculator: { label: "계산", href: PATHS.calculator },
   listings: { label: "저장 목록", href: PATHS.listings() },
+  home: { label: "우리 집", href: PATHS.home() },
 };
 
-const TAB_ORDER: TabName[] = ["calculator", "listings"];
+const TAB_ORDER = Object.keys(TABS) as TabName[];
 
 /** 새 탭에서 열기 같은 브라우저 기본 동작은 막지 않는다. */
 function isModifiedClick(event: MouseEvent) {
@@ -27,7 +29,7 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 상단 탭 "계산 | 저장 목록". 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다.
+ * 상단 탭 "계산 | 저장 목록 | 우리 집". 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다.
  * 오른쪽 끝의 [가가]는 글자 크기 시트를 연다(모든 화면에 같은 자리).
  */
 function TabNav({ current, onNavigate, onTextSizeOpen }: TabNavProps) {

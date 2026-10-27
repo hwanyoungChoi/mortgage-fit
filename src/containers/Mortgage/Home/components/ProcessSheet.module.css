@@ -1,0 +1,68 @@
+/* 단계를 360px에서 두 열로 나눠 한 화면에 보이게 한다. 읽는 순서는 위에서 아래(목록 순서)다. */
+.steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: column;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  font-size: var(--fs-body);
+}
+
+.stepNumber {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-raised);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.caution {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-body);
+}
+
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sourcesTitle {
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.sourceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+
+.sourceList a {
+  color: var(--color-accent);
+}
+
+.baseDate {
+  color: var(--color-text-muted);
+  font-size: var(--fs-tiny);
+}

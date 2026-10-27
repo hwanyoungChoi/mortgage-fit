@@ -15,6 +15,7 @@ const API_ERROR_CODES: Record<ApiError["error"], true> = {
   alreadyInHousehold: true,
   householdFull: true,
   householdLimit: true,
+  inHousehold: true,
   notConfigured: true,
   quotaExceeded: true,
   rateLimited: true,
