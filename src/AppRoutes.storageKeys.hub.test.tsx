@@ -5,6 +5,7 @@
 //   - 로그아웃 확인 후: 허용되는 쓰기는 removeItem(session-hint) 1종
 //   - 로그인 확인 후: 허용되는 쓰기는 setItem(session-hint, "1")
 //   - session-hint 외 13개 키는 원문이 시드와 ===, 키 집합 불변(새 키 0개)
+// 홈 체크포인트는 카드 요약 줄(태스크 2)이 모드별 값으로 그려진 뒤에 둔다(홈이 실제로 읽은 뒤의 쓰기를 본다).
 // 스파이는 두 갈래: storage prop에 주입한 스파이 Storage(4가지 계정 상태) + prop 없이 jsdom localStorage와 Storage.prototype(1개).
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -171,6 +172,43 @@ async function expectHub() {
   expect(window.location.hash).toBe("#/");
 }
 
+/** 홈 카드 요약 줄(AC-6·7, 태스크 2)이 모드별 값으로 그려졌다. 홈이 실제로 저장소·서버를 읽은 뒤에 체크포인트를 둔다 */
+const HUB_SUMMARY: Record<Mode, [string, string, string]> = {
+  pending: ["작성 중 · 매매가 12억 5,000만원", "불러오는 중", "불러오는 중"],
+  loggedOut: [
+    "작성 중 · 매매가 12억 5,000만원",
+    "저장한 매물 2개",
+    "우리 집 · 앞으로 낼 돈 1,250만원",
+  ],
+  solo: [
+    "작성 중 · 매매가 12억 5,000만원",
+    "본 매물을 저장해 자기자금·추가 비용을 비교합니다",
+    "우리 집 · 앞으로 낼 돈 1,250만원",
+  ],
+  household: [
+    "작성 중 · 매매가 12억 5,000만원",
+    "함께 쓰는 목록 · 매물 0개",
+    "A 계획 · 앞으로 낼 돈 1,250만원",
+  ],
+};
+
+async function expectHubSummary(mode: Mode) {
+  await expectHub();
+  const main = screen.getByRole("main");
+  const [calculator, listings, home] = HUB_SUMMARY[mode];
+  await waitFor(() => {
+    expect(within(main).getByRole("link", { name: "대출 계산" })).toHaveAccessibleDescription(
+      calculator,
+    );
+    expect(within(main).getByRole("link", { name: "매물 모으기" })).toHaveAccessibleDescription(
+      listings,
+    );
+    expect(
+      within(main).getByRole("link", { name: "우리 집 인테리어" }),
+    ).toHaveAccessibleDescription(home);
+  });
+}
+
 /** 우리 집 탭이 안정된 화면(계획 1개 → 그 계획). 확인 전에는 "불러오는 중" */
 async function expectHomeSettled(mode: Mode) {
   if (mode === "pending") {
@@ -196,7 +234,7 @@ async function expectListingsSettled(mode: Mode) {
 
 /** 순회. 각 단계 뒤 check(step) */
 async function walk(user: User, api: FakePlanApi, mode: Mode, check: (step: string) => void) {
-  await expectHub();
+  await expectHubSummary(mode);
   // 홈 첫 화면이 안정될 때까지: 로그인 확인을 보냈고, 확인 전 모드가 아니면 진행 중인 조회가 모두 끝났다
   await waitFor(() => expect(api.callsTo("GET", "/api/me").length).toBeGreaterThan(0));
   if (mode !== "pending") await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
@@ -219,7 +257,7 @@ async function walk(user: User, api: FakePlanApi, mode: Mode, check: (step: stri
   check("탭 [우리 집]");
 
   await user.click(tab("홈"));
-  await expectHub();
+  await expectHubSummary(mode);
   check("탭 [홈]");
 
   await user.click(screen.getByRole("link", { name: "대출 계산" }));
@@ -229,7 +267,7 @@ async function walk(user: User, api: FakePlanApi, mode: Mode, check: (step: stri
 
   window.history.back();
   await waitFor(() => expect(window.location.hash).toBe("#/"));
-  await expectHub();
+  await expectHubSummary(mode);
   check("뒤로 가기");
 }
 
