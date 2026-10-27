@@ -1,7 +1,8 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import Sheet from "@/components/Sheet";
 import StatusPanel from "@/components/StatusPanel";
+import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
 
@@ -18,11 +19,15 @@ import ProcessSheet from "./components/ProcessSheet";
 import SpacesSheet from "./components/SpacesSheet";
 import { useInteriorPlanSource } from "./hooks/useInteriorPlanSource";
 import { interiorPlanImportProblem } from "./interiorPlanImportProblem";
+import { linkedListingOf } from "./linkedListing";
+import { LISTING_ENTRY_NOTICES, resolveListingEntry } from "./listingEntry";
 import { DELETED_IN_HOUSEHOLD_MESSAGE } from "./planWriteFailure";
 
+import type { AccountImport } from "@/hooks/useAccountImport";
 import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
 import type { InteriorPlanCreateInput, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { InteriorPlanStore } from "@/lib/types/interiorPlanStore";
+import type { Listing, ListingStore } from "@/lib/types/listing";
 import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { HomeView } from "@/lib/types/route";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
@@ -35,8 +40,13 @@ type MortgageHomeProps = {
   planImport: InteriorPlanImport;
   /** 저장 목록과 같은 가리기 설정. 켜면 금액·연락처·메모를 그리지 않는다 */
   privacyModeStore: PrivacyModeStore;
+  /** 매물 출처(저장 목록과 같은 `useListingSource`). 읽기만 한다: 연결 매물 이름·삭제 표시와 `?listing=`의 매물 찾기 */
+  listingStore: ListingStore;
+  accountImport: AccountImport;
   /** 주소의 플랜 id(`#/home/{planId}`). 없으면 플랜 수로 화면을 고른다 */
   planId: string | undefined;
+  /** 매물 카드에서 들어온 길(`#/home?listing={id}`). 처리한 뒤 주소에서 지운다 */
+  listingId: string | undefined;
   view: HomeView;
   /** 이전이 남긴 알림(이 기기 계획을 계정으로 옮김). 한 번만 보인다 */
   notice: string | null;
@@ -45,7 +55,8 @@ type MortgageHomeProps = {
 
 /** [우리 집] 화면의 시트(한 번에 하나, ADR-017) */
 type HomeSheet =
-  | { name: "create" }
+  /** `listing`: 매물 카드에서 왔으면 그 매물(이름·추가 비용 인테리어 줄을 채운다) */
+  | { name: "create"; listing: Listing | null }
   | { name: "spaces"; planId: string }
   | { name: "process" }
   | { name: "settings"; planId: string; isBudget: boolean }
@@ -79,13 +90,18 @@ function MissingSheet({ message, onClose }: { message: string; onClose: () => vo
 /**
  * 우리 집: 계약한 집의 인테리어 예산·견적·지급(스펙 interior-planner). 합계·할 일은 저장하지 않고 매번 계산한다(ADR-007).
  * `#/home`은 플랜 0개면 빈 상태, 1개면 그 플랜, 2~3개면 고르기다. 공간별·공종별 보기는 주소(`?view=trade`)에 둔다.
+ * `#/home?listing={id}`(매물 카드)는 그 매물에 연결된 플랜이 있으면 `#/home/{planId}`로 replace하고, 없으면 그 매물로 채운
+ * 만들기 시트를 연 뒤 주소에서 `listing`을 지운다(replace). 매물 쪽에는 아무것도 쓰지 않는다(AC-6).
  */
 function MortgageHome({
   interiorPlanStore,
   sessionHintStore,
   planImport,
   privacyModeStore,
+  listingStore,
+  accountImport,
   planId,
+  listingId,
   view,
   notice,
   onNoticeChange,
@@ -96,6 +112,7 @@ function MortgageHome({
     planImport,
   });
   const { list } = source;
+  const listingSource = useListingSource({ listingStore, sessionHintStore, accountImport });
   const isPrivacyMode = useSyncExternalStore(
     privacyModeStore.subscribe,
     privacyModeStore.getSnapshot,
@@ -117,6 +134,29 @@ function MortgageHome({
     setShownNotice(notice);
     onNoticeChange(null);
   }, [notice, onNoticeChange]);
+
+  // 매물 카드에서 왔다(`?listing=`). 계획 목록이 정해진 뒤 한 번만 처리한다(주소 변경 이벤트가 오기 전에 다시 돌지 않게).
+  const listingEntry =
+    listingId !== undefined && list.status === "ok"
+      ? resolveListingEntry(listingId, list.plans, listingSource.list)
+      : null;
+  const handledListingIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (listingId === undefined || listingEntry === null || listingEntry.action === "wait") return;
+    if (handledListingIdRef.current === listingId) return;
+    handledListingIdRef.current = listingId;
+    if (listingEntry.action === "openPlan") {
+      window.location.replace(PATHS.home({ planId: listingEntry.planId }));
+      return;
+    }
+    // 주소에서 listing을 지운다. 새로고침·뒤로 가기로 시트·안내가 다시 뜨지 않는다.
+    window.location.replace(PATHS.home({ planId, view }));
+    if (listingEntry.action === "create") {
+      sheet.open({ name: "create", listing: listingEntry.listing }, null);
+    } else {
+      setShownNotice(LISTING_ENTRY_NOTICES[listingEntry.reason]);
+    }
+  }, [listingId, listingEntry, planId, view, sheet]);
 
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 계획이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
@@ -159,7 +199,13 @@ function MortgageHome({
     const openSheet = sheet.openSheet;
     if (openSheet === null) return null;
     if (openSheet.name === "create") {
-      return <CreatePlanSheet onCreate={handleCreate} onClose={sheet.close} />;
+      return (
+        <CreatePlanSheet
+          onCreate={handleCreate}
+          listing={openSheet.listing}
+          onClose={sheet.close}
+        />
+      );
     }
     if (openSheet.name === "process") return <ProcessSheet onClose={sheet.close} />;
     const plan = findPlan(openSheet.planId);
@@ -190,7 +236,8 @@ function MortgageHome({
             return result;
           }}
           onDelete={() => handleDeletePlan(plan)}
-          onCreateAnother={() => sheet.open({ name: "create" }, null)}
+          onUnlinkListing={() => source.updatePlan(plan.id, { listingId: null })}
+          onCreateAnother={() => sheet.open({ name: "create", listing: null }, null)}
           onClose={sheet.close}
         />
       );
@@ -232,6 +279,7 @@ function MortgageHome({
   const renderPlan = (plan: InteriorPlanWithItems) => (
     <PlanScreen
       plan={plan}
+      linkedListing={linkedListingOf(plan.listingId, listingSource.list)}
       view={view}
       onViewChange={handleViewChange}
       isPrivacyMode={isPrivacyMode}
@@ -284,6 +332,14 @@ function MortgageHome({
     if (list.status === "corrupt") {
       return <CorruptPlansNotice rawText={list.rawText} onReset={source.reset} />;
     }
+    // 매물 카드에서 왔다: 연결 계획으로 가거나 만들기 시트를 열 때까지 고르기·빈 상태를 먼저 그리지 않는다.
+    if (listingId !== undefined) {
+      return (
+        <p className={styles.notice} aria-busy="true">
+          매물을 확인하는 중
+        </p>
+      );
+    }
     if (currentPlan !== null) return renderPlan(currentPlan);
     if (planId !== undefined) {
       return (
@@ -301,7 +357,8 @@ function MortgageHome({
         </StatusPanel>
       );
     }
-    const openCreate = (button: HTMLButtonElement) => sheet.open({ name: "create" }, button);
+    const openCreate = (button: HTMLButtonElement) =>
+      sheet.open({ name: "create", listing: null }, button);
     if (plans.length === 0) return <HomeEmpty onCreate={openCreate} />;
     return <PlanPicker plans={plans} onCreate={openCreate} />;
   };
@@ -310,7 +367,9 @@ function MortgageHome({
   return (
     <>
       <div className={styles.page} inert={sheet.isOpen}>
-        {currentPlan === null && <h1 className={styles.title}>우리 집</h1>}
+        {(currentPlan === null || listingId !== undefined) && (
+          <h1 className={styles.title}>우리 집</h1>
+        )}
         <HomeNotices
           isSessionExpired={source.isSessionExpired}
           isAccountError={source.status === "error"}

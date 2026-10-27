@@ -25,6 +25,8 @@ type PlanSettingsSheetProps = {
   onSave: (patch: InteriorPlanPatch) => Promise<InteriorPlanSourceWriteResult>;
   /** 시트가 확인한 뒤 부른다. 성공하면 부르는 쪽이 닫고 `#/home`으로 간다 */
   onDelete: () => Promise<InteriorPlanSourceWriteResult>;
+  /** 매물 연결 해제(PATCH `listingId: null`). 시트는 열어 둔다(고치던 이름·예산을 잃지 않게) */
+  onUnlinkListing: () => Promise<InteriorPlanSourceWriteResult>;
   onCreateAnother: () => void;
   onClose: () => void;
 };
@@ -40,13 +42,17 @@ function budgetErrorOf(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
-/** 계획 관리(⋯): 이름·총 예산 바꾸기, 다른 계획 만들기, 이 계획 삭제. 총 예산을 비우고 저장하면 지운다. */
+/**
+ * 계획 관리(⋯): 이름·총 예산 바꾸기, 매물 연결 해제(연결돼 있을 때만), 다른 계획 만들기, 이 계획 삭제.
+ * 총 예산을 비우고 저장하면 지운다.
+ */
 function PlanSettingsSheet({
   plan,
   planCount,
   focusBudget,
   onSave,
   onDelete,
+  onUnlinkListing,
   onCreateAnother,
   onClose,
 }: PlanSettingsSheetProps) {
@@ -58,6 +64,8 @@ function PlanSettingsSheet({
   const [budgetError, setBudgetError] = useState<string | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUnlinked, setIsUnlinked] = useState(false);
+  const isLinked = plan.listingId !== undefined;
   const isChanged = name !== plan.name || budget !== initialBudget;
   const canCreateAnother = planCount < INTERIOR_PLAN_MAX_COUNT;
 
@@ -100,6 +108,15 @@ function PlanSettingsSheet({
     if (!window.confirm(message)) return;
     const result = await onDelete();
     if (!result.ok) setWriteError(planWriteFailureMessage(result.reason));
+  };
+
+  const handleUnlink = async () => {
+    const message =
+      "매물 연결을 해제할까요? 계획과 항목은 그대로 남고, 매물 카드의 [인테리어 계획]은 새 계획 만들기로 열립니다.";
+    if (!window.confirm(message)) return;
+    const result = await onUnlinkListing();
+    setIsUnlinked(result.ok);
+    setWriteError(result.ok ? null : planWriteFailureMessage(result.reason));
   };
 
   return (
@@ -164,6 +181,20 @@ function PlanSettingsSheet({
           </button>
         </div>
         <div className={styles.section}>
+          {isLinked && (
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => void handleUnlink()}
+            >
+              매물 연결 해제
+            </button>
+          )}
+          {isUnlinked && !isLinked && (
+            <p role="status" className={styles.note}>
+              매물 연결을 해제했습니다
+            </p>
+          )}
           <button
             type="button"
             className={styles.secondaryButton}

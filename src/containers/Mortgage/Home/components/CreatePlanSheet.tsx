@@ -12,6 +12,11 @@ import {
 } from "@/lib/constants/interiorSpaces";
 import { validateAmount } from "@/lib/utils/amount";
 import { createRandomId } from "@/lib/utils/createRandomId";
+import { sumExtraCosts } from "@/lib/utils/extraCosts";
+import {
+  extraCostsToInteriorItems,
+  interiorExtraCostsOf,
+} from "@/lib/utils/extraCostsToInteriorItems";
 import { createDefaultSpaces } from "@/lib/utils/interiorSpaces";
 import { interiorPlanNameError } from "@/lib/utils/interiorTextErrors";
 import { countChars } from "@/lib/utils/validateListingName";
@@ -21,12 +26,15 @@ import { planWriteFailureMessage, PLAN_LIMIT_MESSAGE } from "../planWriteFailure
 
 import type { InteriorPlanCreateInput } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteFailure } from "@/lib/types/interiorPlanStore";
+import type { Listing } from "@/lib/types/listing";
 
 type CreatePlanSheetProps = {
   /** 성공하면 부르는 쪽이 시트를 닫고 그 플랜으로 간다. 실패하면 입력을 그대로 두고 이유를 보인다. */
   onCreate: (
     input: InteriorPlanCreateInput,
   ) => Promise<{ ok: true } | InteriorPlanSourceWriteFailure>;
+  /** 매물 카드에서 왔으면 그 매물(`#/home?listing=`). 이름·총 예산을 채우고 추가 비용 인테리어 줄을 가져올 수 있다 */
+  listing: Listing | null;
   onClose: () => void;
 };
 
@@ -34,6 +42,7 @@ const NAME_INPUT_ID = "interior-plan-name";
 const NAME_COUNT_ID = "interior-plan-name-count";
 const NAME_ERROR_ID = "interior-plan-name-error";
 const BUDGET_INPUT_ID = "interior-plan-budget";
+const IMPORT_NOTE_ID = "interior-plan-import-note";
 
 const toOptions = (counts: readonly number[]) =>
   counts.map((count) => ({ value: String(count), label: `${count}개` }));
@@ -45,11 +54,20 @@ function budgetErrorOf(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
-/** 계획 만들기: 이름·총 예산(선택)·방 수·욕실 수. 공간은 방·욕실 수로 기본값을 만들고 뒤에 [공간 편집]에서 고친다. */
-function CreatePlanSheet({ onCreate, onClose }: CreatePlanSheetProps) {
+/**
+ * 계획 만들기: 이름·총 예산(선택)·방 수·욕실 수. 공간은 방·욕실 수로 기본값을 만들고 뒤에 [공간 편집]에서 고친다.
+ * 매물에서 왔으면 이름 = 매물 이름, 총 예산 = 추가 비용 인테리어 줄 합계로 채우고, 그 줄이 있으면 "n줄 가져오기"(기본 체크)를 둔다(AC-6).
+ * 가져온 줄은 공간 "전체"의 항목이 되고 그 뒤로 매물 추가 비용과 동기화하지 않는다(1회 복사, U7).
+ */
+function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState("");
-  const [budget, setBudget] = useState("");
+  const interiorExtraCosts = interiorExtraCostsOf(listing?.extraCosts);
+  const importCount = interiorExtraCosts.length;
+  const [name, setName] = useState(listing?.name ?? "");
+  const [budget, setBudget] = useState(
+    importCount === 0 ? "" : String(sumExtraCosts(interiorExtraCosts)),
+  );
+  const [isImportChecked, setIsImportChecked] = useState(true);
   const [roomCount, setRoomCount] = useState(String(DEFAULT_INTERIOR_ROOM_COUNT));
   const [bathroomCount, setBathroomCount] = useState(String(DEFAULT_INTERIOR_BATHROOM_COUNT));
   const [nameError, setNameError] = useState<string | null>(null);
@@ -73,11 +91,17 @@ function CreatePlanSheet({ onCreate, onClose }: CreatePlanSheetProps) {
       return;
     }
     const budgetValidation = validateAmount(budget);
+    const spaces = createDefaultSpaces(Number(roomCount), Number(bathroomCount), createRandomId);
+    // 기본 공간의 맨 앞은 항상 "전체"다(INTERIOR_WHOLE_SPACE_NAME)
+    const wholeSpaceId = spaces[0].id;
+    const shouldImport = listing !== null && importCount > 0 && isImportChecked;
     setIsSaving(true);
     const result = await onCreate({
       name: name.trim(),
       ...(budgetValidation.status === "valid" && { budget: budgetValidation.value }),
-      spaces: createDefaultSpaces(Number(roomCount), Number(bathroomCount), createRandomId),
+      ...(listing !== null && { listingId: listing.id }),
+      spaces,
+      ...(shouldImport && { items: extraCostsToInteriorItems(listing.extraCosts, wholeSpaceId) }),
     });
     setIsSaving(false);
     setWriteError(result.ok ? null : planWriteFailureMessage(result.reason, PLAN_LIMIT_MESSAGE));
@@ -151,6 +175,23 @@ function CreatePlanSheet({ onCreate, onClose }: CreatePlanSheetProps) {
         <p className={styles.note}>
           공간(전체·현관·거실·주방·욕실·방·베란다)은 만든 뒤 고칠 수 있어요
         </p>
+        {importCount > 0 && (
+          <div className={styles.field}>
+            <label className={styles.checkLabel}>
+              <input
+                type="checkbox"
+                checked={isImportChecked}
+                aria-describedby={IMPORT_NOTE_ID}
+                onChange={(event) => setIsImportChecked(event.target.checked)}
+              />
+              추가 비용 인테리어 {importCount}줄 가져오기
+            </label>
+            <p id={IMPORT_NOTE_ID} className={styles.note}>
+              공간 &lsquo;전체&rsquo;에 줄 이름은 공종, 금액은 예산으로 넣습니다. 그 뒤로 매물의
+              추가 비용과는 따로 관리돼요
+            </p>
+          </div>
+        )}
         {writeError !== null && (
           <p role="alert" className={styles.error}>
             {writeError}

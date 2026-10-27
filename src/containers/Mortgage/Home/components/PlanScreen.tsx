@@ -8,11 +8,14 @@ import PlanSummary from "./PlanSummary";
 import PlanTodos from "./PlanTodos";
 import { ITEM_LIMIT_MESSAGE } from "../planWriteFailure";
 
+import type { LinkedListing } from "../linkedListing";
 import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { HomeView } from "@/lib/types/route";
 
 type PlanScreenProps = {
   plan: InteriorPlanWithItems;
+  /** 연결된 매물. 매물 목록이 확정 로드되기 전(unknown)에는 아무것도 보이지 않는다 */
+  linkedListing: LinkedListing;
   view: HomeView;
   onViewChange: (view: HomeView) => void;
   isPrivacyMode: boolean;
@@ -31,12 +34,24 @@ const VIEW_OPTIONS: { value: HomeView; label: string }[] = [
   { value: "trade", label: "공종별" },
 ];
 
+/** 제목 아래 한 줄: 연결된 매물 이름(작게) 또는 연결 끊김. 플랜은 그대로다(AC-6) */
+function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) {
+  if (linkedListing.status === "linked") {
+    return <p className={styles.linkedListing}>연결된 매물 · {linkedListing.listing.name}</p>;
+  }
+  if (linkedListing.status === "missing") {
+    return <p className={styles.linkedListingMissing}>연결된 매물이 삭제되었습니다</p>;
+  }
+  return null;
+}
+
 /**
  * 플랜 화면: 머리글(이름 + [공간 편집][공정 순서][가리기][⋯]) → 요약 → 할 일 → [공간별|공종별] → [항목 추가] → 묶음 목록.
  * [항목 추가]는 목록 위에 두어 항목 수와 상관없이 같은 자리에 있다.
  */
 function PlanScreen({
   plan,
+  linkedListing,
   view,
   onViewChange,
   isPrivacyMode,
@@ -55,6 +70,7 @@ function PlanScreen({
     <>
       <header className={styles.header}>
         <h1 className={styles.title}>{plan.name}</h1>
+        <LinkedListingLine linkedListing={linkedListing} />
         <div className={styles.headerActions}>
           <button
             type="button"

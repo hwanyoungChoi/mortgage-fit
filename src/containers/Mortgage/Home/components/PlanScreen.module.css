@@ -11,6 +11,18 @@
   overflow-wrap: anywhere;
 }
 
+/* 연결된 매물 이름. 제목보다 작고 흐리게 */
+.linkedListing {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+
+.linkedListingMissing {
+  composes: linkedListing;
+  color: var(--color-warning-text);
+}
+
 /* 제목 아래 작은 버튼 줄. 360px·큰 글자에서도 한 줄에 들어가고, 안 되면 줄을 바꾼다(가로 스크롤 없음). */
 .headerActions {
   display: flex;

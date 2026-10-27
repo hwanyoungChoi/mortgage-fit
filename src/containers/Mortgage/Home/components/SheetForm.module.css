@@ -200,3 +200,21 @@
 .addButton:disabled {
   color: var(--color-text-muted);
 }
+
+/* 한 줄 체크(만들기의 "추가 비용 인테리어 n줄 가져오기"). 누르는 자리는 줄 전체 */
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.checkLabel input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
