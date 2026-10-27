@@ -192,7 +192,7 @@ DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, 
     | `"#/listings?sort=recent"`                                                                                     | 저장 목록                     | `#/listings`          | 매물                        |
     | `"#/share/AbC_12"`, `"#/invite/XyZ"`                                                                           | 공유받기/초대                 | 그대로(대소문자 유지) | 없음, 탭 줄 4개 링크는 보임 |
     | `"#/home"`, `"#/home/plan-p?view=table"`, `"#/home/plan-p?listing=listing-r&view=table"`                       | 우리 집                       | 그대로                | 우리 집                     |
-    | `"#/home/ZZ"`(형식 틀린 id)                                                                                    | 우리 집                       | `#/home`              | 우리 집                     |
+    | `"#/home/a.b"`(형식 틀린 id)                                                                                   | 우리 집                       | `#/home`              | 우리 집                     |
 
   - 매물 카드 [수정]·[복사], 저장 목록 "계산하러 가기", 공유·초대 "계산기로 가기"의 `href`는 `"#/calculator"`, 공유·초대 "취소"는 `"#/"`. 홈 카드 [대출 계산] → `history.back()` → 홈(`#/`), 탭 이동은 이력 불변.
 - [ ] **AC-2 (하단 탭)**: 링크 이름은 정확히 문자열 일치로 질의한다(정규식 금지: 탭 "계산"과 카드 "대출 계산"이 충돌). `navigation "화면"` 안 링크가 순서대로 `[["홈","#/"],["계산","#/calculator"],["매물","#/listings"],["우리 집","#/home"]]`이고 버튼은 없다. 라우트별 `aria-current="page"`는 하나뿐: hub→홈, calculator→계산, listings(`?login=failed` 포함)→매물, home(`#/home/plan-p?view=table` 포함)→우리 집. share·invite는 없음. 계산 화면에서 [우리 집]을 누르면 `onNavigate` 1회 뒤 해시가 `#/home`이고 `history.length`가 그대로다. `nav` 안 `svg`는 정확히 4개이고 모두 `aria-hidden="true"`. `nav`는 DOM에서 `main` 뒤에 있다(`compareDocumentPosition`).
@@ -245,7 +245,7 @@ DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, 
 
 be 없음(서버·DB·API 변경 없음).
 
-- [ ] 1. **하단 탭 + 경로 정리 + [가가] 자리 + 홈 소개 카드(엔드투엔드 최소 버전)** — 배포하면 바로 새 네비와 새 첫 화면이 동작한다
+- [x] 1. **하단 탭 + 경로 정리 + [가가] 자리 + 홈 소개 카드(엔드투엔드 최소 버전)** — 배포하면 바로 새 네비와 새 첫 화면이 동작한다
   - [ ] 1-1. (fe) 아래 세 커밋 순서로 나누고, **각 커밋에서 `pnpm test`가 통과**한다. → AC-0·1·2·4·5
     - (a) 경로·테스트 이름 변경: `Route`에 `hub`, `PATHS.hub = "#/"`·`PATHS.calculator = "#/calculator"`, `parseRoute`·`toRoutePath`(알 수 없는 해시 → hub). 공유·초대 "취소"는 `PATHS.hub`로 **직접** 바꾼다(`MortgageShare.tsx`·`MortgageInvite.tsx`). 기존 테스트는 **기계적 이름 변경만** 한다: 시작 해시 `#/` → `PATHS.calculator`, 탭 링크 이름 "저장 목록" → "매물", 해시 단언 `"#/"` → `"#/calculator"`. 단언 삭제·약화(`toBe`→`toBeTruthy` 등) 금지, 삭제된 `expect` 0. 대상: `parseRoute*.test.ts`, `TabNav.test.tsx`, `AppRoutes.test.tsx`, `AppRoutes.storageKeys*.test.tsx`(3개), `AppRoutes.householdPlans.test.tsx`, `MortgageCalculator.test.tsx`, `MortgageHome.*.test.tsx`. 이 커밋 직후 실패 목록을 기록하고, `#/`로 시작하면서 통과하는 부정형 테스트(`queryBy…`·`not.toBe`)는 `grep -n 'queryBy\|not\.toBe'`로 감사해 목록을 남긴다.
     - (b) 탭·머리 줄·여백 CSS: `TabNav`를 하단 고정 아이콘 탭으로(라벨·아이콘·선택 표시·safe-area·인쇄 숨김, `TABS`에서 순서 파생 유지). 아이콘은 D4대로 `lucide-react` 4개만, `aria-hidden` 명시 prop. 전역 머리 줄(`aria-label="모기지핏"`, [가가], 인쇄 숨김). `AppRoutes`를 header → main → nav로. `--bottom-tab-height`(테두리 포함 56px)·`:root` `scroll-padding-bottom` 한 번, `--tab-nav-height`·`scroll-padding-top` 삭제. 화면 "고정 크롬과 여백"의 식대로 `SummaryBar`·`noticeRegion`·계산 `.page`·`pageWithTallBar`·모든 화면 `.page` 아래 여백(`env()`는 탭 줄만). 화면 안 `<header>`는 그대로 둔다.
@@ -263,6 +263,7 @@ be 없음(서버·DB·API 변경 없음).
 
 ## 다음 단계 후보
 
+- (be, 별도 PR) 간헐 실패 고치기: `server/household/handleHousehold.d1.test.ts` "POST /api/household/leave" `expectRestored` 기대값을 `"id:이름"` 문자열 정렬이 아니라 서버와 같은 `user_id, id` 기준으로 정렬(무작위 id가 `b1`로 시작하면 실패, 실행당 약 1/128, qa 태스크 1 기록)
 - 계약 단계 기능(계약·잔금·이사 체크리스트)과 홈 카드 — "찾기→계산→계약→인테리어"의 빈 칸
 - 마지막 탭 기억(새 키 필요) — `#/` 북마크로 오는 사람이 계산까지 한 번 더 누르는 불편 피드백이 반복되면(ADR-031: D1 B 재검토 조건)
 - 입력 중(키보드 열림) 하단 탭 숨기기 — 레이아웃 뷰포트를 줄이는 브라우저에서 128px 크롬이 키보드 위에 남는다는 피드백이 오면

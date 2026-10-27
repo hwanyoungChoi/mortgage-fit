@@ -536,3 +536,11 @@
 - AI(pm): 스펙 platform-home(태스크 3, AC-0~7, D1~D5, U1~U11). be 담당 없음, 서버·DB·저장 키 무변경
 - 토론: [ADR-031](decisions/031-platform-home.md) D1 A, D2 A, D3 A, D4 A, D5 B. fe·qa 조건부 찬성, 반대 없음 → 반론 라운드 생략
 - AI(pm): ADR-031 조건 1~9를 스펙에 반영
+
+## 태스크 1. 하단 탭 + 경로 정리 + [가가] 자리 + 홈 소개 카드
+
+- AI(fe) 1-1: 커밋 9e2c28c(경로 hub `#/`·calculator `#/calculator`, 테스트 기계적 이름 변경, 지운 단언 0) · 1b04c26(하단 아이콘 탭·전역 머리 줄·여백, lucide-react 1.62.0 깊은 경로) · 93dd0ed(홈 카드 3개, 계산 h1 "대출 계산"). 1650 통과 + 1 todo 전후 동일. 메인 청크 544.06 → 550.29 kB. 30회 중 1회 원인 미상 간헐 실패(재현 안 됨, qa에 전달)
+- AI(리드) 1-3 화면 확인(dev 5199, 360×780, 로그아웃): 홈 카드 3개·대출 계산 카드가 가장 큼. 계산 화면 요약 줄 bottom 724 = 탭 줄 top 724, 스크롤 끝 [이 지역 실거래가 보기] bottom 580 ≤ 요약 줄 top 631, scrollWidth 360. 탭 4개 replace(이력 4 → 4)·aria-current 맞음, 공유 `#/share/AbC_12` 선택 없음·[가가] 1개. 표 보기 tfoot bottom 699 ≤ 탭 top 724. 글자 크기 시트가 탭 줄을 덮고 Esc로 닫으면 포커스 [가가]. 기본(가장 큰) 글자에서 탭 라벨 한 줄·탭 높이 56. 인쇄 규칙에 머리 줄·탭 숨김 있음(실제 인쇄 창은 3-1). iPhone safe-area·키보드는 3-1
+- AI(qa) 1-2: 새 테스트 96개(1650 → 1746 + 1 todo, 파일 6개 신규·2개 보강, 지운 단언 0), 변이 23건 모두 실패, 결함 0 ([기록](reviews/20261027-1610-qa-task-1.md)). 스펙 AC-1 예시 `#/home/ZZ`는 올바른 id라 `#/home/a.b`로 고침
+- `놓침` 간헐 실패 원인 확정(qa): `handleHousehold.d1.test.ts` 기대값 정렬이 서버 `ORDER BY user_id, id`와 다름(무작위 id `b1…`일 때). 이 PR은 server diff 0 조건이라 손대지 않고 다음 단계 후보(be 별도 PR)로
+- AI(리드) code-review-fe(main..HEAD 제품 코드): 컨벤션 위반 없음. `AppHeader`는 `TabNav`와 같은 앱 크롬이라 `src/components/`
