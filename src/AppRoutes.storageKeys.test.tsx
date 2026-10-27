@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { DEFAULT_DRAFT } from "@/lib/constants/draft";
+import { PATHS } from "@/lib/constants/paths";
 import { ACCOUNT_IMPORTS_STORAGE_KEY } from "@/lib/utils/accountImportStorage";
 import { BUDGET_IMPORTS_STORAGE_KEY } from "@/lib/utils/budgetImportStorage";
 import { BUDGET_STORAGE_KEY } from "@/lib/utils/budgetStorage";
@@ -138,15 +139,15 @@ function createSpiedStorage(seed: Record<string, string>) {
 type User = ReturnType<typeof userEvent.setup>;
 
 /**
- * 앱 시작(#/) → 저장 목록 → 우리 집(만들기·항목 추가) → #/home 직접 → 계산.
+ * 앱 시작(#/calculator) → 저장 목록 → 우리 집(만들기·항목 추가) → #/home 직접 → 계산.
  * 로그인 확인 응답 전에는 우리 집이 "불러오는 중"이라(출처 loading, 스펙 "화면 — 상태") 만들기 대신 그 상태를 확인한다.
  */
 async function walkThroughTabs(user: User, mode: FetchMode) {
-  // 앱 시작: 첫 화면은 계산
+  // 앱 시작(#/calculator): 계산 화면
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "계산" })).toHaveAttribute("aria-current", "page");
 
-  await user.click(screen.getByRole("link", { name: "저장 목록" }));
+  await user.click(screen.getByRole("link", { name: "매물" }));
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
 
   await user.click(screen.getByRole("link", { name: "우리 집" }));
@@ -187,7 +188,7 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
 
 describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () => {
   beforeEach(() => {
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
   });
 
   afterEach(() => {
@@ -222,7 +223,7 @@ describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () =
 
     await walkThroughTabs(user, "loggedOut");
     // 로그아웃 상태 목록이 뜬 뒤까지 본다
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
 
     // 로그인 확인이 user null이면 useListingSource가 session-hint를 지운다(이번 사이클 전부터의 동작).

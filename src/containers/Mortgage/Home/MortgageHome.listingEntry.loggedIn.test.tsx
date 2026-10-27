@@ -207,7 +207,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     await createFromCard(user, api);
     const planHash = window.location.hash;
 
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     await waitFor(() => expect(window.location.hash).toBe("#/listings"));
     const historyBefore = window.history.length;
     await user.click(await expandCard(user, "래미안 84"));
@@ -302,7 +302,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     await createFromCard(user, api);
     const planId = window.location.hash.replace("#/home/", "");
 
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     await expandCard(user, "래미안 84");
     await user.click(screen.getByRole("button", { name: "래미안 84 삭제" }));
     await waitFor(() =>

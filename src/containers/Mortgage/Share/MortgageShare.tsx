@@ -229,7 +229,7 @@ function SharedListingsView({
             <KakaoLoginLink />
           </div>
         )}
-        <a className={styles.secondaryLink} href={PATHS.calculator}>
+        <a className={styles.secondaryLink} href={PATHS.hub}>
           취소
         </a>
       </div>

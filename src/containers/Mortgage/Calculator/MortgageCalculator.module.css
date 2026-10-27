@@ -5,7 +5,7 @@
   max-width: 480px;
   margin: 0 auto;
   padding: var(--space-5) var(--space-4)
-    calc(var(--summary-bar-height) + var(--space-5) + env(safe-area-inset-bottom));
+    calc(var(--summary-bar-height) + var(--bottom-tab-offset) + var(--space-5));
 }
 
 .title {
@@ -26,9 +26,7 @@
 /* 하단 바에 저장 불가 이유나 상태 태그가 붙어 높아지면 그만큼 내용이 바에 가리지 않게 한다. */
 .pageWithTallBar {
   composes: page;
-  padding-bottom: calc(
-    var(--summary-bar-height) + 3em + var(--space-5) + env(safe-area-inset-bottom)
-  );
+  padding-bottom: calc(var(--summary-bar-height) + 3em + var(--bottom-tab-offset) + var(--space-5));
 }
 
 .header {
@@ -62,11 +60,11 @@
   font-weight: 600;
 }
 
-/* 저장 알림. 화면 흐름 밖에 띄워 레이아웃을 밀지 않고, 하단 바(높아진 경우 포함) 위에 둔다. */
+/* 저장 알림. 화면 흐름 밖에 띄워 레이아웃을 밀지 않고, 하단 탭 위 요약 줄(높아진 경우 포함) 위에 둔다. */
 .noticeRegion {
   position: fixed;
   right: 0;
-  bottom: calc(var(--summary-bar-height) + 3em + var(--space-3) + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottom-tab-offset) + var(--summary-bar-height) + 3em + var(--space-3));
   left: 0;
   z-index: 10;
   display: flex;

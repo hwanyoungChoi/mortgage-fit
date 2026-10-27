@@ -171,7 +171,7 @@ function MortgageCalculator({
       >
         <div className={styles.header}>
           <h1 className={styles.title}>
-            모기지핏
+            대출 계산
             <span className={styles.subtitle}>주담대 한도·자기자금 계산기</span>
           </h1>
           <button type="button" className={styles.newButton} onClick={handleNewCalculation}>

@@ -52,12 +52,12 @@ describe("parseRoute 우리 집 (스펙 interior-planner 화면 · AC-1·AC-3)",
     ],
     ["#/home?other=1", { name: "home" }],
     // home으로 시작하지만 다른 경로
-    ["#/homes", { name: "calculator" }],
-    ["#/home-x", { name: "calculator" }],
-    ["#home", { name: "calculator" }],
-    // 첫 화면은 계속 계산
-    ["#/", { name: "calculator" }],
-    ["", { name: "calculator" }],
+    ["#/homes", { name: "hub" }],
+    ["#/home-x", { name: "hub" }],
+    ["#home", { name: "hub" }],
+    // 첫 화면은 홈(ADR-031 D1)
+    ["#/", { name: "hub" }],
+    ["", { name: "hub" }],
   ];
 
   it.each(cases)("%j → %j", (hash, route) => {

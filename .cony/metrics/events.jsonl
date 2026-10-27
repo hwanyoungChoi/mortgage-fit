@@ -209,9 +209,22 @@
 {"ts":"2026-10-27T04:35:57.623Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-27T04:39:12.963Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-27T04:40:09.265Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-27T04:45:21.528Z","type":"task","task":4,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T04:45:21.574Z","type":"task","task":4,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T04:45:21.574Z","type":"gate_bypassed","reason":"태스크 4는 리드 배포 태스크라 qa 기록 대신 log·보고서에 원격 0007 diff·운영 응답 기록","problems":["태스크 4: qa 검증 기록이 없습니다. qa에게 기록 파일 .cony/reviews/{YYYYMMDD-HHmm}-qa-task-4.md 를 남기게 하세요."]}
+{"ts":"2026-10-27T04:45:21.574Z","type":"status","status":"완료"}
 {"ts":"2026-10-27T04:46:34.877Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-27T05:03:30.887Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-27T05:19:06.329Z","type":"task","task":5,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-27T05:29:09.407Z","type":"task","task":5,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-27T05:42:57.500Z","type":"task","task":5,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-27T05:45:33.065Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-27T05:47:24.893Z","type":"hook","hook":"guard-bash","decision":"ask","command":"pkill -f \"vite --port 5199\" ; cd /Users/hwanyoungchoi/cony-sandbox/loan-calculator && git push -q origin --delete cony/interior-plan-export 2>&1 | tail -1; git worktree remove ../loan-calculator-plan-"}
+{"ts":"2026-10-27T06:52:10.182Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T06:52:10.183Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T07:09:20.089Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-27T07:10:58.834Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-10-27T07:29:11.274Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T07:29:11.274Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T07:36:43.456Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T07:52:55.239Z","type":"task","task":2,"from":"review","to":"done","owner":null}

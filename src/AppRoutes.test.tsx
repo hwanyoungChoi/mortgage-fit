@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { REGULATION_BASE_DATE } from "@/lib/constants/loanRegulations";
+import { PATHS } from "@/lib/constants/paths";
 import { DRAFT_STORAGE_KEY } from "@/lib/utils/draftStorage";
 import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
 import { makeListing } from "@/test/listingFixture";
@@ -62,7 +63,7 @@ function mockBrowserScroll() {
 describe("저장 흐름 (통합)", () => {
   // jsdom은 테스트 사이에 해시가 남는다.
   beforeEach(() => {
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
   });
 
   afterEach(() => {
@@ -98,7 +99,7 @@ describe("저장 흐름 (통합)", () => {
     expect(storage.getItem(LISTINGS_STORAGE_KEY)).toBe("{");
 
     // 목록 화면: 손상 안내, 원문, 원문 복사, 목록 초기화
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     expect(
       await screen.findByRole("heading", { name: "저장된 목록이 손상되어 불러올 수 없습니다" }),
     ).toBeInTheDocument();
@@ -169,7 +170,7 @@ describe("저장 흐름 (통합)", () => {
     const historyBeforeCard = window.history.length;
     await openListing(user, list, "래미안 101동");
     expect(await screen.findByLabelText("KB시세")).toBeInTheDocument();
-    expect(window.location.hash).toBe("#/");
+    expect(window.location.hash).toBe("#/calculator");
     expect(window.history.length).toBe(historyBeforeCard + 1);
     expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
     expect(window.scrollY).toBe(0);
@@ -200,7 +201,7 @@ describe("저장 흐름 (통합)", () => {
 
     // 시트가 닫히고 계산 화면이 새 계산으로 비워지며(조건 유지), 알림이 뜨고 매매가로 포커스가 간다.
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(window.location.hash).toBe("#/");
+    expect(window.location.hash).toBe("#/calculator");
     expect(screen.getByRole("status")).toHaveTextContent("'래미안 101동' 저장했습니다");
     expect(screen.getByLabelText("매매가")).toHaveValue("");
     expect(screen.getByLabelText("매매가")).toHaveFocus();
@@ -225,7 +226,7 @@ describe("저장 흐름 (통합)", () => {
     // 탭 이동은 replace라 이력이 쌓이지 않고, 탭으로 들어온 목록은 저장된 위치(1500)가 아니라 맨 위에서 시작한다.
     const historyBeforeTab = window.history.length;
     scrollTo.mockClear();
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
     expect(baseDateText()).toBeInTheDocument();
     expect(window.location.hash).toBe("#/listings");
@@ -237,7 +238,7 @@ describe("저장 흐름 (통합)", () => {
     // 같은 값을 다시 입력해도 더는 그 매물의 "저장됨"이 아니다.
     await user.click(screen.getByRole("link", { name: "계산" }));
     await user.click(await screen.findByRole("button", { name: "새 계산" }));
-    expect(window.location.hash).toBe("#/");
+    expect(window.location.hash).toBe("#/calculator");
     expect(window.history.length).toBe(historyBeforeTab);
     expect(screen.getByLabelText("매매가")).toHaveValue("");
     expect(screen.getByLabelText("KB시세")).toHaveValue("");

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { LAWD_CODES } from "@/lib/constants/lawdCodes";
+import { PATHS } from "@/lib/constants/paths";
 import DETAIL_SCREEN_TEXT from "@/lib/utils/__fixtures__/screenText/assumed-01-detail.txt?raw";
 import JEONSE_SCREEN_TEXT from "@/lib/utils/__fixtures__/screenText/assumed-03-jeonse.txt?raw";
 import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
@@ -102,7 +103,7 @@ describe("계산 화면 (통합)", () => {
   // draft가 localStorage에 남으므로 테스트마다 빈 저장소와 계산 화면에서 시작한다.
   beforeEach(() => {
     localStorage.clear();
-    window.location.hash = "#/";
+    window.location.hash = PATHS.calculator;
   });
 
   afterEach(() => {
@@ -111,11 +112,11 @@ describe("계산 화면 (통합)", () => {
 
   it("#1 매매가에 0을 입력하고 blur하면 그 필드 아래에 오류가 뜨고 저장 시트가 열리지 않는다 (AC-8b)", async () => {
     const user = userEvent.setup();
-    // AC-8c: 알 수 없는 해시로 들어오면 계산 화면을 보이고 주소를 #/로 replace한다(이력이 늘지 않는다).
-    window.location.hash = "#/listing/abc";
+    // AC-8c: 정규 경로가 아닌 계산 주소로 들어오면 계산 화면을 보이고 주소를 #/calculator로 replace한다(이력이 늘지 않는다).
+    window.location.hash = "#/calculator?a=1";
     const historyLength = window.history.length;
     renderWithQueryClient(<AppRoutes />);
-    await waitFor(() => expect(window.location.hash).toBe("#/"));
+    await waitFor(() => expect(window.location.hash).toBe("#/calculator"));
     expect(window.history.length).toBe(historyLength);
 
     const salePrice = screen.getByLabelText("매매가");
@@ -532,7 +533,7 @@ describe("계산 화면 (통합)", () => {
     await user.type(screen.getByRole("textbox", { name: "매물 이름" }), "이전 매물");
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "저장" }));
     expect(screen.getByLabelText("매매가")).toHaveValue("");
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     // 목록은 한 줄씩이라 줄을 펼친 뒤 [수정]을 누른다.
     await user.click(await screen.findByRole("button", { name: /^이전 매물/, expanded: false }));
     await user.click(screen.getByRole("link", { name: "이전 매물 수정" }));

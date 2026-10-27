@@ -221,7 +221,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBeNull();
 
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     await clickInteriorLink(user, "래미안 84");
     const sheet = await createSheet();
     expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");
@@ -303,7 +303,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));
     const [plan] = storedPlans(storage);
 
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     await waitFor(() => expect(window.location.hash).toBe("#/listings"));
     const historyBefore = window.history.length;
     await clickInteriorLink(user, "래미안 84");
@@ -387,7 +387,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     expect(screen.queryByText(MISSING_TEXT)).not.toBeInTheDocument();
 
     // 저장 목록에서 매물 삭제(매물 쪽 쓰기는 이 삭제뿐)
-    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(screen.getByRole("link", { name: "매물" }));
     const card = await expandCard(user, "래미안 84");
     await user.click(within(card).getByRole("button", { name: "래미안 84 삭제" }));
     expect(await screen.findByRole("list", { name: "저장한 매물 1개" })).toBeInTheDocument();

@@ -1,18 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
-import { useEndSession } from "@/hooks/useEndSession";
+import { interiorPlanListQueryKey } from "@/hooks/useInteriorPlanList";
 import {
-  isInteriorPlanImportSettled,
-  type InteriorPlanImport,
-} from "@/hooks/useInteriorPlanImport";
-import { interiorPlanListQueryKey, useInteriorPlanList } from "@/hooks/useInteriorPlanList";
-import { useMe } from "@/hooks/useMe";
+  useInteriorPlanListSource,
+  type InteriorPlanListSource,
+} from "@/hooks/useInteriorPlanListSource";
 import { ApiRequestError } from "@/lib/api/client";
-import { selectAccountSourceStatus } from "@/lib/utils/accountSourceStatus";
-import { householdOf, householdRefetchInterval } from "@/lib/utils/household";
 import { isInteriorItemEditConflict } from "@/lib/utils/interiorItemConflict";
-import { INTERIOR_PLANS_STORAGE_KEY } from "@/lib/utils/interiorPlanStorage";
 
 import { useCreateInteriorItem } from "./useCreateInteriorItem";
 import { useCreateInteriorPlan } from "./useCreateInteriorPlan";
@@ -21,8 +15,7 @@ import { useDeleteInteriorPlan } from "./useDeleteInteriorPlan";
 import { useUpdateInteriorItem } from "./useUpdateInteriorItem";
 import { useUpdateInteriorPlan } from "./useUpdateInteriorPlan";
 
-import type { AccountSourceStatus } from "@/lib/types/account";
-import type { Household } from "@/lib/types/household";
+import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
 import type {
   InteriorItem,
   InteriorItemInput,
@@ -31,7 +24,6 @@ import type {
   InteriorPlanWithItems,
 } from "@/lib/types/interiorPlan";
 import type {
-  InteriorPlanListState,
   InteriorPlanSourceWriteFailure,
   InteriorPlanSourceWriteResult,
   InteriorPlanStore,
@@ -50,21 +42,11 @@ type InteriorPlanSourceOptions = {
 
 /**
  * [우리 집] 화면이 쓰는 계획 출처(로그아웃: 로컬 스토어 / 로그인: 서버). `useListingSource`와 같은 경계다.
+ * 읽기는 `useInteriorPlanListSource`(홈과 같이 씀)이고, 여기서 쓰기를 얹는다(ADR-031 D5 B).
  * 쓰기는 두 출처 모두 서버 API와 같은 단위(계획 POST·PATCH·DELETE, 항목 POST·PUT·DELETE)의 Promise 결과다.
  * 출처가 정해지기 전(loading·error)에는 쓰지 않고 `notReady`로 실패한다(로컬로 몰래 쓰지 않는다).
  */
-export type InteriorPlanSource = {
-  status: AccountSourceStatus;
-  /** 함께 쓰는 중이면 그 요약(로그인 상태에서만), 아니면 null */
-  household: Household | null;
-  list: InteriorPlanListState;
-  /** 받아 둔 서버 계획은 있는데 다시 조회하지 못했다(창 포커스·주기 재조회 실패). 목록은 지우지 않는다. */
-  isRefreshFailed: boolean;
-  /** 이 화면에서 세션이 끝났다(401). 화면 위 안내가 다시 로그인하라고 알린다. */
-  isSessionExpired: boolean;
-  /** 계정 확인(error) 또는 서버 계획 조회를 다시 한다 */
-  retry: () => void;
-  isRetrying: boolean;
+export type InteriorPlanSource = Omit<InteriorPlanListSource, "expireSession"> & {
   createPlan: (
     input: InteriorPlanCreateInput,
   ) => Promise<{ ok: true; plan: InteriorPlanWithItems } | InteriorPlanSourceWriteFailure>;
@@ -92,10 +74,6 @@ export type InteriorPlanSource = {
 const NOT_READY: InteriorPlanSourceWriteFailure = { ok: false, reason: "notReady" };
 const CONFLICT: InteriorPlanSourceWriteFailure = { ok: false, reason: "conflict" };
 
-function isUnauthorized(error: unknown): boolean {
-  return error instanceof ApiRequestError && error.status === 401;
-}
-
 /**
  * 만들기(계획 POST·항목 POST)의 400은 상한(계획 3개·항목 100개)이다. 필드는 화면이 같은 검증 함수로 먼저 본다.
  * 404는 함께 쓰는 중이면 상대가 지웠을 수도 있어 사유를 나눈다(혼자면 notFound). 응답 형식 오류는 연결 오류로 본다.
@@ -121,56 +99,18 @@ export function useInteriorPlanSource({
   planImport,
 }: InteriorPlanSourceOptions): InteriorPlanSource {
   const queryClient = useQueryClient();
-  const me = useMe();
-  const status = selectAccountSourceStatus({
-    me: me.data,
-    isMeError: me.isError,
-    hasSessionHint: sessionHintStore.has(),
-    isImportSettled: (userId) => isInteriorPlanImportSettled(planImport.state, userId),
+  const { expireSession, ...read } = useInteriorPlanListSource({
+    store,
+    sessionHintStore,
+    planImport,
   });
-  const household = status === "loggedIn" ? householdOf(me.data) : null;
-  const serverList = useInteriorPlanList({
-    enabled: status === "loggedIn",
-    refetchInterval: householdRefetchInterval(me.data),
-  });
-  const endSession = useEndSession(sessionHintStore);
-  const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const { status, household } = read;
   const createPlan = useCreateInteriorPlan();
   const updatePlan = useUpdateInteriorPlan();
   const deletePlan = useDeleteInteriorPlan();
   const createItem = useCreateInteriorItem();
   const updateItem = useUpdateInteriorItem();
   const deleteItem = useDeleteInteriorItem();
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      // key가 null이면 다른 탭에서 storage.clear()를 부른 경우다.
-      if (event.key === INTERIOR_PLANS_STORAGE_KEY || event.key === null) store.notify();
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, [store]);
-
-  const localSnapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
-
-  const expireSession = useCallback(() => {
-    setIsSessionExpired(true);
-    endSession();
-  }, [endSession]);
-
-  // 창 포커스·주기 재조회에서 세션이 끝난 것을 알게 되는 경우
-  const isListUnauthorized = isUnauthorized(serverList.error);
-  useEffect(() => {
-    if (isListUnauthorized) expireSession();
-  }, [isListUnauthorized, expireSession]);
-
-  const selectList = (): InteriorPlanListState => {
-    if (status === "loading") return { status: "loading" };
-    if (status === "error") return { status: "accountError" };
-    if (status === "loggedOut") return localSnapshot;
-    if (serverList.data !== undefined) return { status: "ok", plans: serverList.data };
-    return serverList.isError ? { status: "loadFailed" } : { status: "loading" };
-  };
 
   /** 저장 직전의 목록. 그린 값이 아니라 지금 캐시·저장소에서 읽는다(폴링 결과가 막 들어온 경우까지 보려고). */
   const readLatestPlans = (): InteriorPlanWithItems[] => {
@@ -209,16 +149,7 @@ export function useInteriorPlanSource({
   const done = { ok: true } as const;
 
   return {
-    status,
-    household,
-    list: selectList(),
-    isRefreshFailed: status === "loggedIn" && serverList.isError && serverList.data !== undefined,
-    isSessionExpired: isSessionExpired && status === "loggedOut",
-    retry: () => {
-      if (status === "error") void me.refetch();
-      else if (status === "loggedIn") void serverList.refetch();
-    },
-    isRetrying: me.isFetching || serverList.isFetching,
+    ...read,
     createPlan: (input) =>
       writeBySource<{ ok: true; plan: InteriorPlanWithItems }>(
         () => store.createPlan(input),

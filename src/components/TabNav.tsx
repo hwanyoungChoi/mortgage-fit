@@ -1,8 +1,14 @@
+import Bookmark from "lucide-react/icons/bookmark";
+import Calculator from "lucide-react/icons/calculator";
+import House from "lucide-react/icons/house";
+import PaintRoller from "lucide-react/icons/paint-roller";
+
 import { PATHS } from "@/lib/constants/paths";
 
 import styles from "./TabNav.module.css";
 
 import type { TabName } from "@/lib/types/route";
+import type { LucideIcon } from "lucide-react";
 import type { MouseEvent } from "react";
 
 type TabNavProps = {
@@ -10,15 +16,15 @@ type TabNavProps = {
   current: TabName | null;
   /** 탭으로 화면을 바꾸기 직전에 부른다. */
   onNavigate: () => void;
-  /** 글자 크기 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
-  onTextSizeOpen: (button: HTMLButtonElement) => void;
 };
 
 /** 적은 순서가 화면 순서다. `Record`라 탭(TabName)을 더하고 여기 빠뜨리면 타입 검사에서 걸린다. */
-const TABS: Record<TabName, { label: string; href: string }> = {
-  calculator: { label: "계산", href: PATHS.calculator },
-  listings: { label: "저장 목록", href: PATHS.listings() },
-  home: { label: "우리 집", href: PATHS.home() },
+const TABS: Record<TabName, { label: string; href: string; Icon: LucideIcon }> = {
+  hub: { label: "홈", href: PATHS.hub, Icon: House },
+  calculator: { label: "계산", href: PATHS.calculator, Icon: Calculator },
+  listings: { label: "매물", href: PATHS.listings(), Icon: Bookmark },
+  /** 라벨은 "우리 집"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
+  home: { label: "우리 집", href: PATHS.home(), Icon: PaintRoller },
 };
 
 const TAB_ORDER = Object.keys(TABS) as TabName[];
@@ -29,10 +35,10 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 상단 탭 "계산 | 저장 목록 | 우리 집". 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다.
- * 오른쪽 끝의 [가가]는 글자 크기 시트를 연다(모든 화면에 같은 자리).
+ * 화면 아래 고정 탭 "홈 | 계산 | 매물 | 우리 집". 아이콘과 라벨을 늘 함께 보인다.
+ * 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. 현재 화면에 대한 동작([가가] 등)은 두지 않는다.
  */
-function TabNav({ current, onNavigate, onTextSizeOpen }: TabNavProps) {
+function TabNav({ current, onNavigate }: TabNavProps) {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (isModifiedClick(event)) return;
     event.preventDefault();
@@ -42,34 +48,26 @@ function TabNav({ current, onNavigate, onTextSizeOpen }: TabNavProps) {
 
   return (
     <nav className={styles.nav} aria-label="화면">
-      <div className={styles.bar}>
-        <ul className={styles.tabs}>
-          {TAB_ORDER.map((name) => (
+      <ul className={styles.tabs}>
+        {TAB_ORDER.map((name) => {
+          const { label, href, Icon } = TABS[name];
+          return (
             <li key={name} className={styles.item}>
               <a
                 className={styles.tab}
-                href={TABS[name].href}
+                href={href}
                 aria-current={name === current ? "page" : undefined}
-                onClick={(event) => handleClick(event, TABS[name].href)}
+                onClick={(event) => handleClick(event, href)}
               >
-                {TABS[name].label}
+                <span className={styles.indicator}>
+                  <Icon size={22} aria-hidden="true" />
+                </span>
+                {label}
               </a>
             </li>
-          ))}
-        </ul>
-        <button
-          type="button"
-          className={styles.textSizeButton}
-          aria-label="글자 크기"
-          aria-haspopup="dialog"
-          onClick={(event) => onTextSizeOpen(event.currentTarget)}
-        >
-          <span className={styles.smallGlyph} aria-hidden="true">
-            가
-          </span>
-          <span aria-hidden="true">가</span>
-        </button>
-      </div>
+          );
+        })}
+      </ul>
     </nav>
   );
 }

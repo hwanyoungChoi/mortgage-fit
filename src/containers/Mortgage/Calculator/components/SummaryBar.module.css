@@ -1,17 +1,20 @@
-/* 넓은 화면에서도 내용은 본문 열(480px)에 맞춘다. 바탕 띠만 창 너비로 깔린다. */
+/*
+ * 하단 탭 바로 위에 붙는다(bottom = 탭 + safe-area, safe-area는 탭 줄이 가진다).
+ * 넓은 화면에서도 내용은 본문 열(480px)에 맞춘다. 바탕 띠만 창 너비로 깔린다.
+ */
 .bar {
   --bar-inline: max(var(--space-4), calc((100% - 448px) / 2));
 
   position: fixed;
   right: 0;
-  bottom: 0;
+  bottom: var(--bottom-tab-offset);
   left: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-4);
   min-height: var(--summary-bar-height);
-  padding: var(--space-3) var(--bar-inline) calc(var(--space-3) + env(safe-area-inset-bottom));
+  padding: var(--space-3) var(--bar-inline);
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
