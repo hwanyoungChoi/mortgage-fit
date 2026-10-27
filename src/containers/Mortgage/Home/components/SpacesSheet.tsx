@@ -12,12 +12,12 @@ import spaceStyles from "./SpacesSheet.module.css";
 import { planWriteFailureMessage } from "../planWriteFailure";
 
 import type { InteriorPlanWithItems, InteriorSpace } from "@/lib/types/interiorPlan";
-import type { InteriorPlanWriteResult } from "@/lib/types/interiorPlanStore";
+import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 
 type SpacesSheetProps = {
   plan: InteriorPlanWithItems;
   /** 공간 목록을 통째로 저장한다(서버 PATCH `{ spaces }`와 같다). 성공하면 부르는 쪽이 닫는다. */
-  onSave: (spaces: InteriorSpace[]) => Promise<InteriorPlanWriteResult>;
+  onSave: (spaces: InteriorSpace[]) => Promise<InteriorPlanSourceWriteResult>;
   onClose: () => void;
 };
 

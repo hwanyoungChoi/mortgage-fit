@@ -32,7 +32,7 @@ const P_DEFAULT_SPACE_NAMES = [
 
 type User = ReturnType<typeof userEvent.setup>;
 
-/** 로그아웃 상태(`/api/me` → user null). 우리 집은 아직 로컬 스토어만 쓴다 */
+/** 로그아웃 상태(`/api/me` → user null). 우리 집은 로컬 스토어가 원본이다 */
 function stubLoggedOutApi() {
   vi.stubGlobal(
     "fetch",
@@ -47,9 +47,14 @@ function stubLoggedOutApi() {
   );
 }
 
-function renderApp(storage: Storage, hash = "#/home") {
+/** 로그인 확인(`/api/me`) 응답 전에는 출처가 loading이라 화면이 "불러오는 중"이다. 로그아웃이 확인될 때까지 기다린다 */
+async function renderApp(storage: Storage, hash = "#/home") {
   window.location.hash = hash;
-  return renderWithQueryClient(<AppRoutes storage={storage} />);
+  const result = renderWithQueryClient(<AppRoutes storage={storage} />);
+  await waitFor(() =>
+    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+  );
+  return result;
 }
 
 const storageWith = (plans: InteriorPlanWithItems[], extra: Record<string, string> = {}) =>
@@ -123,7 +128,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("빈 상태 → [계획 만들기] 이름 '우리 집'·방 3·욕실 2 → #/home/{planId}, 공간 10개 순서, 새로고침 후 그대로", async () => {
       const user = userEvent.setup();
       const storage = createMemoryStorage();
-      const { unmount } = renderApp(storage);
+      const { unmount } = await renderApp(storage);
 
       expect(
         screen.getByText("계약한 집의 인테리어 예산·견적·지급을 정리합니다"),
@@ -161,7 +166,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
       // 새로고침: 같은 저장소로 앱을 다시 띄운다
       unmount();
-      renderApp(storage, `#/home/${planId}`);
+      await renderApp(storage, `#/home/${planId}`);
       expect(screen.getByRole("heading", { level: 1, name: "우리 집" })).toBeInTheDocument();
       expect(spaceNamesIn(await openSpacesSheet(user))).toEqual(P_DEFAULT_SPACE_NAMES);
     });
@@ -169,7 +174,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("방 1·욕실 1이면 공간 7개(욕실1·방1만)", async () => {
       const user = userEvent.setup();
       const storage = createMemoryStorage();
-      renderApp(storage);
+      await renderApp(storage);
       await user.click(screen.getByRole("button", { name: "계획 만들기" }));
       const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
       await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "작은 집");
@@ -203,8 +208,8 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       vi.setSystemTime(new Date(2026, 10, 10, 12, 0, 0));
     });
 
-    it("요약: 남은 예산 370 · 앞으로 낼 돈 1,250 · 총 예산 3,000 · 예상 총액 2,630 · 확정 1,530 · 지급함 280, ③에 50만원 초과", () => {
-      renderApp(storageWith([makePlanP()]));
+    it("요약: 남은 예산 370 · 앞으로 낼 돈 1,250 · 총 예산 3,000 · 예상 총액 2,630 · 확정 1,530 · 지급함 280, ③에 50만원 초과", async () => {
+      await renderApp(storageWith([makePlanP()]));
       expect(headlineValue("남은 예산")).toBe("370만원");
       expect(headlineValue("앞으로 낼 돈")).toBe("1,250만원");
       expect(detailValue("총 예산")).toBe("3,000만원");
@@ -217,8 +222,8 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       expect(screen.getAllByText(/초과$/)).toHaveLength(1);
     });
 
-    it("총 예산 2,500 → '예산 초과 130만원'", () => {
-      renderApp(storageWith([makePlanP({ budget: 2500 })]));
+    it("총 예산 2,500 → '예산 초과 130만원'", async () => {
+      await renderApp(storageWith([makePlanP({ budget: 2500 })]));
       expect(headlineValue("남은 예산")).toBe("예산 초과 130만원");
     });
 
@@ -226,7 +231,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       const user = userEvent.setup();
       const { budget: _budget, ...withoutBudget } = makePlanP();
       void _budget;
-      renderApp(storageWith([withoutBudget]));
+      await renderApp(storageWith([withoutBudget]));
       expect(detailValue("총 예산")).toBe("—");
       await user.click(screen.getByRole("button", { name: "총 예산 입력" }));
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -234,7 +239,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("공간별 묶음은 전체 1,250 · 거실 280 · 주방 500 · 욕실1 600(항목 없는 공간 숨김), [공종별] → ?view=trade, 샷시 → 타일 → 도배 → 주방가구", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]), "#/home/plan-p");
+      await renderApp(storageWith([makePlanP()]), "#/home/plan-p");
       expect(itemGroups()).toEqual(["전체1,250만원", "거실280만원", "주방500만원", "욕실1600만원"]);
 
       await user.click(screen.getByRole("radio", { name: "공종별" }));
@@ -252,14 +257,14 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       expect(itemGroups()[0]).toBe("전체1,250만원");
     });
 
-    it("?view=trade로 열면(새로고침) 공종별 그대로", () => {
-      renderApp(storageWith([makePlanP()]), "#/home/plan-p?view=trade");
+    it("?view=trade로 열면(새로고침) 공종별 그대로", async () => {
+      await renderApp(storageWith([makePlanP()]), "#/home/plan-p?view=trade");
       expect(screen.getByRole("radio", { name: "공종별" })).toBeChecked();
       expect(itemGroups()[0]).toBe("샷시1,250만원");
     });
 
-    it("할 일: 지급 예정 샷시 잔금 1,000(11/5 지남) → 도배 잔금 250(11/20), 견적 받기 주방가구, 확정하기 타일", () => {
-      renderApp(storageWith([makePlanP()]));
+    it("할 일: 지급 예정 샷시 잔금 1,000(11/5 지남) → 도배 잔금 250(11/20), 견적 받기 주방가구, 확정하기 타일", async () => {
+      await renderApp(storageWith([makePlanP()]));
       expect(todoEntries(/^지급 예정/)).toEqual([
         "전체 · 샷시 잔금1,000만원 · 11/5지남",
         "거실 · 도배 잔금250만원 · 11/20",
@@ -270,7 +275,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("샷시 잔금을 시트에서 지급함으로 저장 → 지급 예정에서 사라지고 지급함 1,280 · 앞으로 낼 돈 250", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       expect(
@@ -286,7 +291,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("(a) 시트에서 견적 D로 확정을 옮기면 확정 1,430 · 초과 사라짐 · 앞으로 낼 돈 1,150", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       await user.click(within(dialog).getByRole("radio", { name: "견적 1 확정" }));
@@ -303,7 +308,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("견적 중 항목의 견적을 [확정]하면 상태가 '확정'으로 바뀌고 저장된다", async () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
-      renderApp(storage);
+      await renderApp(storage);
       await user.click(screen.getByRole("button", { name: "욕실1 타일 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       const status = within(dialog).getByRole("group", { name: "상태" });
@@ -323,7 +328,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
         ...item,
         status: "inProgress",
       }));
-      renderApp(storageWith([plan]));
+      await renderApp(storageWith([plan]));
       await user.click(screen.getByRole("button", { name: "욕실1 타일 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       await user.click(within(dialog).getByRole("radio", { name: "견적 1 확정" }));
@@ -337,7 +342,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("확정한 견적 E를 지우면 확정이 풀리고, 저장하면 confirmedQuoteId 키가 없다", async () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
-      renderApp(storage);
+      await renderApp(storage);
       await user.click(screen.getByRole("button", { name: "전체 샷시 열기" }));
       const dialog = screen.getByRole("dialog", { name: "항목" });
       expect(within(dialog).getByRole("radio", { name: "견적 2 확정" })).toBeChecked();
@@ -358,7 +363,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
       const before = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
-      renderApp(storage);
+      await renderApp(storage);
 
       const dialog = await openNewItemSheet(user);
       await user.click(
@@ -427,7 +432,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("예산 1,000,000,000은 오류, 999,999,999는 통과", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       const dialog = await openNewItemSheet(user);
       await user.type(within(dialog).getByRole("textbox", { name: "공종" }), "방충망");
       const budget = within(dialog).getByLabelText("예산(선택)");
@@ -445,7 +450,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("공종 31자는 오류, 30자는 저장(직접 입력 공종은 공종별 맨 뒤)", async () => {
       const user = userEvent.setup();
       const storage = storageWith([makePlanP()]);
-      renderApp(storage);
+      await renderApp(storage);
       const dialog = await openNewItemSheet(user);
       const trade = within(dialog).getByRole("textbox", { name: "공종" });
       await user.type(trade, "가".repeat(31));
@@ -462,7 +467,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("견적 5개면 [견적 추가] 비활성과 안내", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       const dialog = await openNewItemSheet(user);
       const addQuote = within(dialog).getByRole("button", { name: "견적 추가" });
       for (let count = 1; count <= 4; count += 1) {
@@ -480,30 +485,30 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
   });
 
   describe("AC-5 상한", () => {
-    it("항목 99개면 [항목 추가] 활성, 100개면 비활성과 안내(공간 묶음 [추가]도 비활성)", () => {
+    it("항목 99개면 [항목 추가] 활성, 100개면 비활성과 안내(공간 묶음 [추가]도 비활성)", async () => {
       const bulk = (count: number) =>
         Array.from({ length: count }, (_, index) => ({
           ...makePlanP().items[3],
           id: `bulk${index}`,
         }));
-      const { unmount } = renderApp(storageWith([makePlanP({ items: bulk(99) })]));
+      const { unmount } = await renderApp(storageWith([makePlanP({ items: bulk(99) })]));
       expect(screen.getByRole("button", { name: "항목 추가" })).toBeEnabled();
       unmount();
 
-      renderApp(storageWith([makePlanP({ items: bulk(100) })]));
+      await renderApp(storageWith([makePlanP({ items: bulk(100) })]));
       expect(screen.getByRole("button", { name: "항목 추가" })).toBeDisabled();
       expect(screen.getByText("항목은 계획마다 100개까지 적을 수 있습니다")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "주방에 항목 추가" })).toBeDisabled();
     });
 
-    it("플랜 2개면 고르기에서 [계획 만들기] 활성, 3개면 비활성과 안내", () => {
+    it("플랜 2개면 고르기에서 [계획 만들기] 활성, 3개면 비활성과 안내", async () => {
       const plan = (id: string, name: string) => makePlanP({ id, name });
-      const { unmount } = renderApp(storageWith([plan("p1", "첫째"), plan("p2", "둘째")]));
+      const { unmount } = await renderApp(storageWith([plan("p1", "첫째"), plan("p2", "둘째")]));
       expect(screen.getByRole("heading", { name: "계획 고르기" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "계획 만들기" })).toBeEnabled();
       unmount();
 
-      renderApp(storageWith([plan("p1", "첫째"), plan("p2", "둘째"), plan("p3", "셋째")]));
+      await renderApp(storageWith([plan("p1", "첫째"), plan("p2", "둘째"), plan("p3", "셋째")]));
       expect(
         screen
           .getAllByRole("link")
@@ -516,7 +521,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("플랜 3개면 계획 관리의 [다른 계획 만들기]도 비활성", async () => {
       const user = userEvent.setup();
       const plans = ["p1", "p2", "p3"].map((id) => makePlanP({ id, name: id }));
-      renderApp(storageWith(plans), "#/home/p1");
+      await renderApp(storageWith(plans), "#/home/p1");
       await user.click(screen.getByRole("button", { name: "계획 관리" }));
       expect(screen.getByRole("button", { name: "다른 계획 만들기" })).toBeDisabled();
     });
@@ -539,7 +544,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
         ],
       };
       const storage = storageWith([twoInLiving]);
-      renderApp(storage);
+      await renderApp(storage);
       const dialog = await openSpacesSheet(user);
 
       await user.click(within(dialog).getByRole("button", { name: "거실 삭제" }));
@@ -580,7 +585,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
     it("[가리기]를 켜면 금액을 렌더하지 않고(•••), 연락처·메모는 플랜 화면에 없다. 끄면 다시 보인다", async () => {
       const user = userEvent.setup();
       const storage = storageWith([planWithPrivateText()]);
-      renderApp(storage);
+      await renderApp(storage);
       expect(pageText()).toMatch(/\d만원/);
 
       await user.click(screen.getByRole("button", { name: "가리기" }));
@@ -604,8 +609,8 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
       expect(headlineValue("앞으로 낼 돈")).toBe("1,250만원");
     });
 
-    it("이미 가리기가 켜져 있으면(저장 목록에서 켬) 처음부터 가린다", () => {
-      renderApp(storageWith([makePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }));
+    it("이미 가리기가 켜져 있으면(저장 목록에서 켬) 처음부터 가린다", async () => {
+      await renderApp(storageWith([makePlanP()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }));
       expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute(
         "aria-pressed",
         "true",
@@ -617,7 +622,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
   describe("AC-3 공정 순서 시트·공종 칩", () => {
     it("14단계 · '자료마다 다릅니다' 문구 · 출처 2개 · 기준일", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       await user.click(screen.getByRole("button", { name: "공정 순서" }));
       const dialog = screen.getByRole("dialog", { name: "공정 순서" });
       const steps = within(within(dialog).getAllByRole("list")[0]).getAllByRole("listitem");
@@ -657,7 +662,7 @@ describe("우리 집 화면 (스펙 interior-planner AC-1~5)", () => {
 
     it("항목 시트의 공종 칩 순서가 공정 순서 상수와 같다", async () => {
       const user = userEvent.setup();
-      renderApp(storageWith([makePlanP()]));
+      await renderApp(storageWith([makePlanP()]));
       const dialog = await openNewItemSheet(user);
       const chips = within(within(dialog).getByRole("group", { name: "공종 고르기" })).getAllByRole(
         "button",

@@ -20,11 +20,13 @@ import styles from "./SheetForm.module.css";
 import { planWriteFailureMessage, PLAN_LIMIT_MESSAGE } from "../planWriteFailure";
 
 import type { InteriorPlanCreateInput } from "@/lib/types/interiorPlan";
-import type { InteriorPlanWriteFailure } from "@/lib/types/interiorPlanStore";
+import type { InteriorPlanSourceWriteFailure } from "@/lib/types/interiorPlanStore";
 
 type CreatePlanSheetProps = {
   /** 성공하면 부르는 쪽이 시트를 닫고 그 플랜으로 간다. 실패하면 입력을 그대로 두고 이유를 보인다. */
-  onCreate: (input: InteriorPlanCreateInput) => Promise<{ ok: true } | InteriorPlanWriteFailure>;
+  onCreate: (
+    input: InteriorPlanCreateInput,
+  ) => Promise<{ ok: true } | InteriorPlanSourceWriteFailure>;
   onClose: () => void;
 };
 

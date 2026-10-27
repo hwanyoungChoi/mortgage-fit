@@ -50,7 +50,7 @@ import type {
   InteriorItemInput,
   InteriorPlanWithItems,
 } from "@/lib/types/interiorPlan";
-import type { InteriorPlanWriteResult } from "@/lib/types/interiorPlanStore";
+import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 
 type ItemSheetProps = {
   plan: InteriorPlanWithItems;
@@ -58,10 +58,18 @@ type ItemSheetProps = {
   item: InteriorItem | null;
   /** 새 항목의 공간(공간 묶음의 [추가]면 그 공간, 아니면 첫 공간) */
   initialSpaceId: string;
-  /** 성공하면 부르는 쪽이 닫는다. 실패하면 입력을 그대로 두고 이유를 보인다 */
-  onSave: (input: InteriorItemInput) => Promise<InteriorPlanWriteResult>;
+  /**
+   * 성공하면 부르는 쪽이 닫는다. 실패하면 입력을 그대로 두고 이유를 보인다.
+   * `openedItem`은 시트를 연 시점의 항목(새 항목이면 null)이다. 그 `updatedAt`으로 같은 항목 동시 편집을 확인한다
+   */
+  onSave: (
+    input: InteriorItemInput,
+    openedItem: InteriorItem | null,
+  ) => Promise<InteriorPlanSourceWriteResult>;
   /** 시트가 확인한 뒤 부른다. 성공하면 부르는 쪽이 닫는다 */
-  onDelete: (itemId: string) => Promise<InteriorPlanWriteResult>;
+  onDelete: (itemId: string) => Promise<InteriorPlanSourceWriteResult>;
+  /** 다른 사람이 같은 항목을 저장했을 때 [최신 값 불러오기]. 부르는 쪽이 시트를 지금 값으로 다시 연다 */
+  onReload: () => void;
   onClose: () => void;
 };
 
@@ -91,10 +99,20 @@ function describePaymentTotals(draft: InteriorItemDraft): string | null {
 
 /**
  * 항목 시트: 공간 · 공종(프리셋 칩 + 직접 입력) · 예산 · 견적(확정 라디오) · 지급 · 상태 · 시작·끝 · 메모.
- * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경으로 덮이지 않는다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
+ * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경(폴링 포함)으로 덮이지 않는다. 그 사이 다른 사람이 같은 항목을
+ * 저장했으면 저장하지 않고 알린 뒤 [최신 값 불러오기]를 보인다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
  * 저장을 누르면 모두 보이고 첫 오류 칸으로 간다. 고친 것이 없으면 [저장]이 막히고, 고친 채 닫으면 확인한다.
  */
-function ItemSheet({ plan, item, initialSpaceId, onSave, onDelete, onClose }: ItemSheetProps) {
+function ItemSheet({
+  plan,
+  item,
+  initialSpaceId,
+  onSave,
+  onDelete,
+  onReload,
+  onClose,
+}: ItemSheetProps) {
+  const [openedItem] = useState(item);
   const [initialDraft] = useState(() =>
     item === null ? createInteriorItemDraft(initialSpaceId) : toInteriorItemDraft(item),
   );
@@ -102,6 +120,7 @@ function ItemSheet({ plan, item, initialSpaceId, onSave, onDelete, onClose }: It
   const [blurredFields, setBlurredFields] = useState<Set<InteriorItemDraftField>>(() => new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [writeError, setWriteError] = useState<string | null>(null);
+  const [isConflict, setIsConflict] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const addQuoteButtonRef = useRef<HTMLButtonElement>(null);
   const customPaymentButtonRef = useRef<HTMLButtonElement>(null);
@@ -188,15 +207,19 @@ function ItemSheet({ plan, item, initialSpaceId, onSave, onDelete, onClose }: It
       return;
     }
     setIsSaving(true);
-    const result = await onSave(validation.input);
+    const result = await onSave(validation.input, openedItem);
     setIsSaving(false);
     setWriteError(result.ok ? null : planWriteFailureMessage(result.reason, ITEM_LIMIT_MESSAGE));
+    setIsConflict(!result.ok && result.reason === "conflict");
   };
 
   const handleDelete = async (target: InteriorItem) => {
     if (!window.confirm(`'${target.trade}' 항목을 삭제할까요? 되돌릴 수 없습니다.`)) return;
     const result = await onDelete(target.id);
-    if (!result.ok) setWriteError(planWriteFailureMessage(result.reason));
+    if (!result.ok) {
+      setWriteError(planWriteFailureMessage(result.reason));
+      setIsConflict(false);
+    }
   };
 
   const renderTextError = (field: InteriorItemDraftField) => {
@@ -478,6 +501,11 @@ function ItemSheet({ plan, item, initialSpaceId, onSave, onDelete, onClose }: It
           <p role="alert" className={formStyles.error}>
             {writeError}
           </p>
+        )}
+        {isConflict && (
+          <button type="button" className={formStyles.secondaryButton} onClick={onReload}>
+            최신 값 불러오기
+          </button>
         )}
         <div className={formStyles.actions}>
           {item !== null && (

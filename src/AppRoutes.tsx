@@ -10,6 +10,7 @@ import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useLis
 import MortgageShare from "@/containers/Mortgage/Share/MortgageShare";
 import { useAccountImport } from "@/hooks/useAccountImport";
 import { useHashRoute } from "@/hooks/useHashRoute";
+import { useInteriorPlanImport } from "@/hooks/useInteriorPlanImport";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 import { PATHS } from "@/lib/constants/paths";
@@ -19,6 +20,7 @@ import { createBudgetImportStore } from "@/lib/utils/budgetImportStorage";
 import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
+import { createInteriorPlanImportStore } from "@/lib/utils/interiorPlanImportStorage";
 import { createInteriorPlanStore } from "@/lib/utils/interiorPlanStorage";
 import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportStorage";
 import { createListingOrderStore } from "@/lib/utils/listingOrderStorage";
@@ -61,6 +63,7 @@ function createStores(storage: Storage) {
       createId: createRandomId,
       now: () => new Date().toISOString(),
     }),
+    interiorPlanImportStore: createInteriorPlanImportStore({ storage }),
   };
 }
 
@@ -81,6 +84,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       privacyModeStore,
       textSizeStore,
       interiorPlanStore,
+      interiorPlanImportStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -99,6 +103,17 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     listingStore,
     accountImportStore,
     onImported: handleAccountImported,
+  });
+  // [우리 집]에 한 번 보일 알림. 매물 이전 알림(저장 목록)과 따로 두어 서로 덮지 않는다.
+  const [homeNotice, setHomeNotice] = useState<string | null>(null);
+  const handleInteriorPlanImported = useCallback(() => {
+    setHomeNotice("이 기기의 인테리어 계획을 계정으로 옮겼습니다");
+  }, []);
+  // 로그인 확인 직후 이 기기의 인테리어 계획을 계정으로 옮긴다. 매물 이전과 같은 자리(화면들 위)에서 한 번만 한다.
+  const planImport = useInteriorPlanImport({
+    interiorPlanStore,
+    interiorPlanImportStore,
+    onImported: handleInteriorPlanImported,
   });
 
   /**
@@ -144,9 +159,13 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
         <MortgageHome
           key={route.planId ?? ""}
           interiorPlanStore={interiorPlanStore}
+          sessionHintStore={sessionHintStore}
+          planImport={planImport}
           privacyModeStore={privacyModeStore}
           planId={route.planId}
           view={route.view ?? "space"}
+          notice={homeNotice}
+          onNoticeChange={setHomeNotice}
         />
       );
     }

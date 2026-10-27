@@ -49,3 +49,31 @@ export type InteriorPlanStore = {
   /** 손상된 원문을 지운다(사용자가 확인한 뒤에만) */
   reset: () => StorageWriteResult;
 };
+
+/**
+ * [우리 집]이 그리는 계획 목록. 로컬 스냅샷 3값에 더해 출처가 정해지기 전(loading), 계정 확인 실패(accountError),
+ * 서버 조회 실패(loadFailed, 받아 둔 목록이 없을 때만)
+ */
+export type InteriorPlanListState =
+  | InteriorPlanSnapshot
+  | { status: "loading" }
+  | { status: "accountError" }
+  | { status: "loadFailed" };
+
+/**
+ * 출처(로컬·서버)의 쓰기 실패. 로컬 사유에 더해 notReady: 출처가 정해지기 전, unauthorized: 401(세션 만료),
+ * deletedInHousehold: 함께 쓰는 중 404, network: 연결·서버 오류, conflict: 시트를 연 뒤 다른 사람이 같은 항목을 저장했다(저장하지 않음).
+ * 혼자 쓰는 중 404는 notFound다.
+ */
+export type InteriorPlanSourceWriteFailure = {
+  ok: false;
+  reason:
+    | InteriorPlanWriteFailure["reason"]
+    | "notReady"
+    | "unauthorized"
+    | "deletedInHousehold"
+    | "network"
+    | "conflict";
+};
+
+export type InteriorPlanSourceWriteResult = { ok: true } | InteriorPlanSourceWriteFailure;

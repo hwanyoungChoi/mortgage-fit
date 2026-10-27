@@ -113,6 +113,10 @@ function stubApi(mode: FetchMode) {
   vi.stubGlobal("fetch", fetchMock);
 }
 
+/** 저장소에 있는 키 전부 */
+const storedKeys = (storage: Storage) =>
+  Array.from({ length: storage.length }, (_, index) => storage.key(index));
+
 function createSpiedStorage(seed: Record<string, string>) {
   const storage = createMemoryStorage(seed);
   const setItem = vi.spyOn(storage, "setItem");
@@ -131,8 +135,13 @@ function createSpiedStorage(seed: Record<string, string>) {
   return { storage, setItem, forbiddenWrites };
 }
 
-/** 앱 시작(#/) → 저장 목록 → 우리 집(만들기·항목 추가) → #/home 직접 → 계산 */
-async function walkThroughTabs(user: ReturnType<typeof userEvent.setup>) {
+type User = ReturnType<typeof userEvent.setup>;
+
+/**
+ * 앱 시작(#/) → 저장 목록 → 우리 집(만들기·항목 추가) → #/home 직접 → 계산.
+ * 로그인 확인 응답 전에는 우리 집이 "불러오는 중"이라(출처 loading, 스펙 "화면 — 상태") 만들기 대신 그 상태를 확인한다.
+ */
+async function walkThroughTabs(user: User, mode: FetchMode) {
   // 앱 시작: 첫 화면은 계산
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "계산" })).toHaveAttribute("aria-current", "page");
@@ -142,6 +151,13 @@ async function walkThroughTabs(user: ReturnType<typeof userEvent.setup>) {
 
   await user.click(screen.getByRole("link", { name: "우리 집" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
+  if (mode === "pending") {
+    expect(screen.getByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "계획 만들기" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "계산" }));
+    expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
+    return;
+  }
   await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
   const createSheet = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
   await user.type(within(createSheet).getByRole("textbox", { name: "계획 이름" }), "우리 집");
@@ -184,31 +200,27 @@ describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () =
     expect(Object.keys(LEGACY_SEED).toSorted()).toEqual(LEGACY_KEYS.toSorted());
   });
 
-  it("로그인 확인 응답 전: 앱 시작·각 탭·[우리 집] 만들기·항목 추가 동안 허용 목록 밖 쓰기 0회, 12개 원문 === 그대로, 새 키는 interior-plans뿐", async () => {
+  it("로그인 확인 응답 전: 앱 시작·각 탭·[우리 집](불러오는 중) 동안 쓰기 0회, 12개 원문 === 그대로, 새 키 없음", async () => {
     stubApi("pending");
     const user = userEvent.setup();
     const { storage, setItem, forbiddenWrites } = createSpiedStorage(LEGACY_SEED);
     renderWithQueryClient(<AppRoutes storage={storage} />);
 
-    await walkThroughTabs(user);
+    await walkThroughTabs(user, "pending");
 
     expect(forbiddenWrites()).toEqual([]);
+    expect(setItem).not.toHaveBeenCalled();
     for (const key of LEGACY_KEYS) expect(storage.getItem(key)).toBe(LEGACY_SEED[key]);
-    // 스파이가 살아 있다: 새 키에는 썼다
-    expect(setItem).toHaveBeenCalledWith(INTERIOR_PLANS_STORAGE_KEY, expect.any(String));
-    const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index));
-    expect(keys.filter((key) => !LEGACY_KEYS.includes(key ?? ""))).toEqual([
-      INTERIOR_PLANS_STORAGE_KEY,
-    ]);
+    expect(storedKeys(storage).filter((key) => !LEGACY_KEYS.includes(key ?? ""))).toEqual([]);
   });
 
   it("로그아웃 확인 뒤(/api/me user null): session-hint 정리(기존 동작)를 뺀 11개 키 쓰기 0회·원문 ===", async () => {
     stubApi("loggedOut");
     const user = userEvent.setup();
-    const { storage, forbiddenWrites } = createSpiedStorage(LEGACY_SEED);
+    const { storage, setItem, forbiddenWrites } = createSpiedStorage(LEGACY_SEED);
     renderWithQueryClient(<AppRoutes storage={storage} />);
 
-    await walkThroughTabs(user);
+    await walkThroughTabs(user, "loggedOut");
     // 로그아웃 상태 목록이 뜬 뒤까지 본다
     await user.click(screen.getByRole("link", { name: "저장 목록" }));
     expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
@@ -224,5 +236,10 @@ describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () =
     for (const key of LEGACY_KEYS.filter((name) => name !== SESSION_HINT_STORAGE_KEY)) {
       expect(storage.getItem(key)).toBe(LEGACY_SEED[key]);
     }
+    // 스파이가 살아 있다: 새 키에는 썼다. 로그아웃이라 이전 기록 키(interior-plan-imports)는 생기지 않는다
+    expect(setItem).toHaveBeenCalledWith(INTERIOR_PLANS_STORAGE_KEY, expect.any(String));
+    expect(storedKeys(storage).filter((key) => !LEGACY_KEYS.includes(key ?? ""))).toEqual([
+      INTERIOR_PLANS_STORAGE_KEY,
+    ]);
   });
 });

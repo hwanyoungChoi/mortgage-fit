@@ -14,7 +14,7 @@ import styles from "./SheetForm.module.css";
 import { planWriteFailureMessage, PLAN_LIMIT_MESSAGE } from "../planWriteFailure";
 
 import type { InteriorPlanPatch, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
-import type { InteriorPlanWriteResult } from "@/lib/types/interiorPlanStore";
+import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 
 type PlanSettingsSheetProps = {
   plan: InteriorPlanWithItems;
@@ -22,9 +22,9 @@ type PlanSettingsSheetProps = {
   /** [총 예산 입력]으로 열었으면 예산 칸에서 시작한다 */
   focusBudget: boolean;
   /** 성공하면 부르는 쪽이 닫는다 */
-  onSave: (patch: InteriorPlanPatch) => Promise<InteriorPlanWriteResult>;
+  onSave: (patch: InteriorPlanPatch) => Promise<InteriorPlanSourceWriteResult>;
   /** 시트가 확인한 뒤 부른다. 성공하면 부르는 쪽이 닫고 `#/home`으로 간다 */
-  onDelete: () => Promise<InteriorPlanWriteResult>;
+  onDelete: () => Promise<InteriorPlanSourceWriteResult>;
   onCreateAnother: () => void;
   onClose: () => void;
 };
