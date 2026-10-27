@@ -72,6 +72,23 @@ describe("플랜", () => {
     expect(await list.json()).toStrictEqual({ plans: [body.plan] });
   });
 
+  it("POST items 3개는 GET에서 입력 순서 그대로(항목 i는 기준 시각 + i ms)", async () => {
+    const trades = ["샷시", "도배", "타일"];
+    const { body } = await createPlan(alice, {
+      items: trades.map((trade) => ({ ...itemFields, trade })),
+    });
+    const list = (await (
+      await callApi(db, "GET", "/api/interior-plans", { cookie: alice.cookie })
+    ).json()) as { plans: { items: { id: string; trade: string; createdAt: string }[] }[] };
+    const items = list.plans[0].items;
+    expect(items.map(({ trade }) => trade)).toEqual(trades);
+    expect(items.map(({ id }) => id)).toEqual(body.plan.items.map(({ id }) => id));
+    const base = Date.parse((body.plan as unknown as { createdAt: string }).createdAt);
+    expect(items.map(({ createdAt }) => createdAt)).toEqual(
+      [0, 1, 2].map((i) => new Date(base + i).toISOString()),
+    );
+  });
+
   it("3개면 POST 400이고 함께 보낸 항목도 넣지 않는다", async () => {
     for (let i = 0; i < 3; i += 1) await createPlan(alice);
     const { response } = await createPlan(alice, { items: [itemFields] });

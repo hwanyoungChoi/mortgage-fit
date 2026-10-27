@@ -137,16 +137,20 @@ export async function createInteriorPlan(
   const parsed = parsePlanCreateRequest(body.value);
   if (!parsed.ok) return invalidParams(parsed.message);
 
-  const createdAt = now().toISOString();
+  const base = now();
+  const createdAt = base.toISOString();
   const planId = createRandomId();
-  const items: InteriorItem[] = parsed.value.items.map((fields) => ({
-    id: createRandomId(),
-    ...fields,
-    createdAt,
-    updatedAt: createdAt,
-  }));
+  // 같은 시각이면 GET 순서(`created_at, id`)가 무작위 id 순이 되므로, 항목 i는 기준 시각 + i ms로 둬 입력 순서를 지킨다.
+  const items: InteriorItem[] = parsed.value.items.map((fields, index) => {
+    const itemCreatedAt = new Date(base.getTime() + index).toISOString();
+    return { id: createRandomId(), ...fields, createdAt: itemCreatedAt, updatedAt: itemCreatedAt };
+  });
   const itemsJson = JSON.stringify(
-    items.map((item, index) => ({ id: item.id, data: parsed.value.items[index] })),
+    items.map((item, index) => ({
+      id: item.id,
+      data: parsed.value.items[index],
+      createdAt: item.createdAt,
+    })),
   );
   const [inserted] = await db.batch([
     db
@@ -159,12 +163,13 @@ export async function createInteriorPlan(
     db
       .prepare(
         `INSERT INTO interior_plan_items (plan_user_id, plan_id, id, data, created_at, updated_at)
-         SELECT ?1, ?2, json_extract(value, '$.id'), json_extract(value, '$.data'), ?4, ?4
+         SELECT ?1, ?2, json_extract(value, '$.id'), json_extract(value, '$.data'),
+                json_extract(value, '$.createdAt'), json_extract(value, '$.createdAt')
          FROM json_each(?3)
          WHERE ${AFTER_PLAN_INSERTED_SQL}
          ORDER BY key`,
       )
-      .bind(userId, planId, itemsJson, createdAt),
+      .bind(userId, planId, itemsJson),
   ]);
   if (inserted.meta.changes === 0) return planLimitExceeded();
 
