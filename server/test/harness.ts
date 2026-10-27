@@ -6,6 +6,7 @@ import { env } from "cloudflare:workers";
 import worker from "../../worker/index";
 import { randomBase64url, sha256Hex } from "../crypto/tokens";
 
+import type { InteriorItemInput, InteriorPlanInput } from "../../src/lib/types/interiorPlan";
 import type { ListingInput } from "../../src/lib/types/listing";
 
 export const ORIGIN = "https://loan.conychoi.dev";
@@ -184,6 +185,60 @@ export async function insertManyListings(
     .run();
 }
 
+/** 유효한 인테리어 플랜 필드(공간 2개). 필요한 것만 덮어쓴다 */
+export function planInput(overrides: Partial<InteriorPlanInput> = {}): InteriorPlanInput {
+  return {
+    name: "우리 집",
+    spaces: [
+      { id: "s1", name: "거실" },
+      { id: "s2", name: "욕실1" },
+    ],
+    ...overrides,
+  };
+}
+
+/** 유효한 인테리어 항목 필드(선택 키 없음). 필요한 것만 덮어쓴다 */
+export function itemInput(overrides: Partial<InteriorItemInput> = {}): InteriorItemInput {
+  return { spaceId: "s1", trade: "도배", status: "planned", ...overrides };
+}
+
+type PlanRowOptions = { hiddenHouseholdId?: string | null; createdAt?: string };
+
+/** 플랜 행을 직접 심는다(API를 거치지 않고 숨긴 행·시각을 만들 때) */
+export async function insertPlan(
+  db: D1Database,
+  userId: string,
+  id: string,
+  input: InteriorPlanInput = planInput(),
+  { hiddenHouseholdId = null, createdAt = "2026-10-01T00:00:00.000Z" }: PlanRowOptions = {},
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO interior_plans (user_id, id, data, hidden_household_id, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?5)`,
+    )
+    .bind(userId, id, JSON.stringify(input), hiddenHouseholdId, createdAt)
+    .run();
+}
+
+/** 플랜(`planUserId`, `planId`)에 항목 `count`개를 한 문장으로 심는다. id는 `{prefix}{1..count}` */
+export async function insertManyItems(
+  db: D1Database,
+  planUserId: string,
+  planId: string,
+  count: number,
+  prefix: string,
+): Promise<void> {
+  await db
+    .prepare(
+      `WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < ?3)
+       INSERT INTO interior_plan_items (plan_user_id, plan_id, id, data, created_at, updated_at)
+       SELECT ?1, ?2, ?4 || i, ?5, '2026-10-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z' FROM n`,
+    )
+    .bind(planUserId, planId, count, prefix, JSON.stringify(itemInput()))
+    .run();
+}
+
 export const countRows = async (db: D1Database, sql: string, ...params: unknown[]) =>
   (await db
     .prepare(`SELECT COUNT(*) AS count FROM ${sql}`)
@@ -235,6 +290,25 @@ export async function snapshotState(db: D1Database) {
     invites: await all("SELECT * FROM household_invites ORDER BY token_hash"),
     listings: await all(
       "SELECT user_id, id, data, hidden_household_id, created_at, updated_at FROM listings ORDER BY user_id, id",
+    ),
+  };
+}
+
+/** 인테리어 플랜·항목 행 전체. "실패하면 아무것도 바뀌지 않는다"를 비교할 때 쓴다 */
+export async function snapshotPlans(db: D1Database) {
+  const all = (sql: string) =>
+    db
+      .prepare(sql)
+      .all()
+      .then(({ results }) => results);
+  return {
+    plans: await all(
+      `SELECT user_id, id, data, hidden_household_id, created_at, updated_at FROM interior_plans
+       ORDER BY user_id, id`,
+    ),
+    items: await all(
+      `SELECT plan_user_id, plan_id, id, data, created_at, updated_at FROM interior_plan_items
+       ORDER BY plan_user_id, plan_id, id`,
     ),
   };
 }
