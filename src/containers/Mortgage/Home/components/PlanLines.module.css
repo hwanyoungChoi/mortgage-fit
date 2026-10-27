@@ -111,8 +111,7 @@
   color: var(--color-text-muted);
 }
 
-.secondaryText,
-.note {
+.secondaryText {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;

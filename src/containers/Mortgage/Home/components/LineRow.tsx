@@ -3,7 +3,6 @@ import { useId } from "react";
 import MaskedValue from "@/components/MaskedValue";
 import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 import { formatManwon } from "@/lib/utils/amount";
-import { rowNoteOf } from "@/lib/utils/interiorPlanRows";
 
 import styles from "./PlanLines.module.css";
 
@@ -43,11 +42,12 @@ function LineAmount({ amount, isMasked }: { amount: number | undefined; isMasked
 }
 
 /**
- * 줄 하나: [여는 버튼(세부내용 / 업체·비고 · 견적)]과 [확정 체크]를 형제로 둔다(버튼 안에 체크박스를 넣지 않는다).
+ * 줄 하나: [여는 버튼(세부내용 / 업체 · 견적)]과 [확정 체크]를 형제로 둔다(버튼 안에 체크박스를 넣지 않는다).
+ * 비고(항목 메모)와 견적 없는 줄의 "예산 n만원"은 목록에 그리지 않는다(줄 시트·표·CSV·인쇄에는 있다, 스펙 interior-tbd-amount 추가 요청).
  * 첫 줄은 세부내용이고 업체가 그 아래다. 세부내용이 없거나 가려졌으면 업체가 첫 줄이고, 가려진 세부내용은 그 아래 `•••`다
  * (첫 줄이 `•••`만 남아 어떤 줄인지 알 수 없게 되지 않도록).
  * 체크는 저장된 값 그대로이고, 저장 중에는 원래 상태로 비활성이다. 견적 없는 줄의 체크는 숨기지 않고 비활성으로 이유를 붙인다.
- * 가리기 중에는 견적·세부내용·비고를 그리지 않고 시트도 열지 않는다(A10).
+ * 가리기 중에는 견적·세부내용을 그리지 않고 시트도 열지 않는다(A10).
  */
 function LineRow({ trade, row, isMasked, isSaving, onOpen, onConfirmChange }: LineRowProps) {
   const noQuoteId = useId();
@@ -55,7 +55,6 @@ function LineRow({ trade, row, isMasked, isSaving, onOpen, onConfirmChange }: Li
   const name = nameOf(trade, row, isMasked);
   const detail = quote?.memo ?? "";
   const isDetailFirst = detail !== "" && !isMasked;
-  const note = rowNoteOf(row, formatManwon);
 
   return (
     <li className={styles.row}>
@@ -84,11 +83,6 @@ function LineRow({ trade, row, isMasked, isSaving, onOpen, onConfirmChange }: Li
                 </span>
               )}
             </>
-          )}
-          {note !== "" && (
-            <span className={styles.note}>
-              <MaskedValue isMasked={isMasked}>{note}</MaskedValue>
-            </span>
           )}
         </span>
         {quote !== null && <LineAmount amount={quote.amount} isMasked={isMasked} />}

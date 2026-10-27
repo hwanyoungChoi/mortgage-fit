@@ -222,9 +222,9 @@ describe("줄 글자 순서: 첫 줄 세부내용, 그 아래 업체", () => {
     const withDetail = rowLines("욕실 하루바스 철거·방수 열기");
     const withoutDetail = rowLines("욕실 욕실나라 열기");
 
-    expect(withDetail.map(([, text]) => text)).toEqual(["철거·방수", "하루바스", "폐기물 포함"]);
+    expect(withDetail.map(([, text]) => text)).toEqual(["철거·방수", "하루바스"]);
     // 세부내용이 없으면 업체가 첫 줄로 올라온다(빈 줄 없음)
-    expect(withoutDetail.map(([, text]) => text)).toEqual(["욕실나라", "폐기물 포함"]);
+    expect(withoutDetail.map(([, text]) => text)).toEqual(["욕실나라"]);
     // 첫 줄은 내용과 상관없이 같은 스타일, 둘째 줄(업체)은 첫 줄과 다른 스타일이다
     expect(withDetail[0][0]).toBe(withoutDetail[0][0]);
     expect(withDetail[1][0]).not.toBe(withDetail[0][0]);
@@ -421,18 +421,18 @@ describe("AC-3 확정 토글 (로그인, 서버 출처)", () => {
 });
 
 describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
-  it("[욕실: 하루바스 철거·방수 370 ✓ 폐기물 포함, 욕실나라 400 폐기물 포함, 하루바스 타일 덧방 250] → [도배: 업체·견적 빈 줄, 예산 200만원], 지출 예정 370 · 남은 예산 2,630", async () => {
+  it("[욕실: 하루바스 철거·방수 370 ✓, 욕실나라 400, 하루바스 타일 덧방 250] → [도배: 업체·견적 빈 줄], 목록에 비고 없음, 지출 예정 370 · 남은 예산 2,630", async () => {
     await renderLoggedOut(storageWith([makePlanL()]), L_HASH);
     expect(listShape()).toEqual([
       [
         "욕실",
         [
-          ["철거·방수하루바스폐기물 포함370만원", true],
-          ["욕실나라폐기물 포함400만원", false],
+          ["철거·방수하루바스370만원", true],
+          ["욕실나라400만원", false],
           ["타일 덧방하루바스250만원", false],
         ],
       ],
-      ["도배", [["견적 없음예산 200만원", false]]],
+      ["도배", [["견적 없음", false]]],
     ]);
     expect(headlineValue("지출 예정")).toBe("370만원");
     expect(headlineValue("남은 예산")).toBe("2,630만원");
@@ -568,5 +568,31 @@ describe("AC-2(e) 상한은 항목 수 100개(줄 수가 아님)", () => {
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "도배에 줄 추가" })).toBeDisabled();
     expect(screen.getByText("항목은 계획마다 100개까지 적을 수 있습니다")).toBeInTheDocument();
+  });
+});
+
+describe("목록에서 비고 숨기기 (스펙 interior-tbd-amount 추가 요청)", () => {
+  it("목록 줄에는 비고(항목 메모)와 견적 없는 줄의 '예산 n만원'이 없고, 줄 시트·표에는 그대로 있다", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith([makePlanL()]);
+    await renderLoggedOut(storage, L_HASH);
+    const bath = screen.getByRole("region", { name: "욕실" });
+    const wallpaper = screen.getByRole("region", { name: "도배" });
+    expect(bath).not.toHaveTextContent("폐기물 포함");
+    expect(wallpaper).not.toHaveTextContent("예산 200만원");
+    expect(wallpaper).toHaveTextContent("견적 없음");
+
+    // 줄 시트의 비고 칸은 그대로(항목 메모)
+    await user.click(screen.getByRole("button", { name: "욕실 욕실나라 열기" }));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    expect(within(dialog).getByLabelText("비고(선택)")).toHaveValue("폐기물 포함");
+    await user.click(within(dialog).getByRole("button", { name: "취소" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    // 표 보기의 비고 열도 그대로(항목 메모, 합성 비고 원 단위)
+    await user.click(screen.getByRole("radio", { name: "표" }));
+    const table = await screen.findByRole("table");
+    expect(within(table).getAllByText("폐기물 포함")).toHaveLength(2);
+    expect(within(table).getByText("예산 2,000,000원")).toBeInTheDocument();
   });
 });

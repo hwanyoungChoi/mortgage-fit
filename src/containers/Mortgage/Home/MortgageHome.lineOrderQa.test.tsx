@@ -71,12 +71,8 @@ describe("줄 글자 순서 (QA 보강)", () => {
     });
     await screen.findByRole("button", { name: "욕실 하루바스 철거·방수 열기" });
 
-    expect(rowTexts("욕실 하루바스 철거·방수 열기")).toEqual([
-      "철거·방수",
-      "하루바스",
-      "폐기물 포함",
-    ]);
-    expect(rowTexts("욕실 욕실나라 열기")).toEqual(["욕실나라", "폐기물 포함"]);
+    expect(rowTexts("욕실 하루바스 철거·방수 열기")).toEqual(["철거·방수", "하루바스"]);
+    expect(rowTexts("욕실 욕실나라 열기")).toEqual(["욕실나라"]);
     expect(rowTexts("욕실 하루바스 타일 덧방 열기")).toEqual(["타일 덧방", "하루바스"]);
   });
 
@@ -87,7 +83,7 @@ describe("줄 글자 순서 (QA 보강)", () => {
     const withDetail = rowTexts("욕실 하루바스 열기", 0);
     expect(withDetail.slice(0, 2)).toEqual(["하루바스", "•••가려짐"]);
     expect(rowTexts("욕실 하루바스 열기", 1)).toEqual(["하루바스", "•••가려짐"]);
-    // 세부내용 없는 욕실나라 줄: 첫 줄 업체, 그 다음은 (가려진) 비고뿐이다. 빈 첫 줄이 없다.
+    // 세부내용 없는 욕실나라 줄: 첫 줄 업체뿐이다(비고는 목록에 없다). 빈 첫 줄이 없다.
     const buttons = screen.getAllByRole("button", { name: "욕실 욕실나라 열기" });
     expect(buttons).toHaveLength(1);
     const withoutDetail = rowTexts("욕실 욕실나라 열기");

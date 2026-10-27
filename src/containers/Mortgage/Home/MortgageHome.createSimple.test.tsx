@@ -332,7 +332,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
     expect(storedPlans(storage)[0].spaces).toHaveLength(1);
   });
 
-  it("매물 카드 → 시트(이름·총 예산 420·2줄 가져오기) → 만들기 → 견적 없는 줄 2개(비고 '예산 300만원'·'예산 120만원', 체크 비활성), 지출 예정 0 · 남은 예산 420, 다시 카드 → 그 계획", async () => {
+  it("매물 카드 → 시트(이름·총 예산 420·2줄 가져오기) → 만들기 → 견적 없는 줄 2개(목록에 비고 없음, 체크 비활성), 지출 예정 0 · 남은 예산 420, 다시 카드 → 그 계획", async () => {
     const user = userEvent.setup();
     const storage = createMemoryStorage({
       [LISTINGS_STORAGE_KEY]: JSON.stringify([listingAc7]),
@@ -360,10 +360,10 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
       { spaceId, trade: "조명", budget: 120, status: "planned" },
     ]);
 
-    // 화면: 업체·견적 없는 줄 2개, 비고는 합성 "예산 n만원", 확정 체크는 비활성 + 이유
+    // 화면: 업체·견적 없는 줄 2개(합성 비고 "예산 n만원"은 목록에 그리지 않는다), 확정 체크는 비활성 + 이유
     expect(listShape()).toEqual([
-      ["도배", [["견적 없음예산 300만원", false, true]]],
-      ["조명", [["견적 없음예산 120만원", false, true]]],
+      ["도배", [["견적 없음", false, true]]],
+      ["조명", [["견적 없음", false, true]]],
     ]);
     for (const name of ["도배 확정", "조명 확정"]) {
       expect(screen.getByRole("checkbox", { name })).toHaveAccessibleDescription(
@@ -473,8 +473,8 @@ describe("AC-7 로그인(혼자·가구): POST 본문의 spaces가 하나", () =
       });
       expect(await screen.findByRole("heading", { level: 1, name: LISTING_NAME })).toBeVisible();
       expect(listShape()).toEqual([
-        ["도배", [["견적 없음예산 300만원", false, true]]],
-        ["조명", [["견적 없음예산 120만원", false, true]]],
+        ["도배", [["견적 없음", false, true]]],
+        ["조명", [["견적 없음", false, true]]],
       ]);
       expect(headlineValue("지출 예정")).toBe("0만원");
       expect(headlineValue("남은 예산")).toBe("420만원");

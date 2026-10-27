@@ -102,7 +102,7 @@ export function tbdExclusionNote(tbdCount: number): string {
 const NOTE_SEPARATOR = " · ";
 
 /**
- * 줄의 비고 = 항목 메모 · (빈 줄이면) "예산 {금액}". 금액 표기는 부르는 쪽이 정한다(목록은 만원, 표·CSV·인쇄는 원).
+ * 줄의 비고 = 항목 메모 · (빈 줄이면) "예산 {금액}". 금액 표기는 부르는 쪽이 정한다(표·CSV·인쇄는 원). 목록은 비고를 그리지 않는다.
  * 표시용이라 저장하지 않는다. 시트의 비고 칸은 `item.memo`만 쓴다(합성 비고 미저장).
  */
 export function rowNoteOf(row: InteriorPlanRow, formatBudget: (manwon: number) => string): string {
