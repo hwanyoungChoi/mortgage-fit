@@ -139,7 +139,7 @@ function createSpiedStorage(seed: Record<string, string>) {
 type User = ReturnType<typeof userEvent.setup>;
 
 /**
- * 앱 시작(#/calculator) → 저장 목록 → 우리 집(만들기·항목 추가) → #/home 직접 → 계산.
+ * 앱 시작(#/calculator) → 저장 목록 → 우리 집(만들기·줄 추가) → #/home 직접 → 계산.
  * 로그인 확인 응답 전에는 우리 집이 "불러오는 중"이라(출처 loading, 스펙 "화면 — 상태") 만들기 대신 그 상태를 확인한다.
  */
 async function walkThroughTabs(user: User, mode: FetchMode) {
@@ -166,21 +166,18 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));
 
   await user.click(screen.getByRole("button", { name: "줄 추가" }));
-  const itemSheet = screen.getByRole("dialog", { name: "항목 추가" });
-  await user.click(
-    within(within(itemSheet).getByRole("group", { name: "공종 고르기" })).getByRole("button", {
-      name: "도배",
-    }),
-  );
-  await user.type(within(itemSheet).getByLabelText("예산(선택)"), "300");
+  const itemSheet = screen.getByRole("dialog", { name: "줄 추가" });
+  await user.type(within(itemSheet).getByLabelText("구분"), "도배");
+  await user.type(within(itemSheet).getByLabelText("업체"), "육문수");
+  await user.type(within(itemSheet).getByLabelText("견적"), "300");
   await user.click(within(itemSheet).getByRole("button", { name: "저장" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 
   // 탭으로 다시 들어오면(#/home) 하나뿐인 플랜을 연다
   await user.click(screen.getByRole("link", { name: "우리 집" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
-  expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 
   await user.click(screen.getByRole("link", { name: "계산" }));
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();

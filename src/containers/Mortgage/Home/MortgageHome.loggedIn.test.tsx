@@ -42,8 +42,11 @@ function renderLoggedIn({
   return { storage, api, view };
 }
 
-const budgetInput = (dialog: HTMLElement) =>
-  within(dialog).getByLabelText("예산(선택)") as HTMLInputElement;
+const amountInput = (dialog: HTMLElement) =>
+  within(dialog).getByLabelText("견적") as HTMLInputElement;
+
+/** 서버의 타일 견적 금액(만원) */
+const C_TILE = (amount: number) => [{ id: "q-c", vendor: "C타일", amount }];
 
 /** 다른 기기·함께 쓰는 사람의 저장을 이 화면이 받아 오게 한다(창 포커스 재조회) */
 async function refocus() {
@@ -123,69 +126,71 @@ describe("같은 항목 동시 편집(AC-9 클라이언트)", () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
     await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
-    const dialog = screen.getByRole("dialog", { name: "항목" });
-    expect(budgetInput(dialog).value).toBe("600");
-    await user.clear(budgetInput(dialog));
-    await user.type(budgetInput(dialog), "610");
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    expect(amountInput(dialog).value).toBe("650");
+    await user.clear(amountInput(dialog));
+    await user.type(amountInput(dialog), "610");
 
-    // 상대가 같은 항목 예산을 900으로 저장, 이 화면이 재조회로 받는다
-    api.editItemOnServer("plan-p", "item-tile", { budget: 900 });
+    // 상대가 같은 항목 견적을 900으로 저장, 이 화면이 재조회로 받는다
+    api.editItemOnServer("plan-p", "item-tile", { quotes: C_TILE(900) });
     const getsBefore = api.callsTo("GET", PLANS_PATH).length;
     await refocus();
     await waitFor(() => expect(api.callsTo("GET", PLANS_PATH).length).toBe(getsBefore + 1));
     await act(async () => {});
     // 폴링으로 데이터가 바뀌어도 열린 시트 입력은 그대로
-    expect(budgetInput(screen.getByRole("dialog", { name: "항목" })).value).toBe("610");
+    expect(amountInput(screen.getByRole("dialog", { name: "줄" })).value).toBe("610");
 
     await user.click(
-      within(screen.getByRole("dialog", { name: "항목" })).getByRole("button", { name: "저장" }),
+      within(screen.getByRole("dialog", { name: "줄" })).getByRole("button", { name: "저장" }),
     );
-    const alert = await within(screen.getByRole("dialog", { name: "항목" })).findByRole("alert");
+    const alert = await within(screen.getByRole("dialog", { name: "줄" })).findByRole("alert");
     expect(alert).toHaveTextContent(/^다른 사람이 고쳤습니다/);
     expect(api.callsTo("PUT", TILE_PUT)).toHaveLength(0);
-    expect(api.server.plans[0].items[1].budget).toBe(900);
-    expect(budgetInput(screen.getByRole("dialog", { name: "항목" })).value).toBe("610");
+    expect(api.server.plans[0].items[1].quotes).toEqual(C_TILE(900));
+    expect(amountInput(screen.getByRole("dialog", { name: "줄" })).value).toBe("610");
 
     await user.click(screen.getByRole("button", { name: "최신 값 불러오기" }));
-    const reloaded = screen.getByRole("dialog", { name: "항목" });
-    expect(budgetInput(reloaded).value).toBe("900");
+    const reloaded = screen.getByRole("dialog", { name: "줄" });
+    expect(amountInput(reloaded).value).toBe("900");
     expect(within(reloaded).queryByRole("alert")).not.toBeInTheDocument();
-    await user.clear(budgetInput(reloaded));
-    await user.type(budgetInput(reloaded), "950");
+    await user.clear(amountInput(reloaded));
+    await user.type(amountInput(reloaded), "950");
     await user.click(within(reloaded).getByRole("button", { name: "저장" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(api.callsTo("PUT", TILE_PUT)).toHaveLength(1);
-    expect(api.server.plans[0].items[1].budget).toBe(950);
+    expect(api.server.plans[0].items[1].quotes).toEqual(C_TILE(950));
   });
 
   it("다른 항목이 바뀐 재조회는 충돌이 아니다: 저장하면 PUT 1회, 둘 다 남는다", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
     await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
-    const dialog = screen.getByRole("dialog", { name: "항목" });
-    await user.clear(budgetInput(dialog));
-    await user.type(budgetInput(dialog), "610");
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(amountInput(dialog));
+    await user.type(amountInput(dialog), "610");
     api.editItemOnServer("plan-p", "item-kitchen", { budget: 800 });
     await refocus();
     await waitFor(() => expect(api.callsTo("GET", PLANS_PATH).length).toBeGreaterThanOrEqual(2));
     await act(async () => {});
 
     await user.click(
-      within(screen.getByRole("dialog", { name: "항목" })).getByRole("button", { name: "저장" }),
+      within(screen.getByRole("dialog", { name: "줄" })).getByRole("button", { name: "저장" }),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(api.callsTo("PUT", TILE_PUT)).toHaveLength(1);
-    expect(api.server.plans[0].items.map((item) => item.budget)).toEqual([300, 610, 1200, 800]);
+    // 화면에 없는 항목 예산(600)은 PUT이 그대로 돌려보낸다
+    expect(api.server.plans[0].items.map((item) => item.budget)).toEqual([300, 600, 1200, 800]);
+    expect(api.server.plans[0].items[1].quotes).toEqual(C_TILE(610));
   });
 
   it("함께 쓰는 중 상대가 지운 항목을 저장하면(404) '함께 쓰는 사람이 삭제한 항목입니다'", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn({ isInHousehold: true });
     await user.click(await screen.findByRole("button", { name: "타일 C타일 열기" }));
-    const dialog = screen.getByRole("dialog", { name: "항목" });
-    await user.clear(budgetInput(dialog));
-    await user.type(budgetInput(dialog), "610");
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(amountInput(dialog));
+    await user.type(amountInput(dialog), "610");
     // 상대가 지움(이 화면은 아직 모름)
     api.server.plans[0].items = api.server.plans[0].items.filter((item) => item.id !== "item-tile");
 

@@ -5,7 +5,12 @@ import StatusPanel from "@/components/StatusPanel";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
-import { toggleLineConfirmInput } from "@/lib/utils/interiorLineWrites";
+import { createRandomId } from "@/lib/utils/createRandomId";
+import {
+  addLineInput,
+  editLineInput,
+  toggleLineConfirmInput,
+} from "@/lib/utils/interiorLineWrites";
 import { buildInteriorPlanRows } from "@/lib/utils/interiorPlanRows";
 
 import styles from "./MortgageHome.module.css";
@@ -26,7 +31,10 @@ import { DELETED_IN_HOUSEHOLD_MESSAGE } from "./planWriteFailure";
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
 import type { InteriorPlanCreateInput, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
-import type { InteriorPlanStore } from "@/lib/types/interiorPlanStore";
+import type {
+  InteriorPlanSourceWriteResult,
+  InteriorPlanStore,
+} from "@/lib/types/interiorPlanStore";
 import type { Listing, ListingStore } from "@/lib/types/listing";
 import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { HomeView } from "@/lib/types/route";
@@ -232,38 +240,62 @@ function MortgageHome({
         />
       );
     }
+    const { groups } = buildInteriorPlanRows(plan);
     const row =
       openSheet.rowKey === null
         ? null
-        : (buildInteriorPlanRows(plan)
-            .groups.flatMap((group) => group.rows)
+        : (groups
+            .flatMap((group) => group.rows)
             .find((candidate) => candidate.key === openSheet.rowKey) ?? null);
-    const item = row?.item ?? null;
     // 고치던 줄을 다른 곳에서 지웠다. 새 줄로 저장되지 않게 시트를 바꾼다.
     if (openSheet.rowKey !== null && row === null) {
       return <MissingSheet message={missingMessages.item} onClose={sheet.close} />;
     }
-    // 폴링으로 item이 바뀌어도 시트는 연 시점의 값에서 시작한 입력을 그대로 둔다(ItemSheet가 열 때 한 번만 읽는다).
+    const closeIfOk = (result: InteriorPlanSourceWriteResult) => {
+      if (result.ok) sheet.close();
+      return result;
+    };
+    // 폴링으로 줄이 바뀌어도 시트는 연 시점의 값에서 시작한 입력을 그대로 둔다(ItemSheet가 열 때 한 번만 읽는다).
+    // 저장 입력은 연 시점의 항목 전체에서 바꾼 칸만 덮는다(숨은 값 보존, ADR-032 조건 2).
     return (
       <ItemSheet
         key={itemSheetVersion}
-        plan={plan}
-        item={item}
-        initialSpaceId={plan.spaces[0].id}
-        onSave={async (input, openedItem) => {
-          const result =
-            openedItem === null
-              ? await source.addItem(plan.id, input)
-              : await source.updateItem(plan.id, openedItem.id, input, openedItem.updatedAt);
-          if (result.ok) sheet.close();
-          return result;
-        }}
+        tradeSuggestions={groups.map((group) => group.trade)}
+        row={row}
+        initialTrade={openSheet.trade}
+        onSave={async (values, openedRow) =>
+          closeIfOk(
+            openedRow === null
+              ? await source.addItem(
+                  plan.id,
+                  addLineInput(plan.spaces[0].id, createRandomId(), values),
+                )
+              : await source.updateItem(
+                  plan.id,
+                  openedRow.item.id,
+                  editLineInput(
+                    openedRow.item,
+                    openedRow.quote?.id ?? null,
+                    values,
+                    createRandomId,
+                  ),
+                  openedRow.item.updatedAt,
+                ),
+          )
+        }
         onReload={() => setItemSheetVersion((version) => version + 1)}
-        onDelete={async (itemId) => {
-          const result = await source.removeItem(plan.id, itemId);
-          if (result.ok) sheet.close();
-          return result;
-        }}
+        onDelete={async (removal, openedItem) =>
+          closeIfOk(
+            removal.kind === "removeItem"
+              ? await source.removeItem(plan.id, openedItem.id)
+              : await source.updateItem(
+                  plan.id,
+                  openedItem.id,
+                  removal.input,
+                  openedItem.updatedAt,
+                ),
+          )
+        }
         onClose={sheet.close}
       />
     );

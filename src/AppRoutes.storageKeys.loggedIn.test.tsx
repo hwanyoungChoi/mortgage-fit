@@ -120,7 +120,7 @@ const storedKeys = (storage: Storage) =>
 
 type User = ReturnType<typeof userEvent.setup>;
 
-/** 앱 시작(#/calculator) → 저장 목록 → 우리 집(항목 추가) → 계산 → 우리 집 */
+/** 앱 시작(#/calculator) → 저장 목록 → 우리 집(줄 추가) → 계산 → 우리 집 */
 async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
   await user.click(screen.getByRole("link", { name: "매물" }));
@@ -133,21 +133,18 @@ async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   await user.click(screen.getByRole("link", { name: "우리 집" }));
   expect(await screen.findByRole("heading", { name: planName })).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "줄 추가" }));
-  const itemSheet = screen.getByRole("dialog", { name: "항목 추가" });
-  await user.click(
-    within(within(itemSheet).getByRole("group", { name: "공종 고르기" })).getByRole("button", {
-      name: "도배",
-    }),
-  );
-  await user.type(within(itemSheet).getByLabelText("예산(선택)"), "300");
+  const itemSheet = screen.getByRole("dialog", { name: "줄 추가" });
+  await user.type(within(itemSheet).getByLabelText("구분"), "도배");
+  await user.type(within(itemSheet).getByLabelText("업체"), "육문수");
+  await user.type(within(itemSheet).getByLabelText("견적"), "300");
   await user.click(within(itemSheet).getByRole("button", { name: "저장" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 
   await user.click(screen.getByRole("link", { name: "계산" }));
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
   await user.click(screen.getByRole("link", { name: "우리 집" }));
-  expect(await screen.findByRole("button", { name: "도배 열기" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 }
 
 /** session-hint 예외(같은 값 "1" 표시)만 남았는지 */
