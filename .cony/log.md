@@ -581,3 +581,7 @@
 - AI(리드) 화면 확인(dev 5199, 360×780, 빈 저장소): 우리 집 빈 상태 새 소개 문구, 만들기 시트에 이름·총 예산만, "우리 집" 만들기 → `#/home/{id}`·spaces ["전체"]·빈 목록 문구·지출 예정 0만원. 매물 카드 진입·가져오기는 qa 2-2 테스트로
 - AI(qa) 2-2: 새 테스트 19건(1877 → 1896 + 1 todo), AC-7·AC-0(a)(b) 통과, fe 삭제 감사 X 0, 변이 9개 모두 잡힘, 결함 0 ([기록](reviews/20261027-1834-qa-task-2.md))
 - AI(리드) code-review-fe(핵심 `interiorLineWrites.ts`·화면 diff): 컨벤션 위반 없음. 쓰기 함수가 모두 `inputOf(item)`에서 시작해 숨은 값 보존이 구조로 보장됨
+
+## PR·배포
+
+- AI(리드): PR #38 CI(verify·Workers Builds) 통과 후 squash 머지(746c551). 운영 번들 index-D--2PQKA.js 반영 확인. 운영 375×812 로그아웃: 우리 집 빈 상태·홈 카드 새 소개 문구, `/api/interior-plans` 401(쿠키 없음, 예상대로). 남은 것: 실기기 인쇄·엑셀 CSV·iOS 체크/datalist, 로그인 계정 기존 계획이 새 화면에서 보이는지(사용자)
