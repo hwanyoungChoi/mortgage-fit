@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_DRAFT } from "@/lib/constants/draft";
-import { summarizeInteriorPlan } from "@/lib/utils/summarizeInteriorPlan";
+import { summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
 import {
   confirmSashD,
   makePlanP,
@@ -13,6 +13,7 @@ import {
   pTime,
   withItem,
 } from "@/test/interiorPlanFixture";
+import { makeSimplePlanP } from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
 
 import { summarizeHub, type HubSummary } from "./summarizeHub";
@@ -20,8 +21,6 @@ import { summarizeHub, type HubSummary } from "./summarizeHub";
 import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { InteriorPlanListState } from "@/lib/types/interiorPlanStore";
 import type { ListingListState } from "@/lib/types/listing";
-
-const NOW = new Date(2026, 10, 10, 12, 0, 0);
 
 const listingsOk = (count: number): ListingListState => ({
   status: "ok",
@@ -43,7 +42,6 @@ function summarize(overrides: Partial<Input> = {}): HubSummary {
     listings: listingsOk(3),
     isListingsHousehold: false,
     plans: plansOk([makePlanP()]),
-    now: NOW,
     ...overrides,
   });
 }
@@ -53,7 +51,7 @@ const LOADING = { kind: "loading" } as const;
 const ERROR = { kind: "error" } as const;
 const CORRUPT = { kind: "corrupt" } as const;
 const DRAFT_125000 = { kind: "summary", value: 125000 } as const;
-const P_LINE = { id: "plan-p", name: "우리 집", upcomingTotal: 1250 };
+const P_LINE = { id: "plan-p", name: "우리 집", plannedTotal: 1530 };
 
 describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 카드의 상태가 다른 카드에 번지지 않음)", () => {
   it.each<[string, Partial<Input>, HubSummary]>([
@@ -128,7 +126,7 @@ describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 �
       {
         calculator: DRAFT_125000,
         listings: { kind: "summary", value: { count: 4, isHousehold: true } },
-        home: { kind: "summary", value: [{ id: "plan-pa", name: "A 계획", upcomingTotal: 1250 }] },
+        home: { kind: "summary", value: [{ id: "plan-pa", name: "A 계획", plannedTotal: 1530 }] },
       },
     ],
     [
@@ -196,7 +194,7 @@ describe("AC-6 매물 개수 경계", () => {
   });
 });
 
-describe("AC-6 우리 집 카드: 계획별 앞으로 낼 돈", () => {
+describe("AC-6 우리 집 카드: 계획별 지출 예정 (interior-simple U7)", () => {
   it("계획 0개 → 소개", () => {
     expect(summarize({ plans: plansOk([]) }).home).toEqual(INTRO);
   });
@@ -215,24 +213,24 @@ describe("AC-6 우리 집 카드: 계획별 앞으로 낼 돈", () => {
     ]);
   });
 
-  // 앞으로 낼 돈 = summarizeInteriorPlan(plan, now).upcomingTotal 그대로(ADR-029 조건 9).
-  // P의 1,250은 샷시 확정 견적·미지급 합계·(확정 합계 − 지급 합계)와 우연히 같아 아래 변형이 있어야 정의가 구분된다.
+  // 지출 예정 = summarizeInteriorPlan(plan).plannedTotal 그대로(확정한 줄의 견적 합). 지급·예산은 세지 않는다.
   it.each<[string, InteriorPlanWithItems, number]>([
-    ["P: ① 280−30 + ③ 1,250−250 = 1,250", makePlanP(), 1250],
+    ["예시 P(새 화면): R1 180 + R3 370 + R5 250 = 800", makeSimplePlanP(), 800],
+    ["옛 P: 도배 A 280 + 샷시 E 1,250 = 1,530(옛 앞으로 낼 돈 1,250이 아님)", makePlanP(), 1530],
     [
-      "P + 샷시 잔금 지급(paySashBalance): 250 (확정 견적 1,250·전체 합계 2,630과 구분)",
+      "옛 P + 샷시 잔금 지급(paySashBalance): 지급은 세지 않아 1,530 그대로",
       withItem(makePlanP(), "item-sash", paySashBalance),
-      250,
+      1530,
     ],
     [
-      "P + 샷시 확정 E→D(confirmSashD): 250 + 1,150−250 = 1,150 (미지급 지급 줄 합 1,250과 구분)",
+      "옛 P + 샷시 확정 E→D(confirmSashD): 280 + 1,150 = 1,430",
       withItem(makePlanP(), "item-sash", confirmSashD),
-      1150,
+      1430,
     ],
     [
-      "P + D 확정 + 잔금 지급: 샷시는 초과 지급이라 0, 합 250 (확정 합계 − 지급 합계 150과 구분)",
+      "옛 P + D 확정 + 잔금 지급: 1,430",
       withItem(makePlanP(), "item-sash", (item) => paySashBalance(confirmSashD(item))),
-      250,
+      1430,
     ],
     ["항목 없음: 0", makePlanP({ items: [] }), 0],
     [
@@ -248,11 +246,11 @@ describe("AC-6 우리 집 카드: 계획별 앞으로 낼 돈", () => {
       }),
       12500,
     ],
-  ])("%s", (_name, plan, upcomingTotal) => {
-    expect(summarizeInteriorPlan(plan, NOW).upcomingTotal).toBe(upcomingTotal);
+  ])("%s", (_name, plan, plannedTotal) => {
+    expect(summarizeInteriorPlan(plan).plannedTotal).toBe(plannedTotal);
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, upcomingTotal }],
+      value: [{ id: plan.id, name: plan.name, plannedTotal }],
     });
   });
 });

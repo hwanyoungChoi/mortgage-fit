@@ -63,7 +63,6 @@ function MortgageHub({
     listings: listingSource.list,
     isListingsHousehold: listingSource.household !== null,
     plans: planSource.list,
-    now: new Date(),
   });
 
   return (
@@ -106,9 +105,9 @@ function MortgageHub({
             renderSummary={(lines) =>
               lines.map((line) => (
                 <span key={line.id} className={styles.planLine}>
-                  {line.name} · 앞으로 낼 돈{" "}
+                  {line.name} · 지출 예정{" "}
                   <MaskedValue isMasked={isPrivacyMode}>
-                    {formatManwon(line.upcomingTotal)}
+                    {formatManwon(line.plannedTotal)}
                   </MaskedValue>
                 </span>
               ))

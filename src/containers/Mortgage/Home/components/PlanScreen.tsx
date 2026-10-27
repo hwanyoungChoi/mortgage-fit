@@ -1,7 +1,6 @@
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { INTERIOR_ITEM_MAX_COUNT } from "@/lib/constants/interiorPlan";
 import { buildInteriorPlanRows, summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
-import { summarizeInteriorPlan as summarizeForTable } from "@/lib/utils/summarizeInteriorPlan";
 import { toLocalDateString } from "@/lib/utils/toLocalDateString";
 
 import PlanLines from "./PlanLines";
@@ -70,7 +69,7 @@ function PlanScreen({
 }: PlanScreenProps) {
   const now = new Date();
   const summary = summarizeInteriorPlan(plan);
-  const { groups } = buildInteriorPlanRows(plan);
+  const rows = buildInteriorPlanRows(plan);
   const canAddLine = plan.items.length < INTERIOR_ITEM_MAX_COUNT;
 
   return (
@@ -115,13 +114,14 @@ function PlanScreen({
       {view === "table" ? (
         <PlanTableView
           planName={plan.name}
-          summary={summarizeForTable(plan, now)}
+          rows={rows}
+          summary={summary}
           today={toLocalDateString(now)}
           isPrivacyMode={isPrivacyMode}
         />
       ) : (
         <PlanLines
-          groups={groups}
+          groups={rows.groups}
           isMasked={isPrivacyMode}
           canAddLine={canAddLine}
           onLineAdd={onLineAdd}

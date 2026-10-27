@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import MaskedValue from "@/components/MaskedValue";
 import {
   INTERIOR_PLAN_EXPORT_NOTICES,
@@ -19,17 +21,19 @@ import PlanTable from "./PlanTable";
 import styles from "./PlanTable.module.css";
 
 import type { InteriorPlanTableHeading } from "@/lib/utils/interiorPlanExportText";
-import type { InteriorPlanSummary } from "@/lib/utils/summarizeInteriorPlan";
+import type { InteriorPlanRows, InteriorPlanSummary } from "@/lib/utils/interiorPlanRows";
 
 type PlanTableViewProps = {
   planName: string;
+  /** 목록과 같은 줄 묶음 */
+  rows: InteriorPlanRows;
   summary: InteriorPlanSummary;
-  /** 요약과 같은 `now`의 기기 날짜. 표 머리와 파일 이름이 같이 쓴다(A14) */
+  /** 렌더의 `now`에서 온 기기 날짜. 표 머리와 파일 이름이 같이 쓴다(A14) */
   today: string;
   isPrivacyMode: boolean;
 };
 
-/** 버튼 줄 아래 안내 한 줄. 항목 0개면 없음(가리기보다 먼저) → 가리기 → 고정 안내(U18·U21) */
+/** 버튼 줄 아래 안내 한 줄. 줄 0개면 없음(가리기보다 먼저) → 가리기 → 고정 안내(U18·U21) */
 function exportNoticeOf(hasItems: boolean, isPrivacyMode: boolean): string | null {
   if (!hasItems) return null;
   return isPrivacyMode
@@ -37,7 +41,7 @@ function exportNoticeOf(hasItems: boolean, isPrivacyMode: boolean): string | nul
     : INTERIOR_PLAN_EXPORT_NOTICES.browser;
 }
 
-/** 표 머리 둘째 줄. 가리기 때는 총 예산·예상 총액 조각만 가린다(기준일은 보인다) */
+/** 표 머리 둘째 줄. 가리기 때는 금액 조각(총 예산·지출 예정·남은 예산/예산 초과)만 가린다(기준일은 보인다) */
 function HeadingLine({
   heading,
   isMasked,
@@ -46,17 +50,18 @@ function HeadingLine({
   isMasked: boolean;
 }) {
   if (!isMasked) return heading.line;
+  const moneyPieces = [heading.budget, heading.plannedTotal, heading.remaining].filter(
+    (piece): piece is string => piece !== undefined,
+  );
   return (
     <>
       {heading.basis}
-      {heading.budget !== undefined && (
-        <>
+      {moneyPieces.map((piece) => (
+        <Fragment key={piece}>
           {INTERIOR_PLAN_TABLE_SEPARATOR}
-          <MaskedValue isMasked>{heading.budget}</MaskedValue>
-        </>
-      )}
-      {INTERIOR_PLAN_TABLE_SEPARATOR}
-      <MaskedValue isMasked>{heading.expectedTotal}</MaskedValue>
+          <MaskedValue isMasked>{piece}</MaskedValue>
+        </Fragment>
+      ))}
     </>
   );
 }
@@ -66,8 +71,8 @@ function HeadingLine({
  * 표·파일은 매 렌더의 값으로 만들어 폴링 뒤에도 화면에 보이는 표와 받는 파일이 같다. 저장소·서버에는 아무것도 쓰지 않는다.
  * 인쇄는 `data-print-area` 하나만 보이게 하는 전역 규칙(`index.css`)이 처리한다.
  */
-function PlanTableView({ planName, summary, today, isPrivacyMode }: PlanTableViewProps) {
-  const table = buildInteriorPlanTable(summary.tradeGroups);
+function PlanTableView({ planName, rows, summary, today, isPrivacyMode }: PlanTableViewProps) {
+  const table = buildInteriorPlanTable(rows);
   const heading = interiorPlanTableHeading(planName, summary, today);
   const hasItems = table.groups.length > 0;
   // 내보내기 판단은 여기 한 곳. 버튼 비활성과 두 핸들러의 첫 줄이 같은 값을 쓴다(가린 값이 파일·인쇄로 나가지 않게).

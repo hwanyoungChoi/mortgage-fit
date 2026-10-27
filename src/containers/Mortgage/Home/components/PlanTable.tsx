@@ -37,7 +37,7 @@ type PlanTableRowProps = {
   isMasked: boolean;
 };
 
-/** 항목 한 줄. 가리기 때 `[공간]`·업체는 보이고 메모·금액·비고만 가린다 */
+/** 줄 하나. 가리기 때 구분·업체는 보이고 세부내용·금액·비고만 가린다 */
 function PlanTableRow({ row, trade, isMasked }: PlanTableRowProps) {
   return (
     <tr>
@@ -48,13 +48,7 @@ function PlanTableRow({ row, trade, isMasked }: PlanTableRowProps) {
       )}
       <td className={styles.vendorCell}>{row.vendor}</td>
       <td className={styles.detailCell}>
-        {row.spaceLabel}
-        {row.quoteMemo !== "" && (
-          <>
-            {" "}
-            <MaskedValue isMasked={isMasked}>{row.quoteMemo}</MaskedValue>
-          </>
-        )}
+        {row.detail !== "" && <MaskedValue isMasked={isMasked}>{row.detail}</MaskedValue>}
       </td>
       <AmountCell won={row.quoteWon} isMasked={isMasked} />
       <AmountCell won={row.confirmedWon} isMasked={isMasked} />
@@ -73,7 +67,7 @@ type PlanTableProps = {
 };
 
 /**
- * 계획 표(읽기 전용): 열 제목 → 구분(공종)마다 `<tbody>` 하나 → `<tfoot>` "계".
+ * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정 칸만, U6).
  * 금액은 이미 원 단위라 천 단위 쉼표만 붙이고 다시 곱하지 않는다. 빈칸은 비워 둔다.
  */
 function PlanTable({ table, title, isMasked }: PlanTableProps) {
@@ -91,7 +85,7 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
       {table.groups.map((group) => (
         <tbody key={group.trade} className={styles.group}>
           {group.rows.map((row, index) => (
-            // 줄은 공종별 화면의 항목 순서 그대로이고 읽기 전용이라 순서를 key로 쓴다
+            // 줄은 목록의 줄 순서 그대로이고 읽기 전용이라 순서를 key로 쓴다
             <PlanTableRow
               key={index}
               row={row}
@@ -108,8 +102,8 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
           </th>
           <td className={styles.vendorCell} />
           <td className={styles.detailCell} />
-          <AmountCell won={table.totals.quote} isMasked={isMasked} />
-          <AmountCell won={table.totals.confirmed} isMasked={isMasked} />
+          <td className={styles.amountCell} />
+          <AmountCell won={table.confirmedTotal} isMasked={isMasked} />
           <td className={styles.noteCell} />
         </tr>
       </tfoot>

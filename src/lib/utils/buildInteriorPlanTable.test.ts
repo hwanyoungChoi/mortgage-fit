@@ -1,29 +1,28 @@
-// 스펙 interior-planner "표 내보내기 — 줄 만들기", AC-11(태스크 5-2). 금액 기대값은 모두 만원 × 10,000을 손으로 계산한 값이다.
+// 스펙 interior-simple "표 보기"·AC-5(줄 = 목록의 줄, 계는 확정만, 비고 = 항목 메모 · 빈 줄의 예산).
+// 금액 기대값은 모두 만원 × 10,000을 손으로 계산한 값이다.
 import { describe, expect, it } from "vitest";
 
 import { makePlanP, P_SPACES, pTime } from "@/test/interiorPlanFixture";
 import { makePlanQ, qAircon } from "@/test/interiorPlanTableFixture";
+import { makePlanL, makeSimplePlanP } from "@/test/interiorSimpleFixture";
 
 import { formatThousands } from "./amount";
 import { buildInteriorPlanTable } from "./buildInteriorPlanTable";
-import { summarizeInteriorPlan } from "./summarizeInteriorPlan";
+import { buildInteriorPlanRows, summarizeInteriorPlan } from "./interiorPlanRows";
 
 import type { InteriorPlanTable, InteriorPlanTableRow } from "./buildInteriorPlanTable";
-import type { InteriorItem, InteriorPlanWithItems, InteriorQuote } from "@/lib/types/interiorPlan";
+import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 
-const NOW = new Date(2026, 9, 27, 12, 0, 0);
+const tableOf = (plan: Pick<InteriorPlanWithItems, "items">) =>
+  buildInteriorPlanTable(buildInteriorPlanRows(plan));
 
-const tableOf = (plan: InteriorPlanWithItems) =>
-  buildInteriorPlanTable(summarizeInteriorPlan(plan, NOW).tradeGroups);
-
-/** 구분과 줄을 펼친 모양: [구분, 업체, 공간, 견적 메모, 견적(원), 확정(원), 비고] */
+/** 구분과 줄을 펼친 모양: [구분, 업체, 세부내용, 견적(원), 확정(원), 비고] */
 const flat = (table: InteriorPlanTable) =>
   table.groups.flatMap((group) =>
     group.rows.map((row) => [
       group.trade,
       row.vendor,
-      row.spaceLabel,
-      row.quoteMemo,
+      row.detail,
       row.quoteWon,
       row.confirmedWon,
       row.note,
@@ -31,7 +30,7 @@ const flat = (table: InteriorPlanTable) =>
   );
 
 let itemSeq = 0;
-/** 플랜 하나에 넣을 항목(기본: 욕실1/타일, 예산·견적·메모 없음) */
+/** 항목 하나(기본: 타일, 예산·견적·메모 없음) */
 function item(fields: Partial<InteriorItem> = {}): InteriorItem {
   itemSeq += 1;
   return {
@@ -45,178 +44,119 @@ function item(fields: Partial<InteriorItem> = {}): InteriorItem {
   };
 }
 
-const quotes = (...entries: [string, number, string?][]): InteriorQuote[] =>
-  entries.map(([vendor, amount, memo], index) => ({
-    id: `quote-${index}`,
-    vendor,
-    amount,
-    ...(memo !== undefined && { memo }),
-  }));
-
-const planWith = (items: InteriorItem[], fields: Partial<InteriorPlanWithItems> = {}) =>
-  makePlanP({ items, ...fields });
-
-/** 항목 하나짜리 플랜의 그 줄 */
+/** 항목 하나짜리 계획의 그 줄 */
 const onlyRow = (one: InteriorItem): InteriorPlanTableRow => {
-  const table = tableOf(planWith([one]));
+  const table = tableOf({ items: [one] });
   expect(table.groups).toHaveLength(1);
   expect(table.groups[0].rows).toHaveLength(1);
   return table.groups[0].rows[0];
 };
 
-describe("buildInteriorPlanTable — 예시 Q (AC-11 'Q 표')", () => {
-  it("줄 순서 욕실 → 필름 → 바닥 → 에어컨(직접 입력은 맨 뒤), 욕실 안은 q3 → q4, 열 값이 Q 표와 같다", () => {
-    const table = tableOf(makePlanQ());
+describe("buildInteriorPlanTable — 예시 P (AC-5)", () => {
+  it("목록과 같은 순서 5줄, 확정 R1·R3·R5만 확정 칸, 계 8,000,000", () => {
+    const table = tableOf(makeSimplePlanP());
+    expect(flat(table)).toEqual([
+      ["도배", "육문수", "실크 전체", 1_800_000, 1_800_000, ""],
+      ["도배", "동네도배", "합지", 1_500_000, undefined, ""],
+      ["욕실", "하루바스", "철거·방수 (1)", 3_700_000, 3_700_000, ""],
+      ["욕실", "욕실나라", "철거·방수 (1)", 4_000_000, undefined, ""],
+      ["욕실", "하루바스", "타일 덧방 (2)", 2_500_000, 2_500_000, ""],
+    ]);
+    expect(table.confirmedTotal).toBe(8_000_000);
+  });
+
+  it("계는 확정 칸만 있고 견적 합계는 두지 않는다(U6), 계 = 지출 예정 × 10,000", () => {
+    const plan = makeSimplePlanP();
+    const table = tableOf(plan);
+    expect(Object.keys(table).toSorted()).toEqual(["confirmedTotal", "groups"]);
+    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotal * 10_000);
+  });
+});
+
+describe("buildInteriorPlanTable — 옛 계획 L (AC-5)", () => {
+  it("견적마다 한 줄, 항목 메모는 그 항목의 모든 줄, 빈 줄 비고 '예산 2,000,000원', 옛 비고 조각 없음, 계 3,700,000", () => {
+    const table = tableOf(makePlanL());
+    expect(flat(table)).toEqual([
+      ["욕실", "하루바스", "철거·방수", 3_700_000, 3_700_000, "폐기물 포함"],
+      ["욕실", "욕실나라", "", 4_000_000, undefined, "폐기물 포함"],
+      ["욕실", "하루바스", "타일 덧방", 2_500_000, undefined, ""],
+      ["도배", "", "", undefined, undefined, "예산 2,000,000원"],
+    ]);
+    expect(table.confirmedTotal).toBe(3_700_000);
+    expect(JSON.stringify(table)).not.toMatch(/미확정|최저|초과/);
+  });
+});
+
+describe("buildInteriorPlanTable — 예시 Q·옛 P (여러 견적 항목)", () => {
+  it("Q: 바닥 → 필름 → 욕실(q3 견적 2줄 → q4 견적 2줄) → 에어컨, 계 7,500,000 = 지출 예정(750) × 10,000", () => {
+    const plan = makePlanQ();
+    const table = tableOf(plan);
     expect(table.groups.map((group) => [group.trade, group.rows.length])).toEqual([
-      ["욕실", 2],
-      ["필름", 1],
       ["바닥", 1],
+      ["필름", 1],
+      ["욕실", 4],
       ["에어컨", 1],
     ]);
     expect(flat(table)).toEqual([
-      [
-        "욕실",
-        "숨고_하루바스",
-        "[욕실1]",
-        "철거, 방수, 도기 교체",
-        3_700_000,
-        3_700_000,
-        "폐기물처리 포함 · 예산 대비 700,000원 초과",
-      ],
-      // 미확정 q4: 첫 견적(숨고_하루바스 250)이 아니라 최저 동네욕실 230, 확정 빈칸
-      ["욕실", "동네욕실", "[욕실2]", "", 2_300_000, undefined, "미확정 · 견적 2개 중 최저"],
-      ["필름", "숨고_빛인테리어필름", "[전체]", "샷시·몰딩", 2_000_000, 2_000_000, ""],
-      ["바닥", "육문수", "[전체]", "2.2T 장판", 1_800_000, 1_800_000, ""],
-      // 견적 0개 q5: 업체·견적·확정 빈칸, 비고 = 항목 메모 · 예산
-      ["에어컨", "", "[거실]", "", undefined, undefined, "추후 구매 · 예산 1,500,000원"],
+      ["바닥", "육문수", "2.2T 장판", 1_800_000, 1_800_000, ""],
+      ["필름", "숨고_빛인테리어필름", "샷시·몰딩", 2_000_000, 2_000_000, ""],
+      ["욕실", "숨고_하루바스", "철거, 방수, 도기 교체", 3_700_000, 3_700_000, "폐기물처리 포함"],
+      ["욕실", "욕실나라", "", 4_000_000, undefined, "폐기물처리 포함"],
+      ["욕실", "숨고_하루바스", "타일 덧방", 2_500_000, undefined, ""],
+      ["욕실", "동네욕실", "", 2_300_000, undefined, ""],
+      ["에어컨", "", "", undefined, undefined, "추후 구매 · 예산 1,500,000원"],
     ]);
+    expect(table.confirmedTotal).toBe(7_500_000);
+    expect(summarizeInteriorPlan(plan).plannedTotal).toBe(750);
   });
 
-  it("계: 견적 9,800,000 · 확정 7,500,000 = 요약 confirmedTotal(750) × 10,000", () => {
-    const plan = makePlanQ();
-    const summary = summarizeInteriorPlan(plan, NOW);
-    const table = buildInteriorPlanTable(summary.tradeGroups);
-    expect(table.totals).toEqual({ quote: 9_800_000, confirmed: 7_500_000 });
-    expect(summary.confirmedTotal).toBe(750);
-    expect(table.totals.confirmed).toBe(summary.confirmedTotal * 10_000);
-  });
-
-  it("계 견적은 대표 견적 합이고 요약 '예상 총액'(1,150 × 10,000)과 다르다(미확정 q4는 예산 250, q5는 예산 150)", () => {
-    const summary = summarizeInteriorPlan(makePlanQ(), NOW);
-    expect(summary.expectedTotal).toBe(180 + 200 + 370 + 250 + 150);
-    expect(buildInteriorPlanTable(summary.tradeGroups).totals.quote).not.toBe(
-      summary.expectedTotal * 10_000,
-    );
-  });
-});
-
-describe("buildInteriorPlanTable — fixture P (AC-11 필수: 확정이 최저가 아닌 줄)", () => {
-  it("샷시(확정 E 1,250 > 최저 D 1,150) → 타일 → 도배 → 주방가구, 계 21,800,000 / 15,300,000", () => {
-    const plan = makePlanP();
-    const summary = summarizeInteriorPlan(plan, NOW);
-    const table = buildInteriorPlanTable(summary.tradeGroups);
+  it("옛 P: 확정이 최저가 아닌 샷시(D 11,500,000 미확정 · E 12,500,000 확정)도 견적마다 한 줄, 계 15,300,000", () => {
+    const table = tableOf(makePlanP());
     expect(flat(table)).toEqual([
-      ["샷시", "E샷시", "[전체]", "", 12_500_000, 12_500_000, "예산 대비 500,000원 초과"],
-      ["타일", "C타일", "[욕실1]", "", 6_500_000, undefined, "미확정"],
-      ["도배", "A도배", "[거실]", "", 2_800_000, 2_800_000, ""],
-      ["주방가구", "", "[주방]", "", undefined, undefined, "예산 5,000,000원"],
+      ["도배", "A도배", "", 2_800_000, 2_800_000, ""],
+      ["도배", "B도배", "", 3_200_000, undefined, ""],
+      ["타일", "C타일", "", 6_500_000, undefined, ""],
+      ["샷시", "D샷시", "", 11_500_000, undefined, ""],
+      ["샷시", "E샷시", "", 12_500_000, 12_500_000, ""],
+      ["주방가구", "", "", undefined, undefined, "예산 5,000,000원"],
     ]);
-    expect(table.totals).toEqual({ quote: 21_800_000, confirmed: 15_300_000 });
-    expect(table.totals.confirmed).toBe(summary.confirmedTotal * 10_000);
-  });
-});
-
-describe("buildInteriorPlanTable — 대표 견적 경계 (AC-11 경계 입력)", () => {
-  it("동률 [Z 300, X 200, Y 200] 미확정 → 먼저 적은 X, 2,000,000, 확정 빈칸, '미확정 · 견적 3개 중 최저'", () => {
-    const row = onlyRow(item({ quotes: quotes(["Z", 300], ["X", 200], ["Y", 200]) }));
-    expect(row).toEqual({
-      vendor: "X",
-      spaceLabel: "[욕실1]",
-      quoteMemo: "",
-      quoteWon: 2_000_000,
-      confirmedWon: undefined,
-      note: "미확정 · 견적 3개 중 최저",
-    });
+    expect(table.confirmedTotal).toBe(15_300_000);
   });
 
-  it("최저가 마지막 [300, 200] 미확정 → 두 번째 견적과 그 메모, '미확정 · 견적 2개 중 최저'", () => {
-    const row = onlyRow(
-      item({ quotes: quotes(["첫업체", 300, "첫 메모"], ["둘째업체", 200, "둘째 메모"]) }),
-    );
-    expect(row.vendor).toBe("둘째업체");
-    expect(row.quoteMemo).toBe("둘째 메모");
-    expect(row.quoteWon).toBe(2_000_000);
-    expect(row.note).toBe("미확정 · 견적 2개 중 최저");
-  });
-
-  it("견적 5개 미확정 → '미확정 · 견적 5개 중 최저'", () => {
-    const row = onlyRow(
-      item({ quotes: quotes(["a", 500], ["b", 400], ["c", 300], ["d", 350], ["e", 450]) }),
-    );
-    expect(row.vendor).toBe("c");
-    expect(row.note).toBe("미확정 · 견적 5개 중 최저");
-  });
-
-  it("확정이 최저도 첫 견적도 아니면 확정 견적(확정 우선)", () => {
+  it("확정 견적 id가 견적에 없으면 그 항목의 줄은 모두 미확정(확정 빈칸)", () => {
     const one = item({
-      budget: 1000,
-      quotes: quotes(["싼곳", 100, "싼 메모"], ["비싼곳", 900, "비싼 메모"], ["중간", 500]),
+      quotes: [
+        { id: "a", vendor: "a", amount: 300 },
+        { id: "b", vendor: "b", amount: 200 },
+      ],
+      confirmedQuoteId: "no-such-quote",
     });
-    const row = onlyRow({ ...one, confirmedQuoteId: "quote-1" });
-    expect(row).toEqual({
-      vendor: "비싼곳",
-      spaceLabel: "[욕실1]",
-      quoteMemo: "비싼 메모",
-      quoteWon: 9_000_000,
-      confirmedWon: 9_000_000,
-      note: "",
-    });
-  });
-
-  it("확정 견적 id가 견적에 없으면 미확정으로 본다(최저, 확정 빈칸)", () => {
-    const one = item({ quotes: quotes(["a", 300], ["b", 200]) });
-    const row = onlyRow({ ...one, confirmedQuoteId: "no-such-quote" });
-    expect(row.vendor).toBe("b");
-    expect(row.confirmedWon).toBeUndefined();
-    expect(row.note).toBe("미확정 · 견적 2개 중 최저");
+    const table = tableOf({ items: [one] });
+    expect(table.groups[0].rows.map((row) => row.confirmedWon)).toEqual([undefined, undefined]);
+    expect(table.confirmedTotal).toBe(0);
   });
 });
 
-describe("buildInteriorPlanTable — 비고 조각 조합 (①항목 메모 ②미확정 ③초과 ④예산)", () => {
-  it("①② 항목 메모 + 미확정(견적 1개) → '철거 별도 · 미확정'", () => {
-    expect(onlyRow(item({ memo: "철거 별도", quotes: quotes(["a", 100]) })).note).toBe(
-      "철거 별도 · 미확정",
-    );
-  });
-
-  it("①③ 항목 메모 + 확정 초과", () => {
-    const one = item({ memo: "메모", budget: 100, quotes: quotes(["a", 123]) });
-    expect(onlyRow({ ...one, confirmedQuoteId: "quote-0" }).note).toBe(
-      "메모 · 예산 대비 230,000원 초과",
-    );
-  });
-
-  it("①④ 항목 메모 + 견적 0개·예산", () => {
+describe("buildInteriorPlanTable — 비고 (항목 메모 · 빈 줄의 예산)", () => {
+  it("빈 줄의 항목 메모 + 예산 → '메모 · 예산 70,000원'", () => {
     expect(onlyRow(item({ memo: "메모", budget: 7 })).note).toBe("메모 · 예산 70,000원");
   });
 
-  it("② 미확정만, ③ 초과만, ④ 예산만", () => {
-    expect(onlyRow(item({ budget: 50, quotes: quotes(["a", 100]) })).note).toBe("미확정");
-    const over = item({ budget: 50, quotes: quotes(["a", 100]) });
-    expect(onlyRow({ ...over, confirmedQuoteId: "quote-0" }).note).toBe("예산 대비 500,000원 초과");
+  it("빈 줄의 예산만 → '예산 10,000원'", () => {
     expect(onlyRow(item({ budget: 1 })).note).toBe("예산 10,000원");
   });
 
-  it("확정 = 예산(초과 0)이면 초과 조각이 없다", () => {
-    const one = item({ budget: 100, quotes: quotes(["a", 100]) });
-    expect(onlyRow({ ...one, confirmedQuoteId: "quote-0" }).note).toBe("");
+  it("견적이 있는 줄은 항목 예산이 있어도 비고에 예산이 없다(항목 메모만)", () => {
+    const row = onlyRow(
+      item({ memo: "철거 별도", budget: 50, quotes: [{ id: "q", vendor: "a", amount: 100 }] }),
+    );
+    expect(row.note).toBe("철거 별도");
   });
 
-  it("비고가 빈 줄: 견적 0개·예산 없음·항목 메모 없음 → 업체·견적·확정·비고 빈칸, 세부내용은 [공간]뿐", () => {
+  it("비고가 빈 줄: 견적 0개·예산 없음·항목 메모 없음 → 업체·세부내용·견적·확정·비고 빈칸", () => {
     expect(onlyRow(item())).toEqual({
       vendor: "",
-      spaceLabel: "[욕실1]",
-      quoteMemo: "",
+      detail: "",
       quoteWon: undefined,
       confirmedWon: undefined,
       note: "",
@@ -224,37 +164,28 @@ describe("buildInteriorPlanTable — 비고 조각 조합 (①항목 메모 ②�
   });
 });
 
-describe("buildInteriorPlanTable — 공간·구분", () => {
-  it("공간이 사라진 항목은 [공간 없음], 대표 견적 메모가 있으면 그 메모", () => {
-    const gone = item({ spaceId: "sp-deleted", quotes: quotes(["a", 10, "메모"]) });
-    expect(onlyRow(gone)).toMatchObject({ spaceLabel: "[공간 없음]", quoteMemo: "메모" });
-    expect(onlyRow(item({ spaceId: "sp-deleted" })).spaceLabel).toBe("[공간 없음]");
-  });
-
-  it("구분은 저장된 공종 이름 그대로(직접 입력 포함), 직접 입력 공종은 맨 뒤 입력순", () => {
-    const table = tableOf(
-      planWith([
+describe("buildInteriorPlanTable — 구분", () => {
+  it("구분은 저장된 이름 그대로(직접 입력 포함), 묶음은 처음 나온 순(공정 순서로 다시 정렬하지 않는다)", () => {
+    const table = tableOf({
+      items: [
         item({ trade: "방충망" }),
         item({ trade: "도배" }),
         item({ trade: "단열" }),
         item({ trade: "샷시" }),
-      ]),
-    );
-    expect(table.groups.map((group) => group.trade)).toEqual(["샷시", "도배", "방충망", "단열"]);
+      ],
+    });
+    expect(table.groups.map((group) => group.trade)).toEqual(["방충망", "도배", "단열", "샷시"]);
   });
 });
 
 describe("buildInteriorPlanTable — 합계 0과 빈 입력", () => {
-  it("q5만 있는 플랜: 계 견적 0 · 확정 0(빈칸이 아니라 0)", () => {
-    expect(tableOf(makePlanQ({ items: [qAircon()] })).totals).toEqual({ quote: 0, confirmed: 0 });
+  it("q5만 있는 계획: 계 0(빈칸이 아니라 0)", () => {
+    expect(tableOf({ items: [qAircon()] }).confirmedTotal).toBe(0);
   });
 
-  it("buildInteriorPlanTable([]) → groups [] · totals 0/0", () => {
-    expect(buildInteriorPlanTable([])).toEqual({ groups: [], totals: { quote: 0, confirmed: 0 } });
-    expect(tableOf(makePlanQ({ items: [] }))).toEqual({
-      groups: [],
-      totals: { quote: 0, confirmed: 0 },
-    });
+  it("줄 0개 → groups [] · 계 0", () => {
+    expect(tableOf({ items: [] })).toEqual({ groups: [], confirmedTotal: 0 });
+    expect(tableOf(makePlanQ({ items: [] }))).toEqual({ groups: [], confirmedTotal: 0 });
   });
 });
 
@@ -278,13 +209,11 @@ describe("buildInteriorPlanTable — 최대 금액(정확한 값)", () => {
   });
 
   it("항목 100개 모두 확정 999,999,999 → 계 999999999000000, 화면 문자열 999,999,999,000,000", () => {
-    const plan = planWith(Array.from({ length: 100 }, (_, index) => maxItem(index)));
-    const summary = summarizeInteriorPlan(plan, NOW);
-    const table = buildInteriorPlanTable(summary.tradeGroups);
-    expect(table.totals.confirmed).toBe(999_999_999_000_000);
-    expect(table.totals.quote).toBe(999_999_999_000_000);
-    expect(table.totals.confirmed).toBe(summary.confirmedTotal * 10_000);
-    expect(formatThousands(table.totals.confirmed)).toBe("999,999,999,000,000");
-    expect(Number.isSafeInteger(table.totals.confirmed)).toBe(true);
+    const plan = makePlanP({ items: Array.from({ length: 100 }, (_, index) => maxItem(index)) });
+    const table = tableOf(plan);
+    expect(table.confirmedTotal).toBe(999_999_999_000_000);
+    expect(table.confirmedTotal).toBe(summarizeInteriorPlan(plan).plannedTotal * 10_000);
+    expect(formatThousands(table.confirmedTotal)).toBe("999,999,999,000,000");
+    expect(Number.isSafeInteger(table.confirmedTotal)).toBe(true);
   });
 });
