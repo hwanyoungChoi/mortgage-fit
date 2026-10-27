@@ -4,6 +4,7 @@ import {
   INTERIOR_PLAN_MAX_COUNT,
 } from "@/lib/constants/interiorPlan";
 
+import { budgetMergePatch } from "./budgetMergePatch";
 import {
   parseInteriorItem,
   parseInteriorPlan,
@@ -79,13 +80,27 @@ export function parseInteriorPlans(rawText: string | null): InteriorPlanSnapshot
   return { status: "ok", plans };
 }
 
-/** 플랜 필드에 PATCH(키 없음 = 그대로, null = 지움)를 얹는다. 검증은 부르는 쪽이 한다. */
-function applyPlanPatch(plan: InteriorPlanWithItems, patch: InteriorPlanPatch): InteriorPlanInput {
-  const budget = patch.budget === undefined ? plan.budget : (patch.budget ?? undefined);
-  const listingId = patch.listingId === undefined ? plan.listingId : (patch.listingId ?? undefined);
+/** merge patch 한 키: undefined = 그대로, null = 지움 */
+const mergeValue = <T>(current: T | undefined, next: T | null | undefined): T | undefined =>
+  next === undefined ? current : (next ?? undefined);
+
+/**
+ * 플랜 필드에 PATCH(키 없음 = 그대로, null = 지움)를 얹는다. 총 예산 두 키는 서버와 같은 `budgetMergePatch`로 정하고,
+ * 둘 다 숫자면 null(거부)이다. 값 검증은 부르는 쪽이 한다.
+ */
+function applyPlanPatch(
+  plan: InteriorPlanWithItems,
+  patch: InteriorPlanPatch,
+): InteriorPlanInput | null {
+  const budgets = budgetMergePatch(patch);
+  if (budgets === null) return null;
+  const budget = mergeValue(plan.budget, budgets.budget);
+  const budgetWon = mergeValue(plan.budgetWon, budgets.budgetWon);
+  const listingId = mergeValue(plan.listingId, patch.listingId);
   return {
     name: patch.name ?? plan.name,
     ...(budget !== undefined && { budget }),
+    ...(budgetWon !== undefined && { budgetWon }),
     ...(listingId !== undefined && { listingId }),
     spaces: patch.spaces ?? plan.spaces,
   };
@@ -214,7 +229,8 @@ export function createInteriorPlanStore({
 
     updatePlan(planId, patch) {
       return writePlan(planId, (plan) => {
-        const fields = validateInteriorPlanFields(applyPlanPatch(plan, patch));
+        const patched = applyPlanPatch(plan, patch);
+        const fields = patched === null ? null : validateInteriorPlanFields(patched);
         if (fields === null) return { ok: false, reason: "invalid" };
         const { id, createdAt, items } = plan;
         return { id, ...fields, createdAt, updatedAt: now(), items };

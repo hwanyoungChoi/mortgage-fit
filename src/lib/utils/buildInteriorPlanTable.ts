@@ -1,4 +1,5 @@
-import { INTERIOR_PLAN_TBD_LABEL, WON_PER_MANWON } from "@/lib/constants/interiorPlanTable";
+import { WON_PER_MANWON } from "@/lib/constants/interiorPlan";
+import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 
 import { formatThousands } from "./amount";
 import { rowNoteOf, tbdExclusionNote } from "./interiorPlanRows";

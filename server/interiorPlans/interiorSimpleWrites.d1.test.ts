@@ -161,7 +161,13 @@ const fullItem = (status: InteriorItemStatus): InteriorItemInput => ({
   budget: 350,
   quotes: [
     { id: "fq1", vendor: "하루바스", contact: "010-1234-5678", amount: 370, memo: "철거·방수" },
-    { id: "fq2", vendor: "욕실나라", contact: "02-123-4567", amount: 400, memo: "도기 포함" },
+    {
+      id: "fq2",
+      vendor: "욕실나라",
+      contact: "02-123-4567",
+      amountWon: 4_000_000,
+      memo: "도기 포함",
+    },
   ],
   confirmedQuoteId: "fq1",
   payments: [

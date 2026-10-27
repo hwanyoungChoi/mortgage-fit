@@ -24,9 +24,6 @@ export const INTERIOR_PLAN_TABLE_COLUMN_LABELS: Record<InteriorPlanTableColumn, 
   note: "비고",
 };
 
-/** 표에서만 원 단위로 보인다(입력·저장은 만원 정수, ADR-002). 원 = 만원 × 이 값 */
-export const WON_PER_MANWON = 10_000;
-
 /** 금액 키가 없는 견적(ADR-033)의 표시 글자. 목록·표·CSV·인쇄·홈이 같이 쓴다(U4) */
 export const INTERIOR_PLAN_TBD_LABEL = "미정";
 

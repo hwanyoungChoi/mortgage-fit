@@ -5,8 +5,10 @@ import {
   INTERIOR_ITEM_MAX_COUNT,
   INTERIOR_PLAN_CREATE_MAX_ITEMS,
 } from "../../src/lib/constants/interiorPlan";
+import { budgetMergePatch } from "../../src/lib/utils/budgetMergePatch";
 import {
   isInteriorAmount,
+  isInteriorWon,
   parseInteriorItem,
   parseInteriorPlan,
   parseInteriorPlanName,
@@ -58,17 +60,18 @@ export function parsePlanCreateRequest(value: unknown): Parsed<PlanCreate> {
 }
 
 /**
- * PATCH 본문 `{ plan: { name?, budget?, listingId?, spaces? } }`를 `interior_plans.data`에 합칠 JSON Merge Patch(RFC 7396)로.
- * 키 없음 = 그대로, `budget`·`listingId`의 null = 지움. 이름·공간은 지울 수 없다. 알려진 키가 하나 이상 있어야 한다.
+ * PATCH 본문 `{ plan: { name?, budget?, budgetWon?, listingId?, spaces? } }`를 `interior_plans.data`에 합칠
+ * JSON Merge Patch(RFC 7396)로. 키 없음 = 그대로, `budget`·`budgetWon`·`listingId`의 null = 지움. 이름·공간은 지울 수 없다.
+ * 알려진 키가 하나 이상 있어야 한다. 총 예산 두 키는 `budgetMergePatch`로 함께 정한다(하나를 쓰면 다른 키는 지움).
  */
 export function parsePlanPatchRequest(value: unknown): Parsed<InteriorPlanPatch> {
   const raw = isRecord(value) ? value.plan : undefined;
   const has = (key: string) => isRecord(raw) && Object.hasOwn(raw, key);
-  if (!isRecord(raw) || !["name", "budget", "listingId", "spaces"].some(has)) {
+  if (!isRecord(raw) || !["name", "budget", "budgetWon", "listingId", "spaces"].some(has)) {
     return {
       ok: false,
       message:
-        "요청 본문은 { plan } 객체이고 name, budget, listingId, spaces 중 하나 이상이 있어야 합니다",
+        "요청 본문은 { plan } 객체이고 name, budget, budgetWon, listingId, spaces 중 하나 이상이 있어야 합니다",
     };
   }
 
@@ -84,6 +87,15 @@ export function parsePlanPatchRequest(value: unknown): Parsed<InteriorPlanPatch>
     }
     patch.budget = raw.budget;
   }
+  if (has("budgetWon")) {
+    if (raw.budgetWon !== null && !isInteriorWon(raw.budgetWon)) {
+      return {
+        ok: false,
+        message: "budgetWon은 1~9,999,999,999,999 정수(원) 또는 null이어야 합니다",
+      };
+    }
+    patch.budgetWon = raw.budgetWon;
+  }
   if (has("listingId")) {
     if (raw.listingId !== null && !isListingId(raw.listingId)) {
       return { ok: false, message: "listingId 형식이 올바르지 않습니다" };
@@ -95,7 +107,11 @@ export function parsePlanPatchRequest(value: unknown): Parsed<InteriorPlanPatch>
     if (spaces === null) return { ok: false, message: "공간 목록이 올바르지 않습니다" };
     patch.spaces = spaces;
   }
-  return { ok: true, value: patch };
+  const budgets = budgetMergePatch(patch);
+  if (budgets === null) {
+    return { ok: false, message: "budget과 budgetWon을 함께 숫자로 보낼 수 없습니다" };
+  }
+  return { ok: true, value: { ...patch, ...budgets } };
 }
 
 /** 항목 POST·PUT 본문 `{ item }`(id·시각 없음, 있어도 읽지 않는다) */

@@ -5,6 +5,14 @@ import { LISTING_NAME_MAX_LENGTH } from "../utils/validateListingName";
 
 import type { InteriorItemStatus } from "../types/interiorPlan";
 
+/** 원 = 만원 × 이 값. 옛 키(`amount`·`budget`, 만원)를 원으로 읽을 때와 표·CSV가 쓴다(ADR-034) */
+export const WON_PER_MANWON = 10_000;
+/**
+ * 원 단위 금액(`amountWon`·`budgetWon`) 상한, 13자리. 옛 만원 상한 999,999,999 × 10,000을 담고,
+ * 항목 100개를 더해도 `Number.MAX_SAFE_INTEGER` 안이다(ADR-034 조건 3)
+ */
+export const MAX_WON = 9_999_999_999_999;
+
 /** 계정(가구 범위)·기기마다 플랜 수 상한 */
 export const INTERIOR_PLAN_MAX_COUNT = 3;
 /** 플랜 하나의 항목 수 상한 */

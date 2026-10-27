@@ -56,6 +56,7 @@ const QUOTE_KEYS = {
   vendor: true,
   contact: true,
   amount: true,
+  amountWon: true,
   memo: true,
 } satisfies Record<keyof InteriorQuote, true>;
 
@@ -206,10 +207,14 @@ function updateInputOf(removal: ReturnType<typeof removeLineWrite>): InteriorIte
 }
 
 describe("c3 모든 선택 키가 채워진 fixture", () => {
-  it("항목·견적·지급의 모든 키가 있고, 지급함/미지급과 예정일이 모두 있다", () => {
+  it("항목·견적(두 견적에 나눠)·지급의 모든 키가 있고, 지급함/미지급과 예정일이 모두 있다", () => {
     const item = makeFullItem("planned");
     expect(sortedKeys(fieldsOf(item))).toEqual(sortedKeys(ITEM_INPUT_KEYS));
-    for (const quote of item.quotes!) expect(sortedKeys(quote)).toEqual(sortedKeys(QUOTE_KEYS));
+    // 같은 뜻의 두 키(`amount` 만원·`amountWon` 원)는 한 견적에 함께 있을 수 없어(ADR-034) 견적 둘이 하나씩 나눠 갖는다
+    expect([...new Set(item.quotes!.flatMap(sortedKeys))].toSorted()).toEqual(
+      sortedKeys(QUOTE_KEYS),
+    );
+    expect(item.quotes!.map((quote) => Object.hasOwn(quote, "amountWon"))).toEqual([false, true]);
     for (const payment of item.payments!) {
       expect(sortedKeys(payment)).toEqual(sortedKeys(PAYMENT_KEYS));
     }

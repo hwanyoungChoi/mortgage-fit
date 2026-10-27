@@ -124,8 +124,8 @@ export function makePlanL(overrides: Partial<InteriorPlanWithItems> = {}): Inter
 }
 
 /**
- * 모든 선택 키가 채워진 항목(AC-0(c) c3): 예산 · 견적 2개(연락처·메모 포함) · 확정 · 지급 2줄(지급함/미지급, 예정일) ·
- * 시작·끝 · 메모. 상태만 바꿔 5종 각각으로 쓴다
+ * 모든 선택 키가 채워진 항목(AC-0(c) c3): 예산 · 견적 2개(연락처·메모 포함, 금액은 fq1 `amount` 만원·fq2 `amountWon` 원) ·
+ * 확정 · 지급 2줄(지급함/미지급, 예정일) · 시작·끝 · 메모. 상태만 바꿔 5종 각각으로 쓴다
  */
 export const makeFullItem = (status: InteriorItemStatus): InteriorItem => ({
   id: "item-full",
@@ -134,7 +134,13 @@ export const makeFullItem = (status: InteriorItemStatus): InteriorItem => ({
   budget: 350,
   quotes: [
     { id: "fq1", vendor: "하루바스", contact: "010-1234-5678", amount: 370, memo: "철거·방수" },
-    { id: "fq2", vendor: "욕실나라", contact: "02-123-4567", amount: 400, memo: "도기 포함" },
+    {
+      id: "fq2",
+      vendor: "욕실나라",
+      contact: "02-123-4567",
+      amountWon: 4_000_000,
+      memo: "도기 포함",
+    },
   ],
   confirmedQuoteId: "fq1",
   payments: [

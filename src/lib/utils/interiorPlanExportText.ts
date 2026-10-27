@@ -1,9 +1,9 @@
+import { WON_PER_MANWON } from "@/lib/constants/interiorPlan";
 import {
   INTERIOR_PLAN_EXPORT_FILE_EXTENSION,
   INTERIOR_PLAN_EXPORT_FILE_LABEL,
   INTERIOR_PLAN_TABLE_HEADING,
   INTERIOR_PLAN_TABLE_SEPARATOR,
-  WON_PER_MANWON,
 } from "@/lib/constants/interiorPlanTable";
 
 import { formatThousands } from "./amount";
