@@ -511,3 +511,16 @@
 - 요청(사용자 승인): 원격 D1 0007 적용. bookmark 000000c1-…30c81fb3b1c649405f5fe54803f2c94a, AC-0(a) 직전·직후 덤프 diff 빔(users 2·sessions 11·listings 46·shares 3·households 1·invites 1), 새 테이블 2개 0행·새 객체 3개
 - AI(리드) AC-0(e): 운영 옛 Worker + 새 스키마에서 `/` 200, `/api/me` 200, listings·budget·listing-order 401(쿠키 없음, 배포 전과 같음)
 - 요청: 입력한 내용을 스샷처럼 "구분·업체·세부내용·견적·확정·비고 + 합계" 표로 뽑는 기능. 사용자 선택: 이번 배포 후 바로 다음 PR, CSV 내려받기 + 인쇄·PDF, 금액은 원 단위(입력은 만원 그대로)
+
+## 태스크 5. 계획 표 내보내기
+
+- 요청: PR #35 머지(db36b56) 뒤 main 최신에서 시작. 공유 폴더의 브랜치를 바꾸지 않으려고 별도 워크트리(`../loan-calculator-plan-export`, 브랜치 `cony/interior-plan-export`)에서 진행
+- AI(pm): 태스크 5 스펙(표 내보내기 절, 예시 Q, AC-11·12, U13~U20, D6). 항목 하나 = 한 줄, 견적(원) = 대표 견적(확정 → 최저), 계 확정 = 요약 확정 × 10,000
+- 토론: [ADR-030](decisions/030-interior-plan-table-view.md) D6 = B(`?view=table`). fe·qa 조건부 찬성, 반대 없음 → 반론 라운드 생략
+- AI(pm): 검토 조건 반영(함수 시그니처, 대표 견적 경계 예시, 계 0, 파일 이름 변환 순서, tbody·th rowgroup·tfoot, 인쇄 영역만, canExport 한 곳, 렌더 시점 날짜, 지연 revoke, U21 인앱 안내)
+- AI(fe) 5-1: 순수 함수 5개(`buildInteriorPlanTable`·`interiorPlanExportText`·`interiorPlanTableToCsvRows`·`toCsv`·`downloadTextFile`)·상수 `interiorPlanTable.ts`, `HomeView` `"table"`(`ListView` 분리), `PlanTableView`·`PlanTable`, 전역 인쇄 규칙(`:has()` 허용 목록 `[data-print-area]`). 기존 테스트 1506 통과, 계약·AC-0(g) 파일 diff 빔
+- AI(리드) 화면 확인(워크트리 dev 5199, 로그아웃, Q 시드): 360×780에서 문서 폭 360(가로 밀림 없음)·표 영역만 600px 스크롤, 표 행이 스펙 Q 표와 같음(욕실 rowSpan 2, 계 9,800,000/7,500,000). 인쇄 규칙을 화면에 강제 적용 → 표 머리·표만 남음. CSV 캡처: 파일 이름 `우리 집-인테리어-2026-10-27.csv`, `EF BB BF`, CRLF, 내용 = 스펙 Q CSV, print 1회. 가리기: innerHTML에 금액·메모 없음, 두 버튼 비활성·안내. 보기 전환은 replace(이력 +0), 표 보기에 [항목 추가] 없음. 실제 인쇄 창·모바일 Safari·엑셀은 5-3(배포 후)
+- AI(리드): 표 보기 빈 문구가 없는 [항목 추가]를 가리켜 표 보기 전용 문구로 바꾸게 함
+- AI(qa) 5-2: 새 테스트 144개(1506 → 1650 + 1 todo), 변이 26개 모두 실패(처음 살아남은 `window.localStorage` 쓰기 변이는 Storage.prototype 스파이를 더해 잡음), 결함 0 ([기록](reviews/20261027-1429-qa-task-5.md))
+- AI(리드): code-review-fe(8f150f5..HEAD) 컨벤션 위반 없음. 가독성 1건 — `toCsv.ts` BOM을 보이지 않는 문자 대신 `﻿`로(fe 수정)
+- AI(리드): 5-3(실제 인쇄 창·엑셀·모바일 Safari·카카오톡 인앱)은 배포 후 확인으로 보고서에 미검증으로 남김

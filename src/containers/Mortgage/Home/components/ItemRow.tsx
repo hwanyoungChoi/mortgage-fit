@@ -5,13 +5,13 @@ import { formatManwon } from "@/lib/utils/amount";
 
 import styles from "./ItemGroups.module.css";
 
-import type { HomeView } from "@/lib/types/route";
+import type { ListView } from "@/lib/types/route";
 import type { InteriorItemLine } from "@/lib/utils/summarizeInteriorPlan";
 
 type ItemRowProps = {
   line: InteriorItemLine;
   /** 공간별 보기는 공종을, 공종별 보기는 공간을 이름으로 보인다(묶음 제목이 나머지 하나다) */
-  view: HomeView;
+  view: ListView;
   isMasked: boolean;
   onOpen: (button: HTMLButtonElement) => void;
 };

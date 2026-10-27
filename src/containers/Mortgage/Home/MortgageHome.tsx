@@ -89,7 +89,7 @@ function MissingSheet({ message, onClose }: { message: string; onClose: () => vo
 
 /**
  * 우리 집: 계약한 집의 인테리어 예산·견적·지급(스펙 interior-planner). 합계·할 일은 저장하지 않고 매번 계산한다(ADR-007).
- * `#/home`은 플랜 0개면 빈 상태, 1개면 그 플랜, 2~3개면 고르기다. 공간별·공종별 보기는 주소(`?view=trade`)에 둔다.
+ * `#/home`은 플랜 0개면 빈 상태, 1개면 그 플랜, 2~3개면 고르기다. 공간별·공종별·표 보기는 주소(`?view=trade`·`?view=table`)에 둔다.
  * `#/home?listing={id}`(매물 카드)는 그 매물에 연결된 플랜이 있으면 `#/home/{planId}`로 replace하고, 없으면 그 매물로 채운
  * 만들기 시트를 연 뒤 주소에서 `listing`을 지운다(replace). 매물 쪽에는 아무것도 쓰지 않는다(AC-6).
  */

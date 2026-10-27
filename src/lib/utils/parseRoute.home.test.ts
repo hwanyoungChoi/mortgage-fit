@@ -24,11 +24,21 @@ describe("parseRoute 우리 집 (스펙 interior-planner 화면 · AC-1·AC-3)",
     ["#/home/a.b", { name: "home" }],
     ["#/home/a/b", { name: "home" }],
     ["#/home/%20", { name: "home" }],
-    // 보기: trade만 남긴다
+    // 보기: trade·table만 남긴다(태스크 5, ADR-030)
     ["#/home?view=trade", { name: "home", view: "trade" }],
     ["#/home/plan-1?view=trade", { name: "home", planId: "plan-1", view: "trade" }],
+    ["#/home?view=table", { name: "home", view: "table" }],
+    ["#/home/plan-1?view=table", { name: "home", planId: "plan-1", view: "table" }],
+    [
+      "#/home/plan-1?listing=listing-1&view=table",
+      { name: "home", planId: "plan-1", listingId: "listing-1", view: "table" },
+    ],
     ["#/home?view=space", { name: "home" }],
     ["#/home?view=TRADE", { name: "home" }],
+    ["#/home?view=TABLE", { name: "home" }],
+    ["#/home?view=table%20", { name: "home" }],
+    ["#/home?view=tables", { name: "home" }],
+    ["#/home?view=list", { name: "home" }],
     ["#/home?view=", { name: "home" }],
     ["#/home?view=card", { name: "home" }],
     // 매물에서 온 길
@@ -61,6 +71,12 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
     [{ name: "home", planId: "plan-1" }, "#/home/plan-1"],
     [{ name: "home", view: "trade" }, "#/home?view=trade"],
     [{ name: "home", view: "space" }, "#/home"],
+    [{ name: "home", view: "table" }, "#/home?view=table"],
+    [{ name: "home", planId: "plan-1", view: "table" }, "#/home/plan-1?view=table"],
+    [
+      { name: "home", planId: "plan-1", listingId: "listing-1", view: "table" },
+      "#/home/plan-1?listing=listing-1&view=table",
+    ],
     [{ name: "home", planId: "plan-1", view: "trade" }, "#/home/plan-1?view=trade"],
     [{ name: "home", listingId: "listing-1" }, "#/home?listing=listing-1"],
     [
@@ -85,6 +101,9 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
     "#/home/plan-1?view=trade",
     "#/home?listing=listing-1",
     "#/home/plan-1?listing=listing-1&view=trade",
+    "#/home?view=table",
+    "#/home/plan-1?view=table",
+    "#/home?listing=listing-1&view=table",
   ])("정규 경로 %j는 다시 파싱해도 같은 경로다(replace 루프 없음, 새로고침 유지)", (hash) => {
     expect(toRoutePath(parseRoute(hash))).toBe(hash);
   });
@@ -95,6 +114,9 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
     ["#/home/import?view=trade", "#/home?view=trade"],
     ["#/home/plan-1?view=trade&listing=listing-1", "#/home/plan-1?listing=listing-1&view=trade"],
     ["#/home?listing=bad%20id&view=trade", "#/home?view=trade"],
+    ["#/home/plan-1?view=TABLE", "#/home/plan-1"],
+    ["#/home/plan-1?view=table&view=trade", "#/home/plan-1?view=table"],
+    ["#/home/import?view=table", "#/home?view=table"],
   ])("%j는 %j로 맞춘다", (hash, canonical) => {
     expect(toRoutePath(parseRoute(hash))).toBe(canonical);
     expect(toRoutePath(parseRoute(canonical))).toBe(canonical);

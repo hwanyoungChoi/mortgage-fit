@@ -1,0 +1,184 @@
+/* 표 보기의 버튼 줄. [항목 추가] 줄과 같은 자리라 항목 수와 상관없이 같은 위치다. */
+.exportRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.exportButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.exportButton {
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.exportButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.exportNotice {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+/* 인쇄 영역: 표 머리 + 표. 인쇄에서는 이것만 보인다(index.css의 data-print-area 규칙). */
+.printArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.headingTitle {
+  font-size: var(--fs-section);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.headingLine {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 표는 칸(360px에서 328px, 데스크톱 448px) 안에서 가로로 스크롤하고 페이지는 밀리지 않는다.
+ * 가로로 더 있는 쪽 가장자리에만 그림자가 보인다: 그림자(scroll)는 칸에 붙어 있고, 내용 양 끝의 흰 덮개(local)가
+ * 끝까지 스크롤했을 때 그쪽 그림자를 가린다. 그래서 칸 배경만 쓰고 칸(셀)에는 배경을 두지 않는다.
+ */
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(to right, var(--color-surface) 30%, rgb(255 255 255 / 0%)) left / 40px 100%
+      no-repeat local,
+    linear-gradient(to left, var(--color-surface) 30%, rgb(255 255 255 / 0%)) right / 40px 100%
+      no-repeat local,
+    linear-gradient(to right, rgb(10 10 10 / 16%), rgb(10 10 10 / 0%)) left / 12px 100% no-repeat
+      scroll,
+    linear-gradient(to left, rgb(10 10 10 / 16%), rgb(10 10 10 / 0%)) right / 12px 100% no-repeat
+      scroll,
+    var(--color-surface);
+}
+
+/* 화면용 최소 폭: 6열이 읽히는 폭. 360px·데스크톱 모두 칸보다 넓어 비고 열은 스크롤해야 보인다. */
+.table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  border-bottom-color: var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table tfoot th,
+.table tfoot td {
+  border-top: 1px solid var(--color-text);
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+.tradeCell {
+  min-width: 4.5em;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vendorCell {
+  min-width: 6em;
+  overflow-wrap: anywhere;
+}
+
+/* 메모의 줄바꿈은 그대로 보이고, 칸 안에서 줄을 바꾼다 */
+.detailCell,
+.noteCell {
+  min-width: 8em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.table .amountCell {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 인쇄: 표가 용지 폭 100%를 쓰게 화면용 스크롤·최소 폭·그림자를 푼다. 열 제목은 쪽마다 반복되고(table-header-group),
+ * "계"는 쪽마다 찍히지 않게 tfoot을 보통 줄 묶음으로 바꿔 마지막에 한 번만 나온다. 배경색 없이 선으로 읽힌다.
+ */
+@media print {
+  .scroll {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .table {
+    min-width: 0;
+  }
+
+  .table th,
+  .table td {
+    border-bottom-color: #999;
+  }
+
+  .table thead th {
+    border-bottom-color: #000;
+    color: #000;
+  }
+
+  .table tfoot th,
+  .table tfoot td {
+    border-top-color: #000;
+  }
+
+  .table thead {
+    display: table-header-group;
+  }
+
+  .table tfoot {
+    display: table-row-group;
+  }
+
+  .table tr {
+    break-inside: avoid;
+  }
+
+  /* 구분 묶음째로 쪽을 넘기는 것은 브라우저마다 달라 되면 좋은 정도다(A17) */
+  .group {
+    break-inside: avoid;
+  }
+}
