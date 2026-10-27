@@ -63,12 +63,12 @@ function amountError(raw: string): string | null {
 export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineDraftError[] {
   const candidates: [InteriorLineDraftField, string | null][] = [
     ["trade", requiredTextError(draft.trade, INTERIOR_TRADE_MAX_LENGTH, TRADE_REQUIRED_MESSAGE)],
+    ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
     [
       "vendor",
       requiredTextError(draft.vendor, INTERIOR_VENDOR_MAX_LENGTH, VENDOR_REQUIRED_MESSAGE),
     ],
     ["amount", amountError(draft.amount)],
-    ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
     ["note", optionalTextError(draft.note, INTERIOR_ITEM_MEMO_MAX_LENGTH)],
   ];
   return candidates.flatMap(([field, message]) => (message === null ? [] : [{ field, message }]));

@@ -98,6 +98,16 @@ describe("필수 칸 (AC-2(c))", () => {
     expect(validateInteriorLineDraft(createInteriorLineDraft()).ok).toBe(false);
   });
 
+  it("오류 순서는 시트 칸 순서(구분 → 세부내용 → 업체 → 견적 → 비고): 첫 오류로 포커스를 옮긴다", () => {
+    const draft = createInteriorLineDraft();
+    const fields = interiorLineDraftErrors({
+      ...draft,
+      detail: "가".repeat(201),
+      note: "가".repeat(501),
+    }).map((error) => error.field);
+    expect(fields).toEqual(["trade", "detail", "vendor", "amount", "note"]);
+  });
+
   it('구분·업체 "   " → 필수 오류', () => {
     const draft = validDraft({ trade: "   ", vendor: "   " });
     expect(errorOf(draft, "trade")).toBe("구분을 입력하세요");

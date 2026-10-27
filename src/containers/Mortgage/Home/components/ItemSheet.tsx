@@ -37,7 +37,7 @@ type ItemSheetProps = {
   tradeSuggestions: string[];
   /** 고칠 줄. null이면 새 줄이다 */
   row: InteriorPlanRow | null;
-  /** 새 줄의 구분. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분이고 포커스는 업체 칸에서 시작한다 */
+  /** 새 줄의 구분. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분이고 포커스는 세부내용 칸(구분 다음 칸)에서 시작한다 */
   initialTrade: string;
   /**
    * 성공하면 부르는 쪽이 닫는다. 실패하면 입력을 그대로 두고 이유를 보인다.
@@ -146,7 +146,8 @@ function TextField({
 }
 
 /**
- * 줄 시트: 구분(기존 구분 제안) · 업체 · 세부내용 · 견적 · 비고 · [확정] · [저장] · (기존 줄) [삭제].
+ * 줄 시트: 구분(기존 구분 제안) · 세부내용 · 업체 · 견적 · 비고 · [확정] · [저장] · (기존 줄) [삭제].
+ * 칸 순서는 목록 줄(세부내용 위, 업체 아래)과 같다. 표·CSV 열 순서(구분·업체·세부내용)와는 따로다.
  * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경(폴링 포함)으로 덮이지 않는다. 그 사이 다른 사람이 같은 항목을
  * 저장했으면 저장하지 않고 알린 뒤 [최신 값 불러오기]를 보인다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
  * 저장을 누르면 모두 보이고 첫 오류 칸으로 간다. 고친 것이 없으면 [저장]이 막히고, 고친 채 닫으면 확인한다.
@@ -242,15 +243,15 @@ function ItemSheet({
           ))}
         </datalist>
         <TextField
-          {...textFieldProps("vendor")}
-          label="업체"
-          maxLength={INTERIOR_VENDOR_MAX_LENGTH}
-          isAutoFocused={isTradePrefilled}
-        />
-        <TextField
           {...textFieldProps("detail")}
           label="세부내용(선택)"
           maxLength={INTERIOR_QUOTE_MEMO_MAX_LENGTH}
+          isAutoFocused={isTradePrefilled}
+        />
+        <TextField
+          {...textFieldProps("vendor")}
+          label="업체"
+          maxLength={INTERIOR_VENDOR_MAX_LENGTH}
         />
         <AmountInput
           id={fieldInputId("amount")}
