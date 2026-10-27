@@ -22,6 +22,3 @@ export const INTERIOR_LEADING_SPACE_NAMES: readonly string[] = [
 export const INTERIOR_BATHROOM_SPACE_PREFIX = "욕실";
 export const INTERIOR_ROOM_SPACE_PREFIX = "방";
 export const INTERIOR_TRAILING_SPACE_NAMES: readonly string[] = ["베란다"];
-
-/** 항목이 가리키는 공간이 플랜에 없을 때(동시 편집으로 지워짐) 묶는 그룹 이름(A6) */
-export const INTERIOR_NO_SPACE_LABEL = "공간 없음";

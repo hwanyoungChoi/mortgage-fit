@@ -447,9 +447,12 @@ describe("AC-1 가리기 (A8·A10)", () => {
 
   it("켜면 세부내용·비고·금액이 DOM(innerHTML·aria-label·title)에 없고 구분·업체는 보인다, 체크 이름은 '{구분} {업체} 확정', 기존 줄 시트는 열리지 않는다", async () => {
     const user = userEvent.setup();
-    const { container } = await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    const storage = storageWith([makeSimplePlanP()]);
+    const { container } = await renderLoggedOut(storage);
     await user.click(screen.getByRole("button", { name: "가리기" }));
     expect(screen.getByRole("button", { name: "가리기" })).toHaveAttribute("aria-pressed", "true");
+    // 저장 목록과 같은 설정 키다
+    expect(storage.getItem(PRIVACY_MODE_STORAGE_KEY)).toBe("true");
     for (const secret of SECRETS) expect(container.innerHTML).not.toContain(secret);
     expect(screen.getByRole("heading", { level: 3, name: "도배" })).toBeInTheDocument();
     expect(screen.getAllByText("육문수")).toHaveLength(1);

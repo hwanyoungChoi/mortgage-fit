@@ -4,9 +4,6 @@ export type LoginResult = "cancelled" | "failed" | "notConfigured";
 /** [우리 집] 플랜 화면의 보기: 공정별 목록과 표(ADR-030, ADR-032). 주소에 없으면 목록이다. */
 export type HomeView = "list" | "table";
 
-/** 옛 공간별·공종별 목록 부품의 보기. 그 부품을 지우면 같이 지운다 */
-export type ListView = "space" | "trade";
-
 export type Route =
   /** 홈(허브, 첫 화면 `#/`). 화면 라벨은 "홈"이다. 라벨 "우리 집"은 아래 `home`(인테리어 플래너)이다(ADR-031 D2). */
   | { name: "hub" }

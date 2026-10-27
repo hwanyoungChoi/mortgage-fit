@@ -95,12 +95,6 @@ export type InteriorPlanPatch = {
   spaces?: InteriorSpace[];
 };
 
-/** 공정 순서 안내의 출처 */
-export type InteriorProcessSource = {
-  title: string;
-  url: string;
-};
-
 // --- /api/interior-plans 계약(스펙 interior-planner "API 계약"). 요청·응답 봉투는 `{ plan }`·`{ item }`이다.
 
 /** GET /api/interior-plans → 200. 범위 안 플랜 전부(`createdAt, id` 순), 항목도 `createdAt, id` 순 */

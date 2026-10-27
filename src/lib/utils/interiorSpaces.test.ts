@@ -7,7 +7,7 @@ import {
   INTERIOR_ROOM_COUNTS,
 } from "@/lib/constants/interiorSpaces";
 
-import { countSpaceItems, createDefaultSpaces, defaultSpaceNames } from "./interiorSpaces";
+import { createDefaultSpaces, defaultSpaceNames } from "./interiorSpaces";
 import { validateInteriorPlanFields } from "./validateInteriorPlan";
 
 describe("기본 공간 (AC-1, U2)", () => {
@@ -87,19 +87,5 @@ describe("기본 공간 (AC-1, U2)", () => {
       { id: "s6", name: "방1" },
       { id: "s7", name: "베란다" },
     ]);
-  });
-});
-
-describe("countSpaceItems (AC-5 항목 있는 공간 삭제 막기)", () => {
-  const items = [{ spaceId: "a" }, { spaceId: "b" }, { spaceId: "a" }];
-
-  it("그 공간을 가리키는 항목 수", () => {
-    expect(countSpaceItems(items, "a")).toBe(2);
-    expect(countSpaceItems(items, "b")).toBe(1);
-  });
-
-  it("항목이 없으면 0(지울 수 있다)", () => {
-    expect(countSpaceItems(items, "c")).toBe(0);
-    expect(countSpaceItems([], "a")).toBe(0);
   });
 });
