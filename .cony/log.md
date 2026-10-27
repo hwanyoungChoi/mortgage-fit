@@ -644,3 +644,11 @@
 - AI(qa) 2-2: 새 테스트 191개(2313 → 2504 + 1 todo, 3f4475f), 감사 X 0·storage 단언 줄 수 3c0bdc2와 같음, diff 가드 0줄, 옛 파서(3c0bdc2) 2단계 쓰기 원문 전부 ok·`toStrictEqual`(cc056a4 대조는 corrupt), 변이 23종 모두 잡힘, 결함 0 ([기록](reviews/20261027-2205-qa-task-2.md))
 - 놓침(리드): 2단계 게이트를 "사용자 확인이면 바로, 늦으면 24시간"으로 잘못 읽어 log·board·사용자 안내를 고쳤음. 스펙 AC-0(e) 3은 "배포 후 최소 24시간(확인이 늦어도 이보다 일찍 머지하지 않는다)" — 확인과 24시간 **둘 다** 필수(qa 2-2 지적). 정정: 태스크 2는 2026-10-28 21:37 이후 머지. PR은 먼저 열어 CI만 확인
 - AI(리드) code-review-fe(3c0bdc2..HEAD 제품 코드): 컨벤션 위반 없음. 단위 규칙은 `AmountInput`의 `Record<AmountUnit, UnitRule>` 한 곳, 금액 키 규칙은 `editedQuote`·`budgetMergePatch` 그대로
+- 되돌림(사용자): "머지 바로바러해 그딴건 잘못된 세팅임" — 2단계 게이트의 "배포 후 최소 24시간"을 사용자가 뒤집음(두 분 탭 정리 확인·로컬 전용 계획 없음으로 충분). PR #41 CI 통과 후 squash 머지(49779c9), 운영 반영 2026-10-27 22:28(번들 index-WRgS5OYL.js, "비우면 미정" 포함)
+
+## 홈 계정 태스크 1
+
+- AI(fe) 1-1·1-2: 2060836(카카오 로그인 특성 테스트, 지금 값 `#/listings` 30개) · 215e973(복귀 주소 `#/[?login=]`, `listingsUrl` → `homeUrl`) · 8543ac8(홈 [로그아웃]·`HubNotices`·포커스, 저장 목록 머리에서 로그인·로그아웃 제거, [홈에서 로그인] 링크, 문구 고치기, `useLogout` → `Hub/hooks`, `accountImportProblem` → `src/lib/utils`). 2504 → 2585 + 1 todo, 감사 X 0·R 0(I 7건), 버그 되살리기 서버 6·화면 23 모두 잡힘
+- AI(리드): 서버 테스트를 node가 아니라 workerd(`*.d1.test.ts` 두 파일, DB 앞 경로는 닿으면 throw하는 Proxy)로 둔 것 승인 — `session.ts`가 workers 타입을 써서 node tsconfig에선 build 실패, tsconfig를 늘리지 않는 쪽이 단순. 실패 줄 `role="alert"`·결과 줄 `role="status"`(HeaderNotices 규칙) 승인
+- AI(리드) 태스크 1 화면 확인(dev 5199, 360×780, 로그아웃): `#/?login=cancelled` → 홈 로그인 버튼 아래 "로그인을 취소했습니다" 한 번, 주소 `#/`. 저장 목록 머리에 로그인 버튼 없음([함께 쓰기]만 — 태스크 2에서 옮김). 뒤로 돌아온 홈에 안내 없음. 로그인 상태 화면은 dev에 API가 없어 qa 테스트로
+- AI(리드): 태스크 1~3을 같은 fe가 이어서 하므로 qa는 1-3·2-2·3-2를 태스크 3 뒤 한 번에(변이·감사는 태스크별로 기록). 중간에 qa가 테스트를 돌리면 fe 편집과 겹친다
