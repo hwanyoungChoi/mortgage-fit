@@ -3,7 +3,7 @@ import { useLayoutEffect } from "react";
 /** 마지막으로 목록을 떠날 때의 스크롤 위치. 새로고침하면 사라진다(ADR-004). */
 let savedScrollY = 0;
 
-/** 상단 탭으로 들어오는 목록은 맨 위에서 시작한다. 탭을 누를 때 부른다. */
+/** 탭·홈 카드로 들어오는 목록은 맨 위에서 시작한다. 탭이나 [매물 모으기] 카드를 누를 때 부른다. */
 export function resetListingsScroll() {
   savedScrollY = 0;
 }

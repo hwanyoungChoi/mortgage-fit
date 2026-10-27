@@ -128,7 +128,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   };
 
   const renderScreen = () => {
-    if (route.name === "hub") return <MortgageHub />;
+    if (route.name === "hub") return <MortgageHub onListingsNavigate={resetListingsScroll} />;
     if (route.name === "share") {
       return (
         <MortgageShare
