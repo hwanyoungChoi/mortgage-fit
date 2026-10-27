@@ -1,0 +1,21 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.reason {
+  color: var(--color-text-muted);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+}
+
+.status {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+/* 계정 확인 중: 자리만 차지하고 보이지 않는다(보조기기·포커스에서도 빠진다, aria-hidden·inert). */
+.placeholder {
+  visibility: hidden;
+}

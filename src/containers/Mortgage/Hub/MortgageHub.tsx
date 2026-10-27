@@ -8,6 +8,7 @@ import { PATHS } from "@/lib/constants/paths";
 import { formatManwon } from "@/lib/utils/amount";
 
 import styles from "./MortgageHub.module.css";
+import HubAccount from "./components/HubAccount";
 import HubCard from "./components/HubCard";
 import { summarizeHub } from "./summarizeHub";
 
@@ -34,7 +35,8 @@ type MortgageHubProps = {
 
 /**
  * 홈(허브, `#/`). 첫 화면이다(ADR-031 D1). 기능 카드 3개를 단계 없이 보인다: 대출 계산(가장 크게) → 매물 모으기 →
- * 우리 집 인테리어. 데이터가 있으면 소개 문구 자리에 내 현황을 보인다. 홈은 저장소에 쓰지 않는다(AC-0):
+ * 우리 집 인테리어. 데이터가 있으면 소개 문구 자리에 내 현황을 보인다. 카드 위에는 계정 자리(로그아웃이면 카카오 로그인,
+ * 로그인이면 상태 한 줄)를 둔다. 홈은 저장소에 쓰지 않는다(AC-0):
  * 계획은 읽기 훅만 쓰고, 매물 출처의 쓰기 함수는 부르지 않는다.
  */
 function MortgageHub({
@@ -68,6 +70,7 @@ function MortgageHub({
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>홈</h1>
+      <HubAccount status={listingSource.status} hasSessionHint={sessionHintStore.has()} />
       <ul className={styles.cards}>
         <li>
           <HubCard
