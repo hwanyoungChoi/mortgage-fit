@@ -100,3 +100,32 @@ export type InteriorProcessSource = {
   title: string;
   url: string;
 };
+
+// --- /api/interior-plans 계약(스펙 interior-planner "API 계약"). 요청·응답 봉투는 `{ plan }`·`{ item }`이다.
+
+/** GET /api/interior-plans → 200. 범위 안 플랜 전부(`createdAt, id` 순), 항목도 `createdAt, id` 순 */
+export type InteriorPlanListResponse = { plans: InteriorPlanWithItems[] };
+
+/** POST /api/interior-plans 요청. `items`는 30개까지, 플랜·항목 id와 시각은 서버가 발급한다 */
+export type CreateInteriorPlanRequest = { plan: InteriorPlanCreateInput };
+
+/** POST /api/interior-plans → 201 */
+export type CreateInteriorPlanResponse = { plan: InteriorPlanWithItems };
+
+/** PATCH /api/interior-plans/{id} 요청 */
+export type UpdateInteriorPlanRequest = { plan: InteriorPlanPatch };
+
+/** PATCH /api/interior-plans/{id} → 200. 항목은 담지 않는다 */
+export type InteriorPlanResponse = { plan: InteriorPlan };
+
+/** POST /api/interior-plans/{id}/items, PUT /api/interior-plans/{id}/items/{itemId} 요청 */
+export type InteriorItemRequest = { item: InteriorItemInput };
+
+/** 항목 POST(201)·PUT(200) 응답. id·시각은 서버 값 */
+export type InteriorItemResponse = { item: InteriorItem };
+
+/** POST /api/interior-plans/import 요청. 플랜 1개, 플랜·항목의 id·시각을 그대로 옮긴다. 항목 100개까지, id 유일 */
+export type ImportInteriorPlanRequest = { plan: InteriorPlanWithItems };
+
+/** POST /api/interior-plans/import → 200. 범위에 같은 id가 이미 있으면 0(다시 보내도 안전) */
+export type ImportInteriorPlanResponse = { imported: 0 | 1 };
