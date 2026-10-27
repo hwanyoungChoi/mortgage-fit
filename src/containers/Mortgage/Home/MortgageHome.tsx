@@ -142,7 +142,12 @@ function MortgageHome({
       : null;
   const handledListingIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (listingId === undefined || listingEntry === null || listingEntry.action === "wait") return;
+    // 주소에서 listing이 빠지면 기록을 비운다(같은 화면에서 같은 주소로 다시 오면 다시 처리한다).
+    if (listingId === undefined) {
+      handledListingIdRef.current = null;
+      return;
+    }
+    if (listingEntry === null || listingEntry.action === "wait") return;
     if (handledListingIdRef.current === listingId) return;
     handledListingIdRef.current = listingId;
     if (listingEntry.action === "openPlan") {
