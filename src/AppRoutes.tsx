@@ -182,7 +182,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           accountImport={accountImport}
           planId={route.planId}
           listingId={route.listingId}
-          view={route.view ?? "space"}
+          view={route.view ?? "list"}
           notice={homeNotice}
           onNoticeChange={setHomeNotice}
         />

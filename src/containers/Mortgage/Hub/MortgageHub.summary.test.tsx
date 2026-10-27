@@ -27,13 +27,14 @@ import {
   type PlanApiCall,
 } from "@/test/fakePlanApi";
 import {
+  confirmSashD,
   makePlanP,
-  paySashBalance,
   pSash,
   pTime,
   toStoredPlans,
   withItem,
 } from "@/test/interiorPlanFixture";
+import { makeSimplePlanP } from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 
@@ -45,7 +46,7 @@ const USER_ID = "user-a";
 const INTRO = {
   calculator: "매매가와 KB시세로 예상 한도와 필요한 자기자금을 계산합니다",
   listings: "본 매물을 저장해 자기자금·추가 비용을 비교합니다",
-  home: "계약한 집의 인테리어 예산·견적·지급을 정리합니다",
+  home: "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다",
 };
 
 const CARD = {
@@ -132,7 +133,7 @@ function summaryOf(key: CardKey): HTMLElement {
 /** 우리 집 카드의 계획 줄(DOM 순서) */
 const planLines = () =>
   within(card("home"))
-    .queryAllByText(/앞으로 낼 돈/)
+    .queryAllByText(/지출 예정/)
     .map((element) => element.textContent);
 
 async function expectDescription(key: CardKey, text: string) {
@@ -168,7 +169,7 @@ afterEach(() => {
 });
 
 describe("AC-6 내 현황 요약 (로그아웃, 이 기기 데이터)", () => {
-  it("매물 3개 + 계획 P + draft 125000 → 작성 중 · 매매가 12억 5,000만원 / 저장한 매물 3개 / 우리 집 · 앞으로 낼 돈 1,250만원", async () => {
+  it("매물 3개 + 옛 계획 P + draft 125000 → 작성 중 · 매매가 12억 5,000만원 / 저장한 매물 3개 / 우리 집 · 지출 예정 1,530만원", async () => {
     renderHub({
       seed: {
         [LISTINGS_STORAGE_KEY]: JSON.stringify(listingsOf(3)),
@@ -181,9 +182,9 @@ describe("AC-6 내 현황 요약 (로그아웃, 이 기기 데이터)", () => {
     await expectDescription("listings", "저장한 매물 3개");
     await expectDescription("calculator", "작성 중 · 매매가 12억 5,000만원");
     // "우리 집"은 탭 이름과 겹치므로 카드 안으로 좁힌다
-    expect(within(card("home")).getByText("우리 집 · 앞으로 낼 돈 1,250만원")).toBeInTheDocument();
-    expect(planLines()).toEqual(["우리 집 · 앞으로 낼 돈 1,250만원"]);
-    expect(card("home")).toHaveAccessibleDescription("우리 집 · 앞으로 낼 돈 1,250만원");
+    expect(within(card("home")).getByText("우리 집 · 지출 예정 1,530만원")).toBeInTheDocument();
+    expect(planLines()).toEqual(["우리 집 · 지출 예정 1,530만원"]);
+    expect(card("home")).toHaveAccessibleDescription("우리 집 · 지출 예정 1,530만원");
     // 링크 이름은 제목 그대로(요약은 설명으로만 읽힌다)
     expect(card("listings")).toHaveAccessibleName("매물 모으기");
     expect(hub.querySelector('[aria-busy="true"]')).toBeNull();
@@ -192,16 +193,31 @@ describe("AC-6 내 현황 요약 (로그아웃, 이 기기 데이터)", () => {
     expect(hub.textContent).not.toMatch(/(한도|자기자금)\D{0,12}\d/);
   });
 
-  it("샷시 잔금(paySashBalance)을 지급함으로 바꾼 P → 앞으로 낼 돈 250만원(summarizeInteriorPlan 그대로)", async () => {
+  it("샷시 확정을 E→D(confirmSashD)로 바꾼 옛 P → 지출 예정 1,430만원(summarizeInteriorPlan 그대로)", async () => {
     renderHub({
       seed: {
         [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans([
-          withItem(makePlanP(), "item-sash", paySashBalance),
+          withItem(makePlanP(), "item-sash", confirmSashD),
         ]),
       },
     });
     await findHub();
-    await expectPlanLines(["우리 집 · 앞으로 낼 돈 250만원"]);
+    await expectPlanLines(["우리 집 · 지출 예정 1,430만원"]);
+  });
+
+  it("예시 P(새 화면) → 우리 집 · 지출 예정 800만원, 지출 예정 10,000 → 1억원", async () => {
+    const tenThousand = makeSimplePlanP({
+      id: "plan-big",
+      name: "큰 계획",
+      items: [
+        { ...makeSimplePlanP().items[0], quotes: [{ id: "rq1", vendor: "육문수", amount: 10000 }] },
+      ],
+    });
+    renderHub({
+      seed: { [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans([makeSimplePlanP(), tenThousand]) },
+    });
+    await findHub();
+    await expectPlanLines(["우리 집 · 지출 예정 800만원", "큰 계획 · 지출 예정 1억원"]);
   });
 
   it("계획 3개는 목록(저장) 순서 그대로 3줄이고 표기 경계 12500 → 1억 2,500만원, 0 → 0만원", async () => {
@@ -218,16 +234,16 @@ describe("AC-6 내 현황 요약 (로그아웃, 이 기기 데이터)", () => {
       withItem(
         makePlanP({ id: "plan-a", name: "가 계획", createdAt: pTime(1) }),
         "item-sash",
-        paySashBalance,
+        confirmSashD,
       ),
       makePlanP({ id: "plan-b", name: "나 계획", createdAt: pTime(9), items: [] }),
     ];
     renderHub({ seed: { [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans(plans) } });
     await findHub();
     await expectPlanLines([
-      "다 계획 · 앞으로 낼 돈 1억 2,500만원",
-      "가 계획 · 앞으로 낼 돈 250만원",
-      "나 계획 · 앞으로 낼 돈 0만원",
+      "다 계획 · 지출 예정 1억 2,500만원",
+      "가 계획 · 지출 예정 1,430만원",
+      "나 계획 · 지출 예정 0만원",
     ]);
   });
 
@@ -298,20 +314,20 @@ describe("AC-6 가리기(privacy-mode 읽기만)", () => {
     [PRIVACY_MODE_STORAGE_KEY]: "true",
   };
 
-  it("금액 자리는 •••·가려짐이고 innerHTML에 1,250·12억이 없다. 3개·계획 이름은 보인다. 저장소에 쓰지 않는다", async () => {
+  it("금액 자리는 •••·가려짐이고 innerHTML에 1,530·12억이 없다. 3개·계획 이름은 보인다. 저장소에 쓰지 않는다", async () => {
     const { spies } = renderHub({ seed });
     const hub = await findHub();
     // 요약이 그려진 뒤(개수는 가리지 않는다)에 본다. 로딩 중이면 금액이 없어 거짓 통과한다
     await expectDescription("listings", "저장한 매물 3개");
     await waitFor(() =>
-      expect(within(card("home")).getByText(/우리 집 · 앞으로 낼 돈/)).toBeInTheDocument(),
+      expect(within(card("home")).getByText(/우리 집 · 지출 예정/)).toBeInTheDocument(),
     );
 
-    expect(hub.innerHTML).not.toContain("1,250");
+    expect(hub.innerHTML).not.toContain("1,530");
     expect(hub.innerHTML).not.toContain("12억");
     expect(hub.innerHTML).not.toContain("125,000");
     expect(summaryOf("calculator").textContent).toBe("작성 중 · 매매가 •••가려짐");
-    expect(summaryOf("home").textContent).toBe("우리 집 · 앞으로 낼 돈 •••가려짐");
+    expect(summaryOf("home").textContent).toBe("우리 집 · 지출 예정 •••가려짐");
     expect(within(card("calculator")).getByText("•••")).toHaveAttribute("aria-hidden", "true");
     expect(within(card("home")).getByText("가려짐")).toBeInTheDocument();
     // 홈에는 가리기 토글이 없다(U11)
@@ -362,8 +378,8 @@ describe("AC-7 카드별 상태 (화면)", () => {
     ),
   };
   const serverPlan = () => makePlanP({ id: "plan-s", name: "서버 계획" });
-  const SERVER_LINE = "서버 계획 · 앞으로 낼 돈 1,250만원";
-  const LOCAL_LINE = "기기 계획 · 앞으로 낼 돈 1,250만원";
+  const SERVER_LINE = "서버 계획 · 지출 예정 1,530만원";
+  const LOCAL_LINE = "기기 계획 · 지출 예정 1,530만원";
 
   it("행 1: 로그아웃, 모두 정상 → 로컬 개수·로컬 계획 줄·작성 중", async () => {
     renderHub({ seed: localSeed });
@@ -555,13 +571,13 @@ describe("AC-7 카드별 상태 (화면)", () => {
         withItem(
           makePlanP({ id: "plan-y", name: "A 계획", createdAt: pTime(1) }),
           "item-sash",
-          paySashBalance,
+          confirmSashD,
         ),
       ],
     });
     await findHub();
     await expectDescription("listings", "함께 쓰는 목록 · 매물 4개");
-    await expectPlanLines(["B 계획 · 앞으로 낼 돈 1,250만원", "A 계획 · 앞으로 낼 돈 250만원"]);
+    await expectPlanLines(["B 계획 · 지출 예정 1,530만원", "A 계획 · 지출 예정 1,430만원"]);
     expect(card("calculator")).toHaveAccessibleDescription("작성 중 · 매매가 12억 5,000만원");
   });
 
@@ -691,7 +707,7 @@ describe("AC-7 카드별 상태 (화면)", () => {
         serverPlans: [makePlanP({ id: "plan-pa", name: "A 계획" })],
       });
       await findHub();
-      await expectPlanLines(["A 계획 · 앞으로 낼 돈 1,250만원"]);
+      await expectPlanLines(["A 계획 · 지출 예정 1,530만원"]);
       const planGets = () => api.callsTo("GET", "/api/interior-plans").length;
       expect(planGets()).toBe(1);
 

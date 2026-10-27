@@ -8,17 +8,19 @@ import {
 
 import { formatThousands } from "./amount";
 
-import type { InteriorPlanSummary } from "./summarizeInteriorPlan";
+import type { InteriorPlanSummary } from "./interiorPlanRows";
 
 export type InteriorPlanTableHeading = {
   /** `{플랜 이름} 인테리어 계획`. 표의 접근 가능한 이름이기도 하다 */
   title: string;
   /** `{today} 기준` */
   basis: string;
-  /** `총 예산 15,000,000원`. 총 예산이 없으면 undefined */
+  /** `총 예산 10,000,000원`. 총 예산이 없으면 undefined */
   budget: string | undefined;
-  /** `예상 총액 11,500,000원`(0이어도 있음) */
-  expectedTotal: string;
+  /** `지출 예정 8,000,000원`(0이어도 있음) */
+  plannedTotal: string;
+  /** `남은 예산 2,000,000원`, 음수면 `예산 초과 1,000,000원`. 총 예산이 없으면 undefined */
+  remaining: string | undefined;
   /** 있는 조각을 " · "로 이은 한 줄 */
   line: string;
 };
@@ -28,13 +30,20 @@ function formatWon(manwon: number): string {
   return formatThousands(manwon * WON_PER_MANWON);
 }
 
+function remainingOf(remaining: number | null): string | undefined {
+  if (remaining === null) return undefined;
+  return remaining < 0
+    ? INTERIOR_PLAN_TABLE_HEADING.overBudget(formatWon(-remaining))
+    : INTERIOR_PLAN_TABLE_HEADING.remaining(formatWon(remaining));
+}
+
 /**
- * 표 머리(화면·인쇄 공통). 가리기 때 화면이 총 예산·예상 총액 조각만 가릴 수 있게 조각으로도 준다.
- * `today`는 `toLocalDateString(now)`이고 파일 이름과 같은 `now`에서 온다(A14).
+ * 표 머리(화면·인쇄 공통, U8): `{today} 기준 · 총 예산 · 지출 예정 · 남은 예산`(총 예산이 없으면 지출 예정만).
+ * 가리기 때 화면이 금액 조각만 가릴 수 있게 조각으로도 준다. `today`는 파일 이름과 같은 렌더의 `now`에서 온다.
  */
 export function interiorPlanTableHeading(
   planName: string,
-  summary: Pick<InteriorPlanSummary, "budget" | "expectedTotal">,
+  summary: InteriorPlanSummary,
   today: string,
 ): InteriorPlanTableHeading {
   const basis = INTERIOR_PLAN_TABLE_HEADING.basis(today);
@@ -42,13 +51,17 @@ export function interiorPlanTableHeading(
     summary.budget === null
       ? undefined
       : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budget));
-  const expectedTotal = INTERIOR_PLAN_TABLE_HEADING.expectedTotal(formatWon(summary.expectedTotal));
-  const pieces = budget === undefined ? [basis, expectedTotal] : [basis, budget, expectedTotal];
+  const plannedTotal = INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotal));
+  const remaining = remainingOf(summary.remaining);
+  const pieces = [basis, budget, plannedTotal, remaining].filter(
+    (piece): piece is string => piece !== undefined,
+  );
   return {
     title: INTERIOR_PLAN_TABLE_HEADING.title(planName),
     basis,
     budget,
-    expectedTotal,
+    plannedTotal,
+    remaining,
     line: pieces.join(INTERIOR_PLAN_TABLE_SEPARATOR),
   };
 }

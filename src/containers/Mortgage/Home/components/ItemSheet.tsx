@@ -1,197 +1,193 @@
-import { useRef, useState, type FormEvent } from "react";
-import { flushSync } from "react-dom";
+import { useId, useState, type FormEvent } from "react";
 
 import AmountInput from "@/components/AmountInput";
-import ChoiceGroup from "@/components/ChoiceGroup";
 import Sheet from "@/components/Sheet";
 import {
   INTERIOR_ITEM_MEMO_MAX_LENGTH,
-  INTERIOR_ITEM_STATUSES,
-  INTERIOR_ITEM_STATUS_LABELS,
-  INTERIOR_PAYMENT_LABEL_PRESETS,
-  INTERIOR_PAYMENT_MAX_COUNT,
-  INTERIOR_QUOTE_MAX_COUNT,
+  INTERIOR_QUOTE_MEMO_MAX_LENGTH,
   INTERIOR_TRADE_MAX_LENGTH,
-  INTERIOR_TRADES,
+  INTERIOR_VENDOR_MAX_LENGTH,
 } from "@/lib/constants/interiorPlan";
-import { formatManwon, formatThousands } from "@/lib/utils/amount";
-import { createRandomId } from "@/lib/utils/createRandomId";
+import { formatThousands } from "@/lib/utils/amount";
 import {
-  cancelQuoteConfirm,
-  confirmQuote,
-  createInteriorItemDraft,
-  createPaymentDraft,
-  createQuoteDraft,
-  interiorItemDraftErrors,
-  isSameItemDraft,
-  paymentField,
-  quoteField,
-  removeQuote,
-  summarizePaymentDraft,
-  toInteriorItemDraft,
-  validateInteriorItemDraft,
-} from "@/lib/utils/interiorItemDraft";
+  createInteriorLineDraft,
+  interiorLineDraftErrors,
+  isSameLineDraft,
+  toInteriorLineDraft,
+  validateInteriorLineDraft,
+} from "@/lib/utils/interiorLineDraft";
+import { removeLineWrite } from "@/lib/utils/interiorLineWrites";
 import { countChars } from "@/lib/utils/validateListingName";
 
-import styles from "./ItemSheet.module.css";
-import PaymentRow from "./PaymentRow";
-import QuoteRow from "./QuoteRow";
 import formStyles from "./SheetForm.module.css";
 import { ITEM_LIMIT_MESSAGE, planWriteFailureMessage } from "../planWriteFailure";
 
 import type {
-  InteriorItemDraft,
-  InteriorItemDraftField,
-  InteriorPaymentDraft,
-  InteriorQuoteDraft,
-} from "@/lib/types/interiorItemDraft";
-import type {
-  InteriorItem,
-  InteriorItemInput,
-  InteriorPlanWithItems,
-} from "@/lib/types/interiorPlan";
+  InteriorLineDraft,
+  InteriorLineDraftField,
+  InteriorLineValues,
+} from "@/lib/types/interiorLineDraft";
+import type { InteriorItem } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
+import type { InteriorLineRemoval } from "@/lib/utils/interiorLineWrites";
+import type { InteriorPlanRow } from "@/lib/utils/interiorPlanRows";
 
 type ItemSheetProps = {
-  plan: InteriorPlanWithItems;
-  /** 고칠 항목. null이면 새 항목이다 */
-  item: InteriorItem | null;
-  /** 새 항목의 공간(공간 묶음의 [추가]면 그 공간, 아니면 첫 공간) */
-  initialSpaceId: string;
+  /** 이 계획의 기존 구분(입력 제안). 철자 차이로 묶음이 갈라지는 것을 줄인다 */
+  tradeSuggestions: string[];
+  /** 고칠 줄. null이면 새 줄이다 */
+  row: InteriorPlanRow | null;
+  /** 새 줄의 구분. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분이고 포커스는 업체 칸에서 시작한다 */
+  initialTrade: string;
   /**
    * 성공하면 부르는 쪽이 닫는다. 실패하면 입력을 그대로 두고 이유를 보인다.
-   * `openedItem`은 시트를 연 시점의 항목(새 항목이면 null)이다. 그 `updatedAt`으로 같은 항목 동시 편집을 확인한다
+   * `openedRow`는 시트를 연 시점의 줄(새 줄이면 null)이다. 그 항목 전체로 숨은 값을 보존하고 `updatedAt`으로 동시 편집을 확인한다
    */
   onSave: (
-    input: InteriorItemInput,
-    openedItem: InteriorItem | null,
+    values: InteriorLineValues,
+    openedRow: InteriorPlanRow | null,
   ) => Promise<InteriorPlanSourceWriteResult>;
   /** 시트가 확인한 뒤 부른다. 성공하면 부르는 쪽이 닫는다 */
-  onDelete: (itemId: string) => Promise<InteriorPlanSourceWriteResult>;
+  onDelete: (
+    removal: InteriorLineRemoval,
+    openedItem: InteriorItem,
+  ) => Promise<InteriorPlanSourceWriteResult>;
   /** 다른 사람이 같은 항목을 저장했을 때 [최신 값 불러오기]. 부르는 쪽이 시트를 지금 값으로 다시 연다 */
   onReload: () => void;
   onClose: () => void;
 };
 
 const DISCARD_CONFIRM_MESSAGE = "고친 내용을 버리고 닫을까요?";
-const CUSTOM_PAYMENT_LABEL = "";
+const DELETE_CONFIRM_MESSAGE = "이 줄을 지울까요?";
 
 /** 칸 id. 첫 오류로 포커스를 옮길 때 오류의 칸 이름에서 찾는다 */
-const fieldInputId = (field: InteriorItemDraftField) =>
-  `interior-item-${field.replaceAll(":", "-")}`;
+const fieldInputId = (field: InteriorLineDraftField) => `interior-line-${field}`;
 
-const STATUS_OPTIONS = INTERIOR_ITEM_STATUSES.map((value) => ({
+/** 줄을 지우면 항목째 지워질 때(견적 0~1개) 숨은 지급도 함께 지워진다고 알린다(A6) */
+function deleteConfirmMessage(removal: InteriorLineRemoval): string {
+  if (removal.kind === "removeItem" && removal.paymentCount > 0) {
+    return `${DELETE_CONFIRM_MESSAGE} 지급 ${removal.paymentCount}건도 함께 지워집니다`;
+  }
+  return DELETE_CONFIRM_MESSAGE;
+}
+
+type TextFieldProps = {
+  field: Exclude<InteriorLineDraftField, "amount">;
+  label: string;
+  value: string;
+  maxLength: number;
+  error: string | null;
+  isMultiline?: boolean;
+  listId?: string;
+  isAutoFocused?: boolean;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+};
+
+/** 글자 칸 하나: 라벨 · 현재/최대 글자 수 · 입력 · 그 칸 아래 오류 */
+function TextField({
+  field,
+  label,
   value,
-  label: INTERIOR_ITEM_STATUS_LABELS[value],
-}));
-
-/** "지급 합계 1,200만원 / 확정 1,250만원 — 50만원 남음". 확정 견적이 없으면 합계만 */
-function describePaymentTotals(draft: InteriorItemDraft): string | null {
-  if (draft.payments.length === 0) return null;
-  const { paymentTotal, confirmedAmount } = summarizePaymentDraft(draft);
-  const total = paymentTotal === null ? "—" : formatManwon(paymentTotal);
-  if (confirmedAmount === null || paymentTotal === null) return `지급 합계 ${total}`;
-  const difference = confirmedAmount - paymentTotal;
-  const rest =
-    difference >= 0 ? `${formatManwon(difference)} 남음` : `${formatManwon(-difference)} 초과`;
-  return `지급 합계 ${total} / 확정 ${formatManwon(confirmedAmount)} — ${rest}`;
+  maxLength,
+  error,
+  isMultiline = false,
+  listId,
+  isAutoFocused = false,
+  onChange,
+  onBlur,
+}: TextFieldProps) {
+  const id = fieldInputId(field);
+  const countId = `${id}-count`;
+  const errorId = `${id}-error`;
+  const shared = {
+    id,
+    value,
+    "aria-invalid": error !== null,
+    "aria-describedby": error === null ? countId : `${countId} ${errorId}`,
+    onBlur,
+  };
+  return (
+    <div className={formStyles.field}>
+      <div className={formStyles.labelRow}>
+        <label className={formStyles.label} htmlFor={id}>
+          {label}
+        </label>
+        <span id={countId} className={formStyles.count}>
+          {formatThousands(countChars(value.trim()))}/{formatThousands(maxLength)}
+        </span>
+      </div>
+      {isMultiline ? (
+        <textarea
+          {...shared}
+          className={formStyles.textarea}
+          rows={3}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : (
+        <input
+          {...shared}
+          className={formStyles.input}
+          type="text"
+          autoComplete="off"
+          enterKeyHint="next"
+          list={listId}
+          autoFocus={isAutoFocused}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
+      {error !== null && (
+        <p id={errorId} className={formStyles.error}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 /**
- * 항목 시트: 공간 · 공종(프리셋 칩 + 직접 입력) · 예산 · 견적(확정 라디오) · 지급 · 상태 · 시작·끝 · 메모.
+ * 줄 시트: 구분(기존 구분 제안) · 업체 · 세부내용 · 견적 · 비고 · [확정] · [저장] · (기존 줄) [삭제].
  * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경(폴링 포함)으로 덮이지 않는다. 그 사이 다른 사람이 같은 항목을
  * 저장했으면 저장하지 않고 알린 뒤 [최신 값 불러오기]를 보인다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
  * 저장을 누르면 모두 보이고 첫 오류 칸으로 간다. 고친 것이 없으면 [저장]이 막히고, 고친 채 닫으면 확인한다.
+ * 견적 n≥2 옛 항목의 줄은 구분·비고·확정을 형제 줄과 같이 쓴다는 안내를 붙인다(D2 a).
  */
 function ItemSheet({
-  plan,
-  item,
-  initialSpaceId,
+  tradeSuggestions,
+  row,
+  initialTrade,
   onSave,
   onDelete,
   onReload,
   onClose,
 }: ItemSheetProps) {
-  const [openedItem] = useState(item);
+  const tradeListId = useId();
+  const [openedRow] = useState(row);
   const [initialDraft] = useState(() =>
-    item === null ? createInteriorItemDraft(initialSpaceId) : toInteriorItemDraft(item),
+    row === null ? createInteriorLineDraft(initialTrade) : toInteriorLineDraft(row),
   );
   const [draft, setDraft] = useState(initialDraft);
-  const [blurredFields, setBlurredFields] = useState<Set<InteriorItemDraftField>>(() => new Set());
+  const [blurredFields, setBlurredFields] = useState<Set<InteriorLineDraftField>>(() => new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [writeError, setWriteError] = useState<string | null>(null);
   const [isConflict, setIsConflict] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const addQuoteButtonRef = useRef<HTMLButtonElement>(null);
-  const customPaymentButtonRef = useRef<HTMLButtonElement>(null);
 
-  const spaceIds = plan.spaces.map((space) => space.id);
-  const errors = interiorItemDraftErrors(draft, spaceIds);
-  const isChanged = !isSameItemDraft(draft, initialDraft);
-  const isSpaceKnown = spaceIds.includes(draft.spaceId);
-  const canAddQuote = draft.quotes.length < INTERIOR_QUOTE_MAX_COUNT;
-  const canAddPayment = draft.payments.length < INTERIOR_PAYMENT_MAX_COUNT;
-  const paymentTotals = describePaymentTotals(draft);
+  const errors = interiorLineDraftErrors(draft);
+  const isChanged = !isSameLineDraft(draft, initialDraft);
+  const sharedQuoteCount = (openedRow?.item.quotes ?? []).length;
+  const isTradePrefilled = openedRow === null && initialTrade !== "";
 
-  const errorOf = (field: InteriorItemDraftField): string | null => {
+  const errorOf = (field: InteriorLineDraftField): string | null => {
     if (!isSubmitted && !blurredFields.has(field)) return null;
     return errors.find((error) => error.field === field)?.message ?? null;
   };
 
-  const markBlurred = (field: InteriorItemDraftField) => {
+  const markBlurred = (field: InteriorLineDraftField) => {
     setBlurredFields((prev) => new Set(prev).add(field));
   };
 
-  const update = (patch: Partial<InteriorItemDraft>) => setDraft((prev) => ({ ...prev, ...patch }));
-
-  const updateQuote = (quoteId: string, patch: Partial<InteriorQuoteDraft>) => {
-    setDraft((prev) => ({
-      ...prev,
-      quotes: prev.quotes.map((quote) => (quote.id === quoteId ? { ...quote, ...patch } : quote)),
-    }));
-  };
-
-  const updatePayment = (paymentId: string, patch: Partial<InteriorPaymentDraft>) => {
-    setDraft((prev) => ({
-      ...prev,
-      payments: prev.payments.map((payment) =>
-        payment.id === paymentId ? { ...payment, ...patch } : payment,
-      ),
-    }));
-  };
-
-  /** 칸이 그려진 뒤 포커스를 옮긴다 */
-  const focusField = (field: InteriorItemDraftField) => {
-    document.getElementById(fieldInputId(field))?.focus();
-  };
-
-  const handleAddQuote = () => {
-    const quote = createQuoteDraft(createRandomId());
-    flushSync(() => setDraft((prev) => ({ ...prev, quotes: [...prev.quotes, quote] })));
-    focusField(quoteField(quote.id, "vendor"));
-  };
-
-  const handleRemoveQuote = (quoteId: string) => {
-    flushSync(() => setDraft((prev) => removeQuote(prev, quoteId)));
-    addQuoteButtonRef.current?.focus();
-  };
-
-  /** 칩(계약금·중도금·잔금)이면 금액 칸으로, [직접 입력]이면 이름 칸으로 간다 */
-  const handleAddPayment = (label: string) => {
-    const payment = createPaymentDraft(createRandomId(), label);
-    flushSync(() => setDraft((prev) => ({ ...prev, payments: [...prev.payments, payment] })));
-    focusField(paymentField(payment.id, label === CUSTOM_PAYMENT_LABEL ? "label" : "amount"));
-  };
-
-  const handleRemovePayment = (paymentId: string) => {
-    flushSync(() =>
-      setDraft((prev) => ({
-        ...prev,
-        payments: prev.payments.filter((payment) => payment.id !== paymentId),
-      })),
-    );
-    customPaymentButtonRef.current?.focus();
-  };
+  const update = (patch: Partial<InteriorLineDraft>) => setDraft((prev) => ({ ...prev, ...patch }));
 
   const handleClose = () => {
     if (!isChanged || window.confirm(DISCARD_CONFIRM_MESSAGE)) onClose();
@@ -201,302 +197,89 @@ function ItemSheet({
     event.preventDefault();
     if (isSaving) return;
     setIsSubmitted(true);
-    const validation = validateInteriorItemDraft(draft, spaceIds);
+    const validation = validateInteriorLineDraft(draft);
     if (!validation.ok) {
-      focusField(validation.errors[0].field);
+      document.getElementById(fieldInputId(validation.errors[0].field))?.focus();
       return;
     }
     setIsSaving(true);
-    const result = await onSave(validation.input, openedItem);
+    const result = await onSave(validation.values, openedRow);
     setIsSaving(false);
     setWriteError(result.ok ? null : planWriteFailureMessage(result.reason, ITEM_LIMIT_MESSAGE));
     setIsConflict(!result.ok && result.reason === "conflict");
   };
 
-  const handleDelete = async (target: InteriorItem) => {
-    if (!window.confirm(`'${target.trade}' 항목을 삭제할까요? 되돌릴 수 없습니다.`)) return;
-    const result = await onDelete(target.id);
+  const handleDelete = async (target: InteriorPlanRow) => {
+    const removal = removeLineWrite(target.item, target.quote?.id ?? null);
+    if (!window.confirm(deleteConfirmMessage(removal))) return;
+    const result = await onDelete(removal, target.item);
     if (!result.ok) {
       setWriteError(planWriteFailureMessage(result.reason));
-      setIsConflict(false);
+      setIsConflict(result.reason === "conflict");
     }
   };
 
-  const renderTextError = (field: InteriorItemDraftField) => {
-    const error = errorOf(field);
-    return error === null ? null : (
-      <p id={`${fieldInputId(field)}-error`} className={formStyles.error}>
-        {error}
-      </p>
-    );
-  };
-
-  const describedBy = (field: InteriorItemDraftField, extraId?: string) => {
-    const ids = [
-      ...(extraId === undefined ? [] : [extraId]),
-      ...(errorOf(field) === null ? [] : [`${fieldInputId(field)}-error`]),
-    ];
-    return ids.length === 0 ? undefined : ids.join(" ");
-  };
-
-  const tradeCountId = `${fieldInputId("trade")}-count`;
-  const memoCountId = `${fieldInputId("memo")}-count`;
+  const textFieldProps = (field: Exclude<InteriorLineDraftField, "amount">) => ({
+    field,
+    value: draft[field],
+    error: errorOf(field),
+    onChange: (value: string) => update({ [field]: value }),
+    onBlur: () => markBlurred(field),
+  });
 
   return (
-    <Sheet title={item === null ? "항목 추가" : "항목"} onClose={handleClose}>
+    <Sheet title={openedRow === null ? "줄 추가" : "줄"} onClose={handleClose}>
       <form className={formStyles.form} noValidate onSubmit={handleSubmit}>
-        <div className={formStyles.field}>
-          <label className={formStyles.label} htmlFor={fieldInputId("spaceId")}>
-            공간
-          </label>
-          <select
-            id={fieldInputId("spaceId")}
-            className={formStyles.select}
-            value={isSpaceKnown ? draft.spaceId : ""}
-            aria-invalid={errorOf("spaceId") !== null}
-            aria-describedby={describedBy("spaceId")}
-            onChange={(event) => update({ spaceId: event.target.value })}
-            onBlur={() => markBlurred("spaceId")}
-          >
-            {!isSpaceKnown && (
-              <option value="" disabled>
-                공간을 고르세요
-              </option>
-            )}
-            {plan.spaces.map((space) => (
-              <option key={space.id} value={space.id}>
-                {space.name}
-              </option>
-            ))}
-          </select>
-          {renderTextError("spaceId")}
-        </div>
-
-        <div className={formStyles.field}>
-          <div className={formStyles.labelRow}>
-            <label className={formStyles.label} htmlFor={fieldInputId("trade")}>
-              공종
-            </label>
-            <span id={tradeCountId} className={formStyles.count}>
-              {countChars(draft.trade.trim())}/{INTERIOR_TRADE_MAX_LENGTH}
-            </span>
-          </div>
-          <div className={formStyles.chips} role="group" aria-label="공종 고르기">
-            {INTERIOR_TRADES.map((trade) => (
-              <button
-                key={trade}
-                type="button"
-                className={formStyles.chip}
-                aria-pressed={draft.trade.trim() === trade}
-                onClick={() => update({ trade })}
-              >
-                {trade}
-              </button>
-            ))}
-          </div>
-          <input
-            id={fieldInputId("trade")}
-            className={formStyles.input}
-            type="text"
-            autoComplete="off"
-            enterKeyHint="next"
-            placeholder="직접 입력"
-            value={draft.trade}
-            aria-invalid={errorOf("trade") !== null}
-            aria-describedby={describedBy("trade", tradeCountId)}
-            onChange={(event) => update({ trade: event.target.value })}
-            onBlur={() => markBlurred("trade")}
-          />
-          {renderTextError("trade")}
-        </div>
-
-        <AmountInput
-          id={fieldInputId("budget")}
-          label="예산(선택)"
-          value={draft.budget}
-          error={errorOf("budget")}
-          onChange={(budget) => update({ budget })}
-          onBlur={() => markBlurred("budget")}
+        <TextField
+          {...textFieldProps("trade")}
+          label="구분"
+          maxLength={INTERIOR_TRADE_MAX_LENGTH}
+          listId={tradeListId}
         />
-
-        <section className={formStyles.section} aria-labelledby="interior-item-quotes-title">
-          <div className={formStyles.labelRow}>
-            <h3 id="interior-item-quotes-title" className={formStyles.sectionTitle}>
-              견적
-            </h3>
-            <span className={formStyles.count}>
-              {draft.quotes.length}/{INTERIOR_QUOTE_MAX_COUNT}
-            </span>
-          </div>
-          {draft.quotes.length > 0 && (
-            <ul className={styles.lines}>
-              {draft.quotes.map((quote, index) => (
-                <QuoteRow
-                  key={quote.id}
-                  quote={quote}
-                  number={index + 1}
-                  isConfirmed={draft.confirmedQuoteId === quote.id}
-                  inputIdOf={(name) => fieldInputId(quoteField(quote.id, name))}
-                  errorOf={(name) => errorOf(quoteField(quote.id, name))}
-                  onChange={(patch) => updateQuote(quote.id, patch)}
-                  onBlur={(name) => markBlurred(quoteField(quote.id, name))}
-                  onConfirm={() => setDraft((prev) => confirmQuote(prev, quote.id))}
-                  onDelete={() => handleRemoveQuote(quote.id)}
-                />
-              ))}
-            </ul>
-          )}
-          <div className={styles.sectionActions}>
-            <button
-              ref={addQuoteButtonRef}
-              type="button"
-              className={formStyles.addButton}
-              disabled={!canAddQuote}
-              onClick={handleAddQuote}
-            >
-              견적 추가
-            </button>
-            {draft.confirmedQuoteId !== null && (
-              <button
-                type="button"
-                className={formStyles.secondaryButton}
-                onClick={() => setDraft((prev) => cancelQuoteConfirm(prev))}
-              >
-                확정 취소
-              </button>
-            )}
-          </div>
-          {!canAddQuote && (
-            <p className={formStyles.limitNote}>
-              견적은 {INTERIOR_QUOTE_MAX_COUNT}개까지 적을 수 있습니다
-            </p>
-          )}
-        </section>
-
-        <section className={formStyles.section} aria-labelledby="interior-item-payments-title">
-          <div className={formStyles.labelRow}>
-            <h3 id="interior-item-payments-title" className={formStyles.sectionTitle}>
-              지급
-            </h3>
-            <span className={formStyles.count}>
-              {draft.payments.length}/{INTERIOR_PAYMENT_MAX_COUNT}
-            </span>
-          </div>
-          {draft.payments.length > 0 && (
-            <ul className={styles.lines}>
-              {draft.payments.map((payment, index) => (
-                <PaymentRow
-                  key={payment.id}
-                  payment={payment}
-                  number={index + 1}
-                  inputIdOf={(name) => fieldInputId(paymentField(payment.id, name))}
-                  errorOf={(name) => errorOf(paymentField(payment.id, name))}
-                  onChange={(patch) => updatePayment(payment.id, patch)}
-                  onBlur={(name) => markBlurred(paymentField(payment.id, name))}
-                  onDelete={() => handleRemovePayment(payment.id)}
-                />
-              ))}
-            </ul>
-          )}
-          {paymentTotals !== null && <p className={styles.paymentTotals}>{paymentTotals}</p>}
-          <div className={formStyles.chips} role="group" aria-label="지급 줄 추가">
-            {INTERIOR_PAYMENT_LABEL_PRESETS.map((label) => (
-              <button
-                key={label}
-                type="button"
-                className={formStyles.chip}
-                disabled={!canAddPayment}
-                onClick={() => handleAddPayment(label)}
-              >
-                {label}
-              </button>
-            ))}
-            <button
-              ref={customPaymentButtonRef}
-              type="button"
-              className={formStyles.chip}
-              disabled={!canAddPayment}
-              onClick={() => handleAddPayment(CUSTOM_PAYMENT_LABEL)}
-            >
-              직접 입력
-            </button>
-          </div>
-          {!canAddPayment && (
-            <p className={formStyles.limitNote}>
-              지급 줄은 {INTERIOR_PAYMENT_MAX_COUNT}개까지 적을 수 있습니다
-            </p>
-          )}
-        </section>
-
-        <div className={formStyles.section}>
-          <ChoiceGroup
-            name="interiorItemStatus"
-            legend="상태"
-            options={STATUS_OPTIONS}
-            value={draft.status}
-            columns={3}
-            onChange={(status) => update({ status })}
+        <datalist id={tradeListId}>
+          {tradeSuggestions.map((trade) => (
+            <option key={trade} value={trade} />
+          ))}
+        </datalist>
+        <TextField
+          {...textFieldProps("vendor")}
+          label="업체"
+          maxLength={INTERIOR_VENDOR_MAX_LENGTH}
+          isAutoFocused={isTradePrefilled}
+        />
+        <TextField
+          {...textFieldProps("detail")}
+          label="세부내용(선택)"
+          maxLength={INTERIOR_QUOTE_MEMO_MAX_LENGTH}
+        />
+        <AmountInput
+          id={fieldInputId("amount")}
+          label="견적"
+          value={draft.amount}
+          error={errorOf("amount")}
+          onChange={(amount) => update({ amount })}
+          onBlur={() => markBlurred("amount")}
+        />
+        <TextField
+          {...textFieldProps("note")}
+          label="비고(선택)"
+          maxLength={INTERIOR_ITEM_MEMO_MAX_LENGTH}
+          isMultiline
+        />
+        <label className={formStyles.checkLabel}>
+          <input
+            type="checkbox"
+            checked={draft.isConfirmed}
+            onChange={(event) => update({ isConfirmed: event.currentTarget.checked })}
           />
-        </div>
+          확정
+        </label>
 
-        <div className={formStyles.twoColumns}>
-          <div className={formStyles.field}>
-            <label className={formStyles.label} htmlFor={fieldInputId("startDate")}>
-              시작
-            </label>
-            <input
-              id={fieldInputId("startDate")}
-              className={formStyles.input}
-              type="date"
-              value={draft.startDate}
-              aria-invalid={errorOf("startDate") !== null}
-              aria-describedby={describedBy("startDate")}
-              onChange={(event) => update({ startDate: event.target.value })}
-              onBlur={() => markBlurred("startDate")}
-            />
-            {renderTextError("startDate")}
-          </div>
-          <div className={formStyles.field}>
-            <label className={formStyles.label} htmlFor={fieldInputId("endDate")}>
-              끝
-            </label>
-            <input
-              id={fieldInputId("endDate")}
-              className={formStyles.input}
-              type="date"
-              value={draft.endDate}
-              aria-invalid={errorOf("endDate") !== null}
-              aria-describedby={describedBy("endDate")}
-              onChange={(event) => update({ endDate: event.target.value })}
-              onBlur={() => markBlurred("endDate")}
-            />
-            {renderTextError("endDate")}
-          </div>
-        </div>
-
-        <div className={formStyles.field}>
-          <div className={formStyles.labelRow}>
-            <label className={formStyles.label} htmlFor={fieldInputId("memo")}>
-              메모(선택)
-            </label>
-            <span id={memoCountId} className={formStyles.count}>
-              {formatThousands(countChars(draft.memo.trim()))}/
-              {formatThousands(INTERIOR_ITEM_MEMO_MAX_LENGTH)}
-            </span>
-          </div>
-          <textarea
-            id={fieldInputId("memo")}
-            className={formStyles.textarea}
-            rows={3}
-            value={draft.memo}
-            aria-invalid={errorOf("memo") !== null}
-            aria-describedby={describedBy("memo", memoCountId)}
-            onChange={(event) => update({ memo: event.target.value })}
-            onBlur={() => markBlurred("memo")}
-          />
-          {renderTextError("memo")}
-        </div>
-
+        {sharedQuoteCount >= 2 && (
+          <p className={formStyles.note}>
+            같은 항목의 견적 {sharedQuoteCount}개가 구분·비고·확정을 같이 씁니다
+          </p>
+        )}
         {writeError !== null && (
           <p role="alert" className={formStyles.error}>
             {writeError}
@@ -508,11 +291,11 @@ function ItemSheet({
           </button>
         )}
         <div className={formStyles.actions}>
-          {item !== null && (
+          {openedRow !== null && (
             <button
               type="button"
               className={formStyles.dangerButton}
-              onClick={() => void handleDelete(item)}
+              onClick={() => void handleDelete(openedRow)}
             >
               삭제
             </button>

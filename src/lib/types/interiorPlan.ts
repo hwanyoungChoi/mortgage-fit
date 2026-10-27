@@ -25,7 +25,7 @@ export type InteriorPlan = {
   updatedAt: string;
 };
 
-/** 계획 · 견적 중 · 확정 · 진행 중 · 완료. 라벨·화면 순서는 `INTERIOR_ITEM_STATUSES`·`INTERIOR_ITEM_STATUS_LABELS` */
+/** 계획 · 견적 중 · 확정 · 진행 중 · 완료. 검증 목록은 `INTERIOR_ITEM_STATUSES`. 화면은 읽지 않고 쓸 때 그대로 돌려보낸다 */
 export type InteriorItemStatus = "planned" | "quoting" | "confirmed" | "inProgress" | "done";
 
 export type InteriorQuote = {
@@ -54,7 +54,7 @@ export type InteriorItem = {
   id: string;
   /** 플랜 `spaces`의 id. 형식만 검증한다(동시 편집으로 공간이 사라지면 "공간 없음" 그룹) */
   spaceId: string;
-  /** 공종 1~30자. 프리셋(`INTERIOR_TRADES`) 이름과 같을 때만 공정 순서를 따른다 */
+  /** 구분(공종) 1~30자. trim한 이름이 같은 줄끼리 화면에서 한 묶음이다 */
   trade: string;
   /** 항목 예산(만원) */
   budget?: number;
@@ -93,12 +93,6 @@ export type InteriorPlanPatch = {
   budget?: number | null;
   listingId?: string | null;
   spaces?: InteriorSpace[];
-};
-
-/** 공정 순서 안내의 출처 */
-export type InteriorProcessSource = {
-  title: string;
-  url: string;
 };
 
 // --- /api/interior-plans 계약(스펙 interior-planner "API 계약"). 요청·응답 봉투는 `{ plan }`·`{ item }`이다.

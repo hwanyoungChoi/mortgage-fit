@@ -1,5 +1,5 @@
 import { validateAmount } from "@/lib/utils/amount";
-import { summarizeInteriorPlan } from "@/lib/utils/summarizeInteriorPlan";
+import { summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
 
 import type { Draft } from "@/lib/types/draft";
 import type { InteriorPlanListState } from "@/lib/types/interiorPlanStore";
@@ -18,7 +18,8 @@ export type HubCardSummary<T> =
 
 export type HubListingsValue = { count: number; isHousehold: boolean };
 
-export type HubPlanLine = { id: string; name: string; upcomingTotal: number };
+/** 계획 하나의 줄. `plannedTotal`은 지출 예정(만원, 확정한 줄의 견적 합) */
+export type HubPlanLine = { id: string; name: string; plannedTotal: number };
 
 export type HubSummary = {
   /** 작성 중 매매가(만원) */
@@ -34,7 +35,6 @@ type HubSummaryInput = {
   /** 함께 쓰는 목록에 있다(로그인 상태에서만 참) */
   isListingsHousehold: boolean;
   plans: InteriorPlanListState;
-  now: Date;
 };
 
 type ListStatus = Exclude<ListingListState["status"] | InteriorPlanListState["status"], "ok">;
@@ -69,7 +69,7 @@ function summarizeListings(
   return { kind: "summary", value: { count, isHousehold } };
 }
 
-function summarizePlans(plans: InteriorPlanListState, now: Date): HubCardSummary<HubPlanLine[]> {
+function summarizePlans(plans: InteriorPlanListState): HubCardSummary<HubPlanLine[]> {
   if (plans.status !== "ok") return NOT_OK_SUMMARY[plans.status];
   if (plans.plans.length === 0) return INTRO;
   return {
@@ -77,8 +77,8 @@ function summarizePlans(plans: InteriorPlanListState, now: Date): HubCardSummary
     value: plans.plans.map((plan) => ({
       id: plan.id,
       name: plan.name,
-      // 우리 집 요약과 같은 정의(ADR-029 조건 9). 홈이 따로 계산하지 않는다.
-      upcomingTotal: summarizeInteriorPlan(plan, now).upcomingTotal,
+      // 우리 집 요약과 같은 정의(U7). 홈이 따로 계산하지 않는다.
+      plannedTotal: summarizeInteriorPlan(plan).plannedTotal,
     })),
   };
 }
@@ -89,11 +89,10 @@ export function summarizeHub({
   listings,
   isListingsHousehold,
   plans,
-  now,
 }: HubSummaryInput): HubSummary {
   return {
     calculator: summarizeCalculator(draft),
     listings: summarizeListings(listings, isListingsHousehold),
-    home: summarizePlans(plans, now),
+    home: summarizePlans(plans),
   };
 }

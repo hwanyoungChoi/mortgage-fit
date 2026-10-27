@@ -63,7 +63,6 @@ function MortgageHub({
     listings: listingSource.list,
     isListingsHousehold: listingSource.household !== null,
     plans: planSource.list,
-    now: new Date(),
   });
 
   return (
@@ -101,14 +100,14 @@ function MortgageHub({
           <HubCard
             title="우리 집 인테리어"
             href={PATHS.home()}
-            intro="계약한 집의 인테리어 예산·견적·지급을 정리합니다"
+            intro="공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"
             summary={summary.home}
             renderSummary={(lines) =>
               lines.map((line) => (
                 <span key={line.id} className={styles.planLine}>
-                  {line.name} · 앞으로 낼 돈{" "}
+                  {line.name} · 지출 예정{" "}
                   <MaskedValue isMasked={isPrivacyMode}>
-                    {formatManwon(line.upcomingTotal)}
+                    {formatManwon(line.plannedTotal)}
                   </MaskedValue>
                 </span>
               ))

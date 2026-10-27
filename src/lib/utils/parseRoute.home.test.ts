@@ -11,7 +11,7 @@ type HomeRoute = Extract<Route, { name: "home" }>;
 const LONG_ID = "a".repeat(64);
 const TOO_LONG_ID = "a".repeat(65);
 
-describe("parseRoute 우리 집 (스펙 interior-planner 화면 · AC-1·AC-3)", () => {
+describe("parseRoute 우리 집 (스펙 interior-planner 화면 · interior-simple AC-6)", () => {
   const cases: [string, Route][] = [
     ["#/home", { name: "home" }],
     ["#/home/", { name: "home" }],
@@ -24,9 +24,9 @@ describe("parseRoute 우리 집 (스펙 interior-planner 화면 · AC-1·AC-3)",
     ["#/home/a.b", { name: "home" }],
     ["#/home/a/b", { name: "home" }],
     ["#/home/%20", { name: "home" }],
-    // 보기: trade·table만 남긴다(태스크 5, ADR-030)
-    ["#/home?view=trade", { name: "home", view: "trade" }],
-    ["#/home/plan-1?view=trade", { name: "home", planId: "plan-1", view: "trade" }],
+    // 보기: table만 남긴다(ADR-030). 옛 trade·space와 그 밖의 값은 목록(ADR-032 조건 9)
+    ["#/home?view=trade", { name: "home" }],
+    ["#/home/plan-1?view=trade", { name: "home", planId: "plan-1" }],
     ["#/home?view=table", { name: "home", view: "table" }],
     ["#/home/plan-1?view=table", { name: "home", planId: "plan-1", view: "table" }],
     [
@@ -48,7 +48,7 @@ describe("parseRoute 우리 집 (스펙 interior-planner 화면 · AC-1·AC-3)",
     [`#/home?listing=${TOO_LONG_ID}`, { name: "home" }],
     [
       "#/home/plan-1?view=trade&listing=listing-1",
-      { name: "home", planId: "plan-1", listingId: "listing-1", view: "trade" },
+      { name: "home", planId: "plan-1", listingId: "listing-1" },
     ],
     ["#/home?other=1", { name: "home" }],
     // home으로 시작하지만 다른 경로
@@ -69,19 +69,22 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
   it.each<[HomeRoute, string]>([
     [{ name: "home" }, "#/home"],
     [{ name: "home", planId: "plan-1" }, "#/home/plan-1"],
-    [{ name: "home", view: "trade" }, "#/home?view=trade"],
-    [{ name: "home", view: "space" }, "#/home"],
+    [{ name: "home", view: "list" }, "#/home"],
+    [{ name: "home", planId: "plan-1", view: "list" }, "#/home/plan-1"],
     [{ name: "home", view: "table" }, "#/home?view=table"],
     [{ name: "home", planId: "plan-1", view: "table" }, "#/home/plan-1?view=table"],
     [
       { name: "home", planId: "plan-1", listingId: "listing-1", view: "table" },
       "#/home/plan-1?listing=listing-1&view=table",
     ],
-    [{ name: "home", planId: "plan-1", view: "trade" }, "#/home/plan-1?view=trade"],
+    [
+      { name: "home", listingId: "listing-1", view: "table" },
+      "#/home?listing=listing-1&view=table",
+    ],
     [{ name: "home", listingId: "listing-1" }, "#/home?listing=listing-1"],
     [
-      { name: "home", planId: "plan-1", listingId: "listing-1", view: "trade" },
-      "#/home/plan-1?listing=listing-1&view=trade",
+      { name: "home", planId: "plan-1", listingId: "listing-1", view: "list" },
+      "#/home/plan-1?listing=listing-1",
     ],
   ])("%j → %j", (route, path) => {
     const { name: _name, ...params } = route;
@@ -97,10 +100,8 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
   it.each([
     "#/home",
     "#/home/plan-1",
-    "#/home?view=trade",
-    "#/home/plan-1?view=trade",
     "#/home?listing=listing-1",
-    "#/home/plan-1?listing=listing-1&view=trade",
+    "#/home/plan-1?listing=listing-1",
     "#/home?view=table",
     "#/home/plan-1?view=table",
     "#/home?listing=listing-1&view=table",
@@ -111,9 +112,15 @@ describe("PATHS.home·toRoutePath 우리 집", () => {
   it.each([
     ["#/home?view=space", "#/home"],
     ["#/home/?view=card", "#/home"],
-    ["#/home/import?view=trade", "#/home?view=trade"],
-    ["#/home/plan-1?view=trade&listing=listing-1", "#/home/plan-1?listing=listing-1&view=trade"],
-    ["#/home?listing=bad%20id&view=trade", "#/home?view=trade"],
+    // 옛 공간별·공종별 주소와 목록·빈 값은 목록(주소에서 view를 지운다)
+    ["#/home?view=trade", "#/home"],
+    ["#/home/plan-1?view=trade", "#/home/plan-1"],
+    ["#/home/plan-1?view=space", "#/home/plan-1"],
+    ["#/home/plan-1?view=list", "#/home/plan-1"],
+    ["#/home/plan-1?view=", "#/home/plan-1"],
+    ["#/home/import?view=trade", "#/home"],
+    ["#/home/plan-1?view=trade&listing=listing-1", "#/home/plan-1?listing=listing-1"],
+    ["#/home?listing=bad%20id&view=table", "#/home?view=table"],
     ["#/home/plan-1?view=TABLE", "#/home/plan-1"],
     ["#/home/plan-1?view=table&view=trade", "#/home/plan-1?view=table"],
     ["#/home/import?view=table", "#/home?view=table"],

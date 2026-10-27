@@ -143,7 +143,7 @@ async function walkCardEntry(user: User) {
   await user.click(within(sheet).getByRole("button", { name: "만들기" }));
   await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-z]+$/));
   const planHash = window.location.hash;
-  expect(await screen.findByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "샷시 열기" })).toBeInTheDocument();
 
   await user.click(screen.getByRole("link", { name: "매물" }));
   await clickCardLink(user, "래미안 84");

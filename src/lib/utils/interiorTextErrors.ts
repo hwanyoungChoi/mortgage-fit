@@ -1,7 +1,4 @@
-import {
-  INTERIOR_PLAN_NAME_MAX_LENGTH,
-  INTERIOR_SPACE_NAME_MAX_LENGTH,
-} from "@/lib/constants/interiorPlan";
+import { INTERIOR_PLAN_NAME_MAX_LENGTH } from "@/lib/constants/interiorPlan";
 
 import { countChars } from "./validateListingName";
 
@@ -25,8 +22,4 @@ export function requiredTextError(
 
 export function interiorPlanNameError(raw: string): string | null {
   return requiredTextError(raw, INTERIOR_PLAN_NAME_MAX_LENGTH, "계획 이름을 입력하세요");
-}
-
-export function interiorSpaceNameError(raw: string): string | null {
-  return requiredTextError(raw, INTERIOR_SPACE_NAME_MAX_LENGTH, "공간 이름을 입력하세요");
 }

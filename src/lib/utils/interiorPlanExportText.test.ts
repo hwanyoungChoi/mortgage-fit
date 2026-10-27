@@ -1,56 +1,78 @@
-// 스펙 interior-planner "표 내보내기" 표 머리·파일 이름, AC-11 표 머리 문자열, AC-12 파일 이름 값 목록(태스크 5-2).
+// 스펙 interior-simple 표 머리(U8, AC-5)·이전 스펙 interior-planner AC-12 파일 이름 값 목록(태스크 5-2).
 import { describe, expect, it } from "vitest";
 
 import { makePlanQ } from "@/test/interiorPlanTableFixture";
+import { makeSimplePlanP } from "@/test/interiorSimpleFixture";
 
 import { interiorPlanExportFileName, interiorPlanTableHeading } from "./interiorPlanExportText";
-import { summarizeInteriorPlan } from "./summarizeInteriorPlan";
+import { summarizeInteriorPlan } from "./interiorPlanRows";
 
 const TODAY = "2026-10-27";
 
-describe("interiorPlanTableHeading (AC-11 표 머리)", () => {
-  it("Q: 제목 '우리 집 인테리어 계획', 줄 '2026-10-27 기준 · 총 예산 15,000,000원 · 예상 총액 11,500,000원', 조각도 따로", () => {
-    const summary = summarizeInteriorPlan(makePlanQ(), new Date(2026, 9, 27, 12, 0, 0));
-    expect(interiorPlanTableHeading("우리 집", summary, TODAY)).toEqual({
+describe("interiorPlanTableHeading (U8 표 머리)", () => {
+  it("P: 제목 '우리 집 인테리어 계획', 줄 '2026-10-27 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원 · 남은 예산 2,000,000원', 조각도 따로", () => {
+    expect(
+      interiorPlanTableHeading("우리 집", summarizeInteriorPlan(makeSimplePlanP()), TODAY),
+    ).toEqual({
       title: "우리 집 인테리어 계획",
       basis: "2026-10-27 기준",
-      budget: "총 예산 15,000,000원",
-      expectedTotal: "예상 총액 11,500,000원",
-      line: "2026-10-27 기준 · 총 예산 15,000,000원 · 예상 총액 11,500,000원",
+      budget: "총 예산 10,000,000원",
+      plannedTotal: "지출 예정 8,000,000원",
+      remaining: "남은 예산 2,000,000원",
+      line: "2026-10-27 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원 · 남은 예산 2,000,000원",
     });
   });
 
-  it("총 예산이 없으면(null) 그 조각을 빼고 구분자가 어긋나지 않는다", () => {
+  it("총 예산 700(지출 예정 800 초과)이면 남은 예산 자리에 '예산 초과 1,000,000원'", () => {
+    const summary = summarizeInteriorPlan(makeSimplePlanP({ budget: 700 }));
+    expect(interiorPlanTableHeading("우리 집", summary, TODAY).line).toBe(
+      "2026-10-27 기준 · 총 예산 7,000,000원 · 지출 예정 8,000,000원 · 예산 초과 1,000,000원",
+    );
+  });
+
+  it("남은 예산이 정확히 0이면 '남은 예산 0원'(초과 아님)", () => {
+    expect(
+      interiorPlanTableHeading("우리 집", { budget: 800, plannedTotal: 800, remaining: 0 }, TODAY)
+        .remaining,
+    ).toBe("남은 예산 0원");
+  });
+
+  it("총 예산이 없으면(null) 총 예산·남은 예산 조각을 빼고 구분자가 어긋나지 않는다", () => {
     const heading = interiorPlanTableHeading(
       "우리 집",
-      { budget: null, expectedTotal: 1150 },
+      { budget: null, plannedTotal: 750, remaining: null },
       TODAY,
     );
     expect(heading.budget).toBeUndefined();
-    expect(heading.line).toBe("2026-10-27 기준 · 예상 총액 11,500,000원");
+    expect(heading.remaining).toBeUndefined();
+    expect(heading.line).toBe("2026-10-27 기준 · 지출 예정 7,500,000원");
   });
 
   it("Q에서 총 예산을 지운 요약으로도 같은 줄", () => {
     const { budget: _budget, ...rest } = makePlanQ();
     void _budget;
-    const summary = summarizeInteriorPlan(rest, new Date(2026, 9, 27, 12, 0, 0));
-    expect(interiorPlanTableHeading("우리 집", summary, TODAY).line).toBe(
-      "2026-10-27 기준 · 예상 총액 11,500,000원",
+    expect(interiorPlanTableHeading("우리 집", summarizeInteriorPlan(rest), TODAY).line).toBe(
+      "2026-10-27 기준 · 지출 예정 7,500,000원",
     );
   });
 
-  it("예상 총액 0이면 '예상 총액 0원'(조각이 빠지지 않음)", () => {
+  it("지출 예정 0이면 '지출 예정 0원'(조각이 빠지지 않음)", () => {
     expect(
-      interiorPlanTableHeading("우리 집", { budget: null, expectedTotal: 0 }, TODAY).line,
-    ).toBe("2026-10-27 기준 · 예상 총액 0원");
-    expect(interiorPlanTableHeading("우리 집", { budget: 0, expectedTotal: 0 }, TODAY).line).toBe(
-      "2026-10-27 기준 · 총 예산 0원 · 예상 총액 0원",
-    );
+      interiorPlanTableHeading("우리 집", { budget: null, plannedTotal: 0, remaining: null }, TODAY)
+        .line,
+    ).toBe("2026-10-27 기준 · 지출 예정 0원");
+    expect(
+      interiorPlanTableHeading("우리 집", { budget: 0, plannedTotal: 0, remaining: 0 }, TODAY).line,
+    ).toBe("2026-10-27 기준 · 총 예산 0원 · 지출 예정 0원 · 남은 예산 0원");
   });
 
   it("날짜는 받은 문자열 그대로(Date를 읽지 않음)", () => {
     expect(
-      interiorPlanTableHeading("집", { budget: null, expectedTotal: 1 }, "1999-01-02").basis,
+      interiorPlanTableHeading(
+        "집",
+        { budget: null, plannedTotal: 1, remaining: null },
+        "1999-01-02",
+      ).basis,
     ).toBe("1999-01-02 기준");
   });
 });

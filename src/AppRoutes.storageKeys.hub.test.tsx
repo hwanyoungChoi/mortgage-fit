@@ -178,17 +178,17 @@ const HUB_SUMMARY: Record<Mode, [string, string, string]> = {
   loggedOut: [
     "작성 중 · 매매가 12억 5,000만원",
     "저장한 매물 2개",
-    "우리 집 · 앞으로 낼 돈 1,250만원",
+    "우리 집 · 지출 예정 1,530만원",
   ],
   solo: [
     "작성 중 · 매매가 12억 5,000만원",
     "본 매물을 저장해 자기자금·추가 비용을 비교합니다",
-    "우리 집 · 앞으로 낼 돈 1,250만원",
+    "우리 집 · 지출 예정 1,530만원",
   ],
   household: [
     "작성 중 · 매매가 12억 5,000만원",
     "함께 쓰는 목록 · 매물 0개",
-    "A 계획 · 앞으로 낼 돈 1,250만원",
+    "A 계획 · 지출 예정 1,530만원",
   ],
 };
 
@@ -219,7 +219,7 @@ async function expectHomeSettled(mode: Mode) {
     expect(await screen.findByRole("heading", { level: 1, name: "A 계획" })).toBeInTheDocument();
     return;
   }
-  expect(await screen.findByRole("button", { name: "전체 샷시 열기" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "샷시 E샷시 열기" })).toBeInTheDocument();
 }
 
 async function expectListingsSettled(mode: Mode) {

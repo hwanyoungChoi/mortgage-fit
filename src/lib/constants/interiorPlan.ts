@@ -3,7 +3,7 @@
 import { EXTRA_COST_LABEL_MAX_LENGTH } from "./extraCosts";
 import { LISTING_NAME_MAX_LENGTH } from "../utils/validateListingName";
 
-import type { InteriorItemStatus, InteriorProcessSource } from "../types/interiorPlan";
+import type { InteriorItemStatus } from "../types/interiorPlan";
 
 /** 계정(가구 범위)·기기마다 플랜 수 상한 */
 export const INTERIOR_PLAN_MAX_COUNT = 3;
@@ -30,27 +30,6 @@ export const INTERIOR_QUOTE_MEMO_MAX_LENGTH = 200;
 export const INTERIOR_ITEM_MEMO_MAX_LENGTH = 500;
 export const INTERIOR_PAYMENT_LABEL_MAX_LENGTH = 10;
 
-/**
- * 공종 프리셋 = 공정 순서(14단계). 프리셋 칩 순서·공종별 정렬·[공정 순서] 시트가 모두 이 한 상수에서 나온다.
- * 타일 → 욕실 순이다. 타일↔도장, 도배↔바닥(필름)의 앞뒤는 자료마다 달라 화면에 "업체와 조율"로 안내한다.
- */
-export const INTERIOR_TRADES: readonly string[] = [
-  "철거",
-  "샷시",
-  "설비",
-  "전기",
-  "목공",
-  "타일",
-  "욕실",
-  "도장",
-  "필름",
-  "도배",
-  "바닥",
-  "주방가구",
-  "조명",
-  "입주 청소",
-];
-
 /** 화면에 보이는 순서 */
 export const INTERIOR_ITEM_STATUSES: readonly InteriorItemStatus[] = [
   "planned",
@@ -58,29 +37,4 @@ export const INTERIOR_ITEM_STATUSES: readonly InteriorItemStatus[] = [
   "confirmed",
   "inProgress",
   "done",
-];
-
-export const INTERIOR_ITEM_STATUS_LABELS: Record<InteriorItemStatus, string> = {
-  planned: "계획",
-  quoting: "견적 중",
-  confirmed: "확정",
-  inProgress: "진행 중",
-  done: "완료",
-};
-
-/** 지급 줄 이름 칩. 비율은 출처를 확인하지 못해 두지 않는다(스펙 "참고한 사례") */
-export const INTERIOR_PAYMENT_LABEL_PRESETS: readonly string[] = ["계약금", "중도금", "잔금"];
-
-/** 공정 순서 출처를 확인한 날 */
-export const INTERIOR_PROCESS_BASE_DATE = "2026-10-26";
-
-export const INTERIOR_PROCESS_SOURCES: readonly InteriorProcessSource[] = [
-  {
-    title: "아정당 — 아파트 리모델링 공사, 소요 기간과 주요 과정 알아보기",
-    url: "https://www.ajd.co.kr/contents/basic-tip/detail/아파트_리모델링_공사,_소요_기간과_주요_과정_알아보기-51009",
-  },
-  {
-    title: "월부 커뮤니티 글",
-    url: "https://weolbu.com/community/2470493",
-  },
 ];

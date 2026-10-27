@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 // 스펙 interior-planner "표 내보내기"(태스크 5-2) 화면: AC-11(표 내용·병합·합계·표 머리), AC-12(a)(c)(d)(e)(f)(g).
+// 줄·계·표 머리는 interior-simple(줄 모델, AC-5)로 바꿨다.
 // 내려받기는 `downloadTextFile`을 vi.mock해 인자(파일 이름, CSV 문자열)만 보고, 인쇄는 window.print 스파이로 센다.
 // 저장소는 createMemoryStorage의 스파이로 모든 키 쓰기를 세고, 서버 요청은 fetch 스파이 횟수로 비교한다.
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -15,8 +16,15 @@ import { PRIVACY_MODE_STORAGE_KEY } from "@/lib/utils/privacyModeStorage";
 import { SESSION_HINT_STORAGE_KEY } from "@/lib/utils/sessionHintStorage";
 import { TEXT_SIZE_STORAGE_KEY } from "@/lib/utils/textSizeStorage";
 import { createFakePlanApi } from "@/test/fakePlanApi";
-import { makePlanP, P_SPACES, pTime, toStoredPlans } from "@/test/interiorPlanFixture";
+import { P_SPACES, pTime, toStoredPlans } from "@/test/interiorPlanFixture";
 import { makePlanQ, Q_CSV, Q_FILE_NAME, Q_TABLE_TEXT } from "@/test/interiorPlanTableFixture";
+import {
+  LEGACY_L_CSV_LINES,
+  makePlanL,
+  makeSimplePlanP,
+  SIMPLE_P_CSV_LINES,
+  toCsvFile,
+} from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 import { renderWithQueryClient } from "@/test/renderWithQueryClient";
@@ -29,7 +37,8 @@ vi.mock("@/lib/utils/downloadTextFile", () => ({ downloadTextFile: vi.fn() }));
 const download = vi.mocked(downloadTextFile);
 
 const Q_TITLE = "우리 집 인테리어 계획";
-const Q_LINE = "2026-10-27 기준 · 총 예산 15,000,000원 · 예상 총액 11,500,000원";
+const Q_LINE =
+  "2026-10-27 기준 · 총 예산 15,000,000원 · 지출 예정 7,500,000원 · 남은 예산 7,500,000원";
 const HEADER_TEXT = ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"];
 const SCROLL_LABEL = "계획 표 (가로로 스크롤)";
 const PRIVACY_NOTICE = "가리기를 끄면 내려받기·인쇄할 수 있습니다";
@@ -147,20 +156,24 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       const bodies = Array.from(table.querySelectorAll("tbody"));
       expect(bodies).toHaveLength(4);
 
-      const [bathFirst, bathSecond] = within(bodies[0]).getAllByRole("row");
+      const bathRows = within(bodies[2]).getAllByRole("row");
+      expect(bathRows).toHaveLength(4);
+      const [bathFirst, ...bathRest] = bathRows;
       const bathHeader = within(bathFirst).getByRole("rowheader");
       expect(bathHeader).toHaveTextContent("욕실");
-      expect((bathHeader as HTMLTableCellElement).rowSpan).toBe(2);
+      expect((bathHeader as HTMLTableCellElement).rowSpan).toBe(4);
       expect(bathHeader).toHaveAttribute("scope", "rowgroup");
       expect(within(bathFirst).getAllByRole("cell")).toHaveLength(5);
       expect(bathFirst.children).toHaveLength(6);
-      expect(within(bathSecond).queryByRole("rowheader")).not.toBeInTheDocument();
-      expect(within(bathSecond).getAllByRole("cell")).toHaveLength(5);
-      expect(bathSecond.children).toHaveLength(5);
+      for (const row of bathRest) {
+        expect(within(row).queryByRole("rowheader")).not.toBeInTheDocument();
+        expect(within(row).getAllByRole("cell")).toHaveLength(5);
+        expect(row.children).toHaveLength(5);
+      }
 
       for (const [body, trade] of [
+        [bodies[0], "바닥"],
         [bodies[1], "필름"],
-        [bodies[2], "바닥"],
         [bodies[3], "에어컨"],
       ] as const) {
         const rows = within(body).getAllByRole("row");
@@ -184,17 +197,32 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(within(region).getByRole("table", { name: Q_TITLE })).toBeInTheDocument();
     });
 
-    it("P: 샷시(확정 E샷시 12,500,000) → 타일 → 도배 → 주방가구, 계 21,800,000 / 15,300,000", async () => {
-      await renderApp(storageWith([makePlanP()]), "#/home/plan-p?view=table");
+    it("P: 목록과 같은 순서 5줄 + 계 8,000,000(견적 칸 비움), 표 머리 지출 예정·남은 예산", async () => {
+      await renderApp(storageWith([makeSimplePlanP()]), "#/home/plan-simple?view=table");
       expect(tableText(planTable()).slice(1)).toEqual([
-        ["샷시", "E샷시", "[전체]", "12,500,000", "12,500,000", "예산 대비 500,000원 초과"],
-        ["타일", "C타일", "[욕실1]", "6,500,000", "", "미확정"],
-        ["도배", "A도배", "[거실]", "2,800,000", "2,800,000", ""],
-        ["주방가구", "", "[주방]", "", "", "예산 5,000,000원"],
-        ["계", "", "", "21,800,000", "15,300,000", ""],
+        ["도배", "육문수", "실크 전체", "1,800,000", "1,800,000", ""],
+        ["동네도배", "합지", "1,500,000", "", ""],
+        ["욕실", "하루바스", "철거·방수 (1)", "3,700,000", "3,700,000", ""],
+        ["욕실나라", "철거·방수 (1)", "4,000,000", "", ""],
+        ["하루바스", "타일 덧방 (2)", "2,500,000", "2,500,000", ""],
+        ["계", "", "", "", "8,000,000", ""],
       ]);
       expect(
-        screen.getByText("2026-10-27 기준 · 총 예산 30,000,000원 · 예상 총액 26,300,000원"),
+        screen.getByText(
+          "2026-10-27 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원 · 남은 예산 2,000,000원",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("P 총 예산 700 → 표 머리 '예산 초과 1,000,000원'", async () => {
+      await renderApp(
+        storageWith([makeSimplePlanP({ budget: 700 })]),
+        "#/home/plan-simple?view=table",
+      );
+      expect(
+        screen.getByText(
+          "2026-10-27 기준 · 총 예산 7,000,000원 · 지출 예정 8,000,000원 · 예산 초과 1,000,000원",
+        ),
       ).toBeInTheDocument();
     });
 
@@ -202,13 +230,13 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       const { budget: _budget, ...withoutBudget } = makePlanQ();
       void _budget;
       await renderApp(storageWith([withoutBudget]), "#/home/plan-q?view=table");
-      expect(screen.getByText("2026-10-27 기준 · 예상 총액 11,500,000원")).toBeInTheDocument();
+      expect(screen.getByText("2026-10-27 기준 · 지출 예정 7,500,000원")).toBeInTheDocument();
     });
 
-    it("합계 0(견적 0개 항목만): 계 줄 '0'·'0'", async () => {
+    it("합계 0(견적 0개 항목만): 계 줄 확정 '0', 견적 칸 비움", async () => {
       const onlyAircon = makePlanQ({ items: [makePlanQ().items[4]] });
       await renderApp(storageWith([onlyAircon]), "#/home/plan-q?view=table");
-      expect(tableText(planTable()).at(-1)).toEqual(["계", "", "", "0", "0", ""]);
+      expect(tableText(planTable()).at(-1)).toEqual(["계", "", "", "", "0", ""]);
     });
 
     it("항목 100개 모두 확정 999,999,999 → 계 '999,999,999,000,000'", async () => {
@@ -223,20 +251,13 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
         updatedAt: pTime(1),
       }));
       await renderApp(storageWith([makePlanQ({ items })]), "#/home/plan-q?view=table");
-      expect(tableText(planTable()).at(-1)).toEqual([
-        "계",
-        "",
-        "",
-        "999,999,999,000,000",
-        "999,999,999,000,000",
-        "",
-      ]);
+      expect(tableText(planTable()).at(-1)).toEqual(["계", "", "", "", "999,999,999,000,000", ""]);
     });
 
-    it("읽기 전용: 표 보기에는 [항목 추가]·묶음 목록이 없고, 줄·칸을 눌러도 항목 시트가 열리지 않는다", async () => {
+    it("읽기 전용: 표 보기에는 [줄 추가]·묶음 목록이 없고, 줄·칸을 눌러도 줄 시트가 열리지 않는다", async () => {
       const user = userEvent.setup();
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
-      expect(screen.queryByRole("button", { name: "항목 추가" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /열기$/ })).not.toBeInTheDocument();
       const table = planTable();
       expect(within(table).queryByRole("button")).not.toBeInTheDocument();
@@ -246,10 +267,10 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       await user.click(within(table).getAllByRole("row")[1]);
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-      // 공간별로 돌아가면 [항목 추가]가 다시 있다
-      await user.click(screen.getByRole("radio", { name: "공간별" }));
+      // 목록으로 돌아가면 [줄 추가]가 다시 있다
+      await user.click(screen.getByRole("radio", { name: "목록" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "줄 추가" })).toBeInTheDocument();
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
     });
   });
@@ -267,6 +288,22 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(printSpy).not.toHaveBeenCalled();
     });
 
+    it("P·L의 [CSV 내려받기]도 표와 같은 줄: P 7행, L 6행(옛 비고 조각 없음)", async () => {
+      const user = userEvent.setup();
+      const storage = storageWith([makeSimplePlanP(), makePlanL()]);
+      const first = await renderApp(storage, "#/home/plan-simple?view=table");
+      await user.click(downloadButton());
+      expect(download.mock.calls[0][0]).toBe("우리 집-인테리어-2026-10-27.csv");
+      expect(download.mock.calls[0][1] === toCsvFile(SIMPLE_P_CSV_LINES)).toBe(true);
+      first.unmount();
+
+      await renderApp(storage, "#/home/plan-l?view=table");
+      await user.click(downloadButton());
+      expect(download).toHaveBeenCalledTimes(2);
+      expect(download.mock.calls[1][0]).toBe("옛 계획-인테리어-2026-10-27.csv");
+      expect(download.mock.calls[1][1] === toCsvFile(LEGACY_L_CSV_LINES)).toBe(true);
+    });
+
     it("항목이 있고 가리기가 꺼져 있으면 버튼 활성 + 안내 'Safari·Chrome에서 열어 주세요'(U21), 가리기 안내 없음", async () => {
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
       expect(downloadButton()).toBeEnabled();
@@ -281,8 +318,8 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(planTable()).toBeInTheDocument();
-      await user.click(screen.getByRole("radio", { name: "공종별" }));
-      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=trade"));
+      await user.click(screen.getByRole("radio", { name: "목록" }));
+      await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(printSpy).not.toHaveBeenCalled();
@@ -300,26 +337,25 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
     });
   });
 
-  describe("AC-12(d) 가리기·항목 0개", () => {
+  describe("AC-12(d) 가리기·줄 0개", () => {
     const SECRETS = [
       "3,700,000",
+      "4,000,000",
+      "2,500,000",
       "2,300,000",
       "1,800,000",
-      "9,800,000",
       "7,500,000",
       "15,000,000",
-      "11,500,000",
       "폐기물처리",
       "철거, 방수",
+      "타일 덧방",
       "2.2T 장판",
       "샷시·몰딩",
       "추후 구매",
-      "미확정",
-      "700,000",
       "1,500,000",
     ];
 
-    it("가리기 켜짐: 구분·업체·[공간]·열 제목·'계'만 보이고 값은 DOM에 없음(innerHTML), 버튼 비활성 + 가리기 안내, 강제 클릭도 0회 → 끄면 활성", async () => {
+    it("가리기 켜짐: 구분·업체·열 제목·'계'만 보이고 값은 DOM에 없음(innerHTML), 버튼 비활성 + 가리기 안내, 강제 클릭도 0회 → 끄면 활성", async () => {
       const user = userEvent.setup();
       const { container } = await renderApp(
         storageWith([makePlanQ()], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
@@ -331,16 +367,18 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       }
       expect(screen.getByRole("heading", { level: 2, name: Q_TITLE })).toBeInTheDocument();
       expect(screen.getByText(/^2026-10-27 기준 · /)).toHaveTextContent(
-        `2026-10-27 기준 · ${MASKED} · ${MASKED}`,
+        `2026-10-27 기준 · ${MASKED} · ${MASKED} · ${MASKED}`,
       );
       expect(tableText(planTable())).toEqual([
         HEADER_TEXT,
-        ["욕실", "숨고_하루바스", `[욕실1] ${MASKED}`, MASKED, MASKED, MASKED],
-        ["동네욕실", "[욕실2]", MASKED, "", MASKED],
-        ["필름", "숨고_빛인테리어필름", `[전체] ${MASKED}`, MASKED, MASKED, ""],
-        ["바닥", "육문수", `[전체] ${MASKED}`, MASKED, MASKED, ""],
-        ["에어컨", "", "[거실]", "", "", MASKED],
-        ["계", "", "", MASKED, MASKED, ""],
+        ["바닥", "육문수", MASKED, MASKED, MASKED, ""],
+        ["필름", "숨고_빛인테리어필름", MASKED, MASKED, MASKED, ""],
+        ["욕실", "숨고_하루바스", MASKED, MASKED, MASKED, MASKED],
+        ["욕실나라", "", MASKED, "", MASKED],
+        ["숨고_하루바스", MASKED, MASKED, "", ""],
+        ["동네욕실", "", MASKED, "", ""],
+        ["에어컨", "", "", "", "", MASKED],
+        ["계", "", "", "", MASKED, ""],
       ]);
 
       expect(downloadButton()).toBeDisabled();
@@ -378,7 +416,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
     });
 
-    it("항목 0개: 표·표 머리 대신 빈 문구, 두 버튼 비활성, 안내 줄 없음, 강제 클릭도 0회", async () => {
+    it("줄 0개: 표·표 머리 대신 빈 문구, 두 버튼 비활성, 안내 줄 없음, 강제 클릭도 0회", async () => {
       await renderApp(storageWith([makePlanQ({ items: [] })]), "#/home/plan-q?view=table");
       expect(screen.getByText(INTERIOR_PLAN_TABLE_EMPTY_MESSAGE)).toBeInTheDocument();
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
@@ -394,7 +432,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(printSpy).not.toHaveBeenCalled();
     });
 
-    it("항목 0개 + 가리기 켜짐: 빈 문구만, 가리기 안내 없음", async () => {
+    it("줄 0개 + 가리기 켜짐: 빈 문구만, 가리기 안내 없음", async () => {
       await renderApp(
         storageWith([makePlanQ({ items: [] })], { [PRIVACY_MODE_STORAGE_KEY]: "true" }),
         "#/home/plan-q?view=table",
@@ -425,7 +463,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       vi.setSystemTime(new Date(2026, 9, 27, 23, 59, 59));
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
       vi.setSystemTime(new Date(2026, 9, 28, 0, 0, 1));
-      await user.click(screen.getByRole("radio", { name: "공간별" }));
+      await user.click(screen.getByRole("radio", { name: "목록" }));
       await user.click(screen.getByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(screen.getByText(/^2026-10-28 기준 · /)).toBeInTheDocument();
@@ -461,18 +499,18 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       expect(screen.getByRole("radio", { name: "표" })).toBeChecked();
     });
 
-    it("?view=trade는 공종별 그대로, 모르는 view 값은 공간별(표 없음)", async () => {
+    it("옛 ?view=trade·space와 list·빈 값·TABLE·모르는 값은 목록(표 없음), 주소에서 view를 지운다(이력 안 늘어남)", async () => {
       const storage = storageWith([makePlanQ()]);
-      const first = await renderApp(storage, "#/home/plan-q?view=trade");
-      expect(screen.getByRole("radio", { name: "공종별" })).toBeChecked();
-      expect(screen.queryByRole("table")).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "항목 추가" })).toBeInTheDocument();
-      first.unmount();
-
-      for (const hash of ["#/home/plan-q?view=bogus", "#/home/plan-q?view=TABLE"]) {
-        const view = await renderApp(storage, hash);
-        expect(screen.getByRole("radio", { name: "공간별" })).toBeChecked();
+      for (const query of ["trade", "space", "list", "", "TABLE", "bogus"]) {
+        // 주소를 연 직후(그 이동 자체의 이력)부터 센다
+        window.location.hash = `#/home/plan-q?view=${query}`;
+        const historyBefore = window.history.length;
+        const view = await renderApp(storage, `#/home/plan-q?view=${query}`);
+        await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q"));
+        expect(window.history.length, query).toBe(historyBefore);
+        expect(screen.getByRole("radio", { name: "목록" })).toBeChecked();
         expect(screen.queryByRole("table")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "줄 추가" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "CSV 내려받기" })).not.toBeInTheDocument();
         view.unmount();
       }
@@ -518,7 +556,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       writes.removeItem.mockClear();
       const browserWrites = spyBrowserStorageWrites();
 
-      for (const name of ["공간별", "공종별", "표", "공간별", "표"]) {
+      for (const name of ["목록", "표", "목록", "표"]) {
         await user.click(screen.getByRole("radio", { name }));
       }
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
@@ -578,7 +616,7 @@ describe("표 보기 (로그인 상태)", () => {
     const writes = spyStorageWrites(storage);
     const browserWrites = spyBrowserStorageWrites();
 
-    for (const name of ["공간별", "공종별", "표"]) {
+    for (const name of ["목록", "표"]) {
       await user.click(screen.getByRole("radio", { name }));
     }
     await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
@@ -622,12 +660,10 @@ describe("표 보기 (로그인 상태)", () => {
       '"추후 구매 · 예산 1,500,000원"',
       '"추후 구매 · 예산 1,600,000원"',
     )
-      .replace(
-        "바닥,육문수,[전체] 2.2T 장판,1800000,1800000,",
-        "바닥,육문수,[전체] 2.2T 장판,1900000,1900000,",
-      )
-      .replace("계,,,9800000,7500000,", "계,,,9900000,7600000,");
+      .replace("바닥,육문수,2.2T 장판,1800000,1800000,", "바닥,육문수,2.2T 장판,1900000,1900000,")
+      .replace("계,,,,7500000,", "계,,,,7600000,");
+    expect(expected).not.toBe(Q_CSV);
     expect(download.mock.calls[1][1] === expected).toBe(true);
-    expect(tableText(planTable()).at(-1)).toEqual(["계", "", "", "9,900,000", "7,600,000", ""]);
+    expect(tableText(planTable()).at(-1)).toEqual(["계", "", "", "", "7,600,000", ""]);
   });
 });

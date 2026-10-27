@@ -10,11 +10,11 @@ export const PATHS = {
   /** `login`은 로그인에서 돌아온 결과(서버가 붙인다). 인자가 없으면 `#/listings`. */
   listings: ({ login }: ListingsPathParams = {}) =>
     login === undefined ? "#/listings" : `#/listings?login=${login}`,
-  /** 우리 집. 쿼리는 `listing` → `view` 순서로 쓰고, 공간별(`view` 없음·"space")은 쿼리에 쓰지 않는다. */
+  /** 우리 집. 쿼리는 `listing` → `view` 순서로 쓰고, 목록(`view` 없음·"list")은 쿼리에 쓰지 않는다. */
   home: ({ planId, listingId, view }: HomePathParams = {}) => {
     const query = new URLSearchParams({
       ...(listingId !== undefined && { listing: listingId }),
-      ...(view !== undefined && view !== "space" && { view }),
+      ...(view !== undefined && view !== "list" && { view }),
     }).toString();
     const path = planId === undefined ? "#/home" : `#/home/${planId}`;
     return query === "" ? path : `${path}?${query}`;

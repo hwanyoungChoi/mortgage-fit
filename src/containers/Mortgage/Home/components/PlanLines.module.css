@@ -1,0 +1,178 @@
+.addRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.addButton {
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.addButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.limitNote {
+  color: var(--color-warning-text);
+  font-size: var(--fs-body);
+}
+
+.errorNotice {
+  color: var(--color-error);
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.infoNotice {
+  color: var(--color-text-muted);
+  font-size: var(--fs-body);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 저장 목록처럼 흰 카드 한 장 안에 줄을 쌓는다. */
+.group {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.groupTitle {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.rows > li + li {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* 여는 버튼과 확정 체크는 형제다. 360px에서도 금액·체크 열은 줄지 않고 업체·세부내용이 줄을 바꾼다. */
+.row {
+  display: flex;
+  align-items: stretch;
+}
+
+.openButton {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--row-min-height);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: 0;
+  background: none;
+  font-size: var(--fs-body);
+  text-align: left;
+}
+
+.openButton:disabled {
+  color: inherit;
+}
+
+.openButton:focus-visible {
+  outline-offset: -2px;
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vendor {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.noQuote {
+  color: var(--color-text-muted);
+}
+
+.detail,
+.note {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+
+.amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 터치 영역 44px 이상 */
+.confirm {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 52px;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border-left: 1px solid var(--color-rule);
+  color: var(--color-text-muted);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+}
+
+.confirm input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.confirm input:disabled + span {
+  opacity: 0.5;
+}
+
+.groupAddButton {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+  background: none;
+  color: var(--color-accent);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  text-align: left;
+}
+
+.groupAddButton:disabled {
+  color: var(--color-text-muted);
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

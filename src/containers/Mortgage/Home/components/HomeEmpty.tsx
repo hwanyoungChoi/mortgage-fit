@@ -8,7 +8,7 @@ type HomeEmptyProps = {
 function HomeEmpty({ onCreate }: HomeEmptyProps) {
   return (
     <section className={styles.empty}>
-      <p className={styles.description}>계약한 집의 인테리어 예산·견적·지급을 정리합니다</p>
+      <p className={styles.description}>공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다</p>
       <button
         type="button"
         className={styles.createButton}

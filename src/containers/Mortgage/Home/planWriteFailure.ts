@@ -25,6 +25,12 @@ const WRITE_FAILURE_MESSAGES: Record<Exclude<FailureReason, "limit">, string> = 
   conflict: ITEM_CONFLICT_MESSAGE,
 };
 
+/** 목록의 [확정] 체크가 같은 항목 동시 편집에 걸렸을 때. 시트가 아니라 [최신 값 불러오기]가 없다 */
+export const CONFIRM_CONFLICT_MESSAGE = "방금 다른 곳에서 바뀌었습니다. 다시 눌러 주세요";
+
+/** 견적 n≥2 옛 항목에서 다른 견적을 확정해 앞선 확정이 풀렸을 때(D2 a) */
+export const OTHER_CONFIRM_RELEASED_MESSAGE = "같은 항목의 다른 견적 확정이 풀렸습니다";
+
 export const PLAN_LIMIT_MESSAGE = `계획은 ${INTERIOR_PLAN_MAX_COUNT}개까지 만들 수 있습니다`;
 export const ITEM_LIMIT_MESSAGE = `항목은 계획마다 ${INTERIOR_ITEM_MAX_COUNT}개까지 적을 수 있습니다`;
 

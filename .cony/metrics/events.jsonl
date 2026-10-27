@@ -228,3 +228,15 @@
 {"ts":"2026-10-27T07:29:11.274Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-27T07:36:43.456Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-27T07:52:55.239Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T07:57:59.560Z","type":"task","task":3,"from":"todo","to":"progress","owner":"리드"}
+{"ts":"2026-10-27T07:57:59.560Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-27T08:23:37.627Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T08:23:37.629Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T08:38:46.573Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"candidate.key"}
+{"ts":"2026-10-27T09:01:59.065Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-27T09:02:55.291Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T09:13:09.015Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorSimpleContract.test.ts"}
+{"ts":"2026-10-27T09:23:56.822Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-27T09:23:56.822Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T09:34:13.170Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-27T09:42:26.578Z","type":"task","task":2,"from":"review","to":"done","owner":null}
