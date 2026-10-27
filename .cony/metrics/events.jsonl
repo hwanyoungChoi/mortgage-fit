@@ -230,3 +230,5 @@
 {"ts":"2026-10-27T07:52:55.239Z","type":"task","task":2,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-27T07:57:59.560Z","type":"task","task":3,"from":"todo","to":"progress","owner":"리드"}
 {"ts":"2026-10-27T07:57:59.560Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-27T08:23:37.627Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-27T08:23:37.629Z","type":"status","status":"진행 중"}
