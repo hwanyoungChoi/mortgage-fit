@@ -61,7 +61,7 @@
   border-top: 1px solid var(--color-rule);
 }
 
-/* 여는 버튼과 확정 체크는 형제다. 360px에서도 금액·체크 열은 줄지 않고 업체·세부내용이 줄을 바꾼다. */
+/* 여는 버튼과 확정 체크는 형제다. 360px에서도 금액·체크 열은 줄지 않고 세부내용·업체가 줄을 바꾼다. */
 .row {
   display: flex;
   align-items: stretch;
@@ -97,7 +97,12 @@
   min-width: 0;
 }
 
-.vendor {
+/* 첫 줄(세부내용, 없거나 가려졌으면 업체). 세부내용은 200자까지라 두 줄에서 자른다(전체는 줄 시트에서 본다). */
+.primaryText {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -106,7 +111,7 @@
   color: var(--color-text-muted);
 }
 
-.detail,
+.secondaryText,
 .note {
   display: -webkit-box;
   overflow: hidden;
