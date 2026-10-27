@@ -50,8 +50,8 @@ function HouseholdSheet({ status, household, onUnauthorized, onClose }: Househol
         <>
           <p className={styles.notice}>카카오로 로그인하면 함께 쓸 수 있어요</p>
           <p className={styles.hint}>
-            초대받은 사람과 저장 목록 하나를 같이 보고 고칩니다. 매물·메모·예산·순서가 둘 다에게
-            같게 보입니다.
+            초대받은 사람이 수락하면 저장 목록과 인테리어 계획을 함께 씁니다.
+            매물·메모·예산·순서·인테리어 계획이 둘 다에게 같게 보입니다.
           </p>
           <KakaoLoginLink isWide />
         </>

@@ -244,6 +244,26 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     expect(expired).toHaveFocus();
   });
 
+  it("401 뒤 시트의 로그인 안내에도 인테리어 계획이 들어 있다(U8과 같은 표현)", async () => {
+    const user = userEvent.setup();
+    renderHub({
+      respond: (call) =>
+        call.method === "POST" && call.path === INVITES_PATH
+          ? errorResponse(401, "unauthorized")
+          : undefined,
+    });
+    await user.click(await findHouseholdButton());
+    const dialog = screen.getByRole("dialog", { name: "함께 쓰기" });
+
+    await user.click(within(dialog).getByRole("button", { name: "초대 링크 만들기" }));
+
+    expect(
+      await within(dialog).findByText(
+        "초대받은 사람이 수락하면 저장 목록과 인테리어 계획을 함께 씁니다. 매물·메모·예산·순서·인테리어 계획이 둘 다에게 같게 보입니다.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("시트를 열면 이전 결과 줄(로그인 결과)을 지운다", async () => {
     const user = userEvent.setup();
     const storage = createMemoryStorage(LOGGED_IN_SEED);
