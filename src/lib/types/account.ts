@@ -8,6 +8,12 @@ import type { Listing, ListingInput, ListingStatus } from "./listing";
  */
 export type MeResponse = { user: { id: string; household: Household | null } | null };
 
+/**
+ * 화면 데이터의 출처(저장 목록·우리 집). loading: 로그인 확인·이 기기 데이터 이전이 끝나기 전,
+ * loggedOut: 이 기기 저장소, loggedIn: 서버, error: 로그인했던 브라우저인데 로그인 확인에 실패했다.
+ */
+export type AccountSourceStatus = "loading" | "loggedOut" | "loggedIn" | "error";
+
 /** GET /api/listings → 200 */
 export type ListingListResponse = { listings: Listing[] };
 
