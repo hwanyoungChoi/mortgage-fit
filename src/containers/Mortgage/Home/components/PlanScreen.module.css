@@ -18,7 +18,8 @@
 .title {
   min-width: 0;
   font-size: var(--fs-title);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 36px;
   overflow-wrap: anywhere;
 }

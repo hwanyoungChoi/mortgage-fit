@@ -2,8 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -39,7 +38,7 @@
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
   column-gap: var(--space-3);
-  padding: var(--space-2) 0;
+  padding: var(--space-3) 0;
   border-top: 1px solid var(--color-rule);
 }
 
@@ -49,14 +48,19 @@
   font-weight: 700;
 }
 
-/* 장부의 합계 줄: 진한 줄 아래, 화면에서 가장 큰 숫자. */
+/*
+ * 이 화면의 답(필요한 자기자금): 옅은 구분선 아래, 화면에서 가장 큰 숫자. 라벨 아래 줄에 금액을 오른쪽으로 둬
+ * 360px에서도 "8억 1,875만원"이 한 줄에 들어간다.
+ */
 .answerRow {
   composes: row;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space-1);
   margin-top: var(--space-1);
-  padding-top: var(--space-3);
-  border-top: 2px solid var(--color-text);
+  padding: var(--space-4) 0;
   font-size: var(--fs-answer);
   font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
@@ -101,7 +105,7 @@
 .warning {
   margin-top: var(--space-1);
   padding: 2px var(--space-2);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-chip);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
   font-weight: 600;
@@ -110,7 +114,7 @@
 .badge {
   display: inline-block;
   padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--color-badge-bg);
   color: var(--color-badge-text);
   font-size: var(--fs-small);
@@ -118,7 +122,7 @@
 }
 
 .statusNotice {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
@@ -141,11 +145,8 @@
 }
 
 .basisToggle {
-  color: var(--color-text);
+  color: var(--color-accent);
   font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: var(--color-control);
-  text-underline-offset: 3px;
 }
 
 .basisList {
@@ -165,8 +166,7 @@
 }
 
 .sourceLink {
-  color: var(--color-text);
-  text-decoration-color: var(--color-control);
+  color: var(--color-accent);
   text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }

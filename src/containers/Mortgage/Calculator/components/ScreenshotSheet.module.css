@@ -64,9 +64,9 @@
 }
 
 .notes {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-bg);
+  background: var(--color-raised);
   font-size: var(--fs-body);
   list-style: none;
 }
@@ -76,7 +76,7 @@
 }
 
 .rawText summary {
-  min-height: 40px;
+  min-height: 44px;
   padding: var(--space-2) 0;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -86,9 +86,9 @@
 .rawTextBody {
   max-height: 160px;
   overflow: auto;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-bg);
+  background: var(--color-raised);
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -107,10 +107,10 @@
 .primaryButton,
 .secondaryButton {
   flex: 1;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--space-2);
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   font-weight: 600;
   word-break: keep-all;
 }
@@ -126,6 +126,5 @@
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
 }

@@ -3,8 +3,7 @@
   flex-direction: column;
   gap: var(--space-1);
   min-height: 44px;
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text);
@@ -15,18 +14,19 @@
 .primaryCard {
   composes: card;
   gap: var(--space-2);
-  padding: var(--space-5) var(--space-4);
+  padding: var(--space-5) calc(var(--space-4) + var(--space-1));
 }
 
+/* 카드 제목 20px 700. 대출 계산 카드는 한 단계 더 크게 */
 .title {
-  font-size: var(--fs-section);
-  font-weight: 600;
+  font-size: var(--fs-figure);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 
 .primaryCard .title {
   font-size: var(--fs-title);
-  font-weight: 700;
 }
 
 /* 요약 줄(소개·내 현황·불러오는 중·실패·손상). 모든 상태가 같은 최소 높이(한 줄)를 써서 상태가 바뀌어도
@@ -36,4 +36,11 @@
   color: var(--color-text-muted);
   font-size: var(--fs-body);
   line-height: 1.5;
+}
+
+/* 내 현황(작성 중·저장한 매물 수·계획 지출 예정): 소개 문구와 달리 숫자가 읽히게 잉크 600 */
+.summaryLine {
+  composes: description;
+  color: var(--color-text);
+  font-weight: 600;
 }

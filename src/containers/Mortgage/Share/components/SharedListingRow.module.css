@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) calc(var(--space-4) + var(--space-1));
   border-bottom: 1px solid var(--color-rule);
 }
 
@@ -46,9 +46,14 @@
   overflow-wrap: anywhere;
 }
 
+/* 매물의 답(필요한 자기자금): 줄에서 가장 큰 금액 */
 .emphasisFigure {
   composes: figure;
   font-weight: 700;
+}
+
+.emphasisFigure dd {
+  font-size: var(--fs-figure);
 }
 
 .emphasisFigure dt {

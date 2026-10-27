@@ -11,13 +11,13 @@
   gap: var(--space-2);
 }
 
+/* 바탕 위 보조 버튼 두 개(파일·인쇄). 화면의 주 동작이 아니라 코발트로 채우지 않는다. */
 .exportButton {
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--space-3);
   border: 0;
-  border-radius: var(--radius-control);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-radius: 14px;
+  background: var(--color-raised-on-bg);
   font-weight: 600;
 }
 
@@ -58,24 +58,14 @@
 }
 
 /*
- * 표는 칸(360px에서 328px, 데스크톱 448px) 안에서 가로로 스크롤하고 페이지는 밀리지 않는다.
- * 가로로 더 있는 쪽 가장자리에만 그림자가 보인다: 그림자(scroll)는 칸에 붙어 있고, 내용 양 끝의 흰 덮개(local)가
- * 끝까지 스크롤했을 때 그쪽 그림자를 가린다. 그래서 칸 배경만 쓰고 칸(셀)에는 배경을 두지 않는다.
+ * 표는 흰 카드 안에서 가로로 스크롤하고 페이지는 밀리지 않는다. 가로로 더 있다는 단서는 오른쪽 끝에서 반쯤 잘린 열이다
+ * (표 최소 폭 600px > 카드 폭, 스펙 interior-planner의 두 선택지 중 하나). 그라디언트 그림자는 쓰지 않는다(스펙 ui-refresh 금지).
  */
 .scroll {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-card);
-  background:
-    linear-gradient(to right, var(--color-surface) 30%, rgb(255 255 255 / 0%)) left / 40px 100%
-      no-repeat local,
-    linear-gradient(to left, var(--color-surface) 30%, rgb(255 255 255 / 0%)) right / 40px 100%
-      no-repeat local,
-    linear-gradient(to right, rgb(10 10 10 / 16%), rgb(10 10 10 / 0%)) left / 12px 100% no-repeat
-      scroll,
-    linear-gradient(to left, rgb(10 10 10 / 16%), rgb(10 10 10 / 0%)) right / 12px 100% no-repeat
-      scroll,
-    var(--color-surface);
+  background: var(--color-surface);
 }
 
 /* 화면용 최소 폭: 6열이 읽히는 폭. 360px·데스크톱 모두 칸보다 넓어 비고 열은 스크롤해야 보인다. */
@@ -137,10 +127,12 @@
 /*
  * 인쇄: 표가 용지 폭 100%를 쓰게 화면용 스크롤·최소 폭·그림자를 푼다. 열 제목은 쪽마다 반복되고(table-header-group),
  * "계"는 쪽마다 찍히지 않게 tfoot을 보통 줄 묶음으로 바꿔 마지막에 한 번만 나온다. 배경색 없이 선으로 읽힌다.
+ * 선·글자 색은 화면 토큰이 아니라 종이용 회색·검정 값이다(화면 팔레트가 바뀌어도 인쇄 결과는 그대로).
  */
 @media print {
   .scroll {
     overflow: visible;
+    padding: 0;
     border: 0;
     border-radius: 0;
     background: none;

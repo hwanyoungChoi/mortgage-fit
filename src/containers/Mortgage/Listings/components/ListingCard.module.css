@@ -5,7 +5,6 @@
   --status-chip-width: 56px;
 
   position: relative;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -71,7 +70,7 @@
   padding-right: calc(var(--reveal-button-width) + var(--space-2));
 }
 
-/* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 주 동작 색으로 채운다. */
+/* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 선택 표시(옅은 코발트 면)로 채운다. */
 .revealButton {
   position: absolute;
   top: var(--space-4);
@@ -89,8 +88,8 @@
 }
 
 .revealButton[aria-pressed="true"] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
 }
 
 /*
@@ -120,7 +119,7 @@
 .badge {
   flex: none;
   padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--color-badge-bg);
   color: var(--color-badge-text);
   font-size: var(--fs-tiny);
@@ -128,12 +127,10 @@
   white-space: nowrap;
 }
 
-/* 사용자 지정 LTV는 상태가 아니라 입력 출처라 테두리만 두른다. */
+/* 사용자 지정 LTV는 상태가 아니라 입력 출처라 중립 배지보다 한 단계 옅은 면이다. */
 .customBadge {
   composes: badge;
-  padding: 1px 7px;
-  border: 1px solid var(--color-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
 }
 
 .overBadge {
@@ -184,20 +181,32 @@
   overflow-wrap: anywhere;
 }
 
-/* 필요한 자기자금: 카드의 답. 진한 줄 아래 가장 큰 숫자. */
+/*
+ * 필요한 자기자금: 카드의 답. 옅은 구분선 아래 카드에서 가장 큰 숫자(--fs-answer). 좁은 카드에서 라벨과 한 줄에
+ * 들어가지 않으면 금액이 다음 줄 오른쪽으로 내려간다(숫자 중간에서 끊기지 않게).
+ */
 .emphasisFigure {
   composes: figure;
+  flex-wrap: wrap;
   margin: var(--space-2) 0 2px;
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-text);
-  font-size: var(--fs-figure);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-rule);
+  font-size: var(--fs-answer);
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .emphasisFigure dt {
   color: var(--color-text);
   font-size: var(--fs-body);
   font-weight: 600;
+  letter-spacing: 0;
+}
+
+.emphasisFigure dd {
+  margin-left: auto;
+  word-break: keep-all;
 }
 
 /* 자기자금 내역. 위 행보다 작고 흐리게 둔다. */
@@ -235,20 +244,18 @@
 
 .extraCostsSummary {
   padding: var(--space-2) 0;
+  color: var(--color-accent);
   cursor: pointer;
   font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: var(--color-control);
-  text-underline-offset: 3px;
 }
 
 .extraCostGroups {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-bg);
+  background: var(--color-raised);
 }
 
 .extraCostGroup {

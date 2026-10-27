@@ -195,7 +195,7 @@ function MortgageHub({
       <div className={styles.page} inert={sheet.isOpen}>
         <h1 className={styles.title}>홈</h1>
         {/* 버튼이 사라졌는데 안내 줄이 없을 때 포커스를 받는 자리 */}
-        <div ref={accountRef} tabIndex={-1}>
+        <div ref={accountRef} className={styles.account} tabIndex={-1}>
           <HubAccount
             status={status}
             hasSessionHint={sessionHintStore.has()}

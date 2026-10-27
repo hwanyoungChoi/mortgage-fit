@@ -33,7 +33,7 @@
   display: flex;
   flex: none;
   align-items: center;
-  padding: 0 0 0 var(--space-4);
+  padding: 0 0 0 calc(var(--space-4) + var(--space-1));
   border: 0;
   background: none;
 }
@@ -48,7 +48,7 @@
   align-items: center;
   min-width: 0;
   min-height: var(--row-min-height);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) calc(var(--space-4) + var(--space-1));
   border: 0;
   background: none;
   color: inherit;
@@ -76,7 +76,7 @@
 }
 
 .statusError {
-  padding: 0 var(--space-4) var(--space-2);
+  padding: 0 calc(var(--space-4) + var(--space-1)) var(--space-2);
   color: var(--color-error);
   font-size: var(--fs-small);
   overflow-wrap: anywhere;

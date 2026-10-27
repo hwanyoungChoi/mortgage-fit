@@ -1,6 +1,5 @@
 .emptyItems {
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text-muted);

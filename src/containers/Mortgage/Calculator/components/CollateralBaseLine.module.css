@@ -4,9 +4,9 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: baseline;
   column-gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-bg);
+  background: var(--color-raised);
 }
 
 .label {

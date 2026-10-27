@@ -61,7 +61,7 @@ function HubCard<T>({
       </span>
       <span
         id={descriptionId}
-        className={styles.description}
+        className={summary.kind === "summary" ? styles.summaryLine : styles.description}
         aria-busy={summary.kind === "loading" || undefined}
       >
         {description}

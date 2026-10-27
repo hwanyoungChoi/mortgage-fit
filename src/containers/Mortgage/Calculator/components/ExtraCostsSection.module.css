@@ -3,8 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -58,19 +57,20 @@
   margin-top: calc(var(--space-2) * -1);
 }
 
+/* 채운 면 칩(선택 버튼과 같은 면, 테두리 없음). 투명 테두리는 고대비 모드의 윤곽 */
 .chip {
   min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-control);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
   font-size: var(--fs-body);
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .chip:disabled {
   color: var(--color-text-muted);
-  background: var(--color-bg);
 }
 
 /* [직접 입력]은 추천 항목과 구분되게 굵게 둔다 */
@@ -94,7 +94,7 @@
 }
 
 .groupTitle {
-  font-size: var(--fs-body);
+  font-size: calc(var(--fs-body) - 1px);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -119,31 +119,32 @@
 .labelInput {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-control);
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
 }
 
 .labelInput:focus {
-  outline: 2px solid var(--color-text);
-  outline-offset: -1px;
-  border-color: transparent;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .labelInput[aria-invalid="true"] {
-  border-color: var(--color-error);
+  outline: 2px solid var(--color-error);
+  outline-offset: -2px;
 }
 
+/* 위험 동작: 옅은 오류 면 + 오류색 글자. 옆 칸과 같은 높이 */
 .deleteButton {
   flex: none;
   min-width: 56px;
-  min-height: 44px;
+  min-height: 52px;
   padding: 0 var(--space-2);
   border: 0;
   border-radius: var(--radius-control);
-  background: var(--color-raised);
+  background: var(--color-error-bg);
   color: var(--color-error);
   font-size: var(--fs-body);
   font-weight: 600;

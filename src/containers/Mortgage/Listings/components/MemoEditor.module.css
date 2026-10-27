@@ -38,7 +38,7 @@
   max-height: 90dvh;
   margin: 0 auto;
   overflow-y: auto;
-  padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  padding: var(--space-5) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   background: var(--color-surface);
 }
@@ -52,7 +52,7 @@
 
 .label {
   min-width: 0;
-  font-size: var(--fs-body);
+  font-size: calc(var(--fs-body) - 1px);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -60,7 +60,7 @@
 .count {
   flex: none;
   color: var(--color-text-muted);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   font-variant-numeric: tabular-nums;
 }
 
@@ -72,11 +72,11 @@
 .textarea {
   flex: 0 1 auto;
   width: 100%;
-  min-height: calc(4lh + 2 * var(--space-2) + 2px);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-control);
+  min-height: calc(4lh + 2 * var(--space-3) + 2px);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
   font: inherit;
   font-size: var(--fs-input);
   field-sizing: content;
@@ -84,13 +84,13 @@
 }
 
 .textarea:focus {
-  outline: 2px solid var(--color-text);
-  outline-offset: -1px;
-  border-color: transparent;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .textarea[aria-invalid="true"] {
-  border-color: var(--color-error);
+  outline: 2px solid var(--color-error);
+  outline-offset: -2px;
 }
 
 .error {
@@ -109,9 +109,9 @@
 .primaryButton,
 .secondaryButton {
   flex: 1;
-  min-height: 44px;
+  min-height: 52px;
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   font-weight: 600;
 }
 
@@ -126,6 +126,5 @@
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
 }
