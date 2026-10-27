@@ -1,8 +1,11 @@
 /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 성공은 값 없이 돌아온다. */
 export type LoginResult = "cancelled" | "failed" | "notConfigured";
 
-/** [우리 집] 플랜 화면의 목록 보기. 주소에 없으면 공간별이다. */
-export type HomeView = "space" | "trade";
+/** [우리 집] 플랜 화면의 보기: 공간별·공종별 목록과 표(태스크 5, ADR-030). 주소에 없으면 공간별이다. */
+export type HomeView = "space" | "trade" | "table";
+
+/** 항목 목록으로 보이는 보기(공간별·공종별). 표 보기는 목록을 그리지 않는다 */
+export type ListView = Exclude<HomeView, "table">;
 
 export type Route =
   | { name: "calculator" }
@@ -14,7 +17,7 @@ export type Route =
   | { name: "invite"; token: string }
   /**
    * 우리 집(인테리어 플래너, 스펙 interior-planner). `planId`가 없으면 플랜 수로 화면을 고른다(0개 빈 상태 · 1개 그 플랜 · 2~3개 고르기).
-   * `listingId`는 매물 카드에서 들어온 길(`?listing=`), `view`는 공간별·공종별 보기(`?view=trade`, 없으면 공간별).
+   * `listingId`는 매물 카드에서 들어온 길(`?listing=`), `view`는 보기(`?view=trade`·`?view=table`, 없으면 공간별).
    */
   | { name: "home"; planId?: string; listingId?: string; view?: HomeView };
 

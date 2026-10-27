@@ -1,10 +1,12 @@
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { INTERIOR_ITEM_MAX_COUNT } from "@/lib/constants/interiorPlan";
-import { summarizeInteriorPlan } from "@/lib/utils/summarizeInteriorPlan";
+import { summarizeInteriorPlan, toLocalDateString } from "@/lib/utils/summarizeInteriorPlan";
 
+import EmptyItems from "./EmptyItems";
 import ItemGroups from "./ItemGroups";
 import styles from "./PlanScreen.module.css";
 import PlanSummary from "./PlanSummary";
+import PlanTableView from "./PlanTableView";
 import PlanTodos from "./PlanTodos";
 import { ITEM_LIMIT_MESSAGE } from "../planWriteFailure";
 
@@ -32,6 +34,7 @@ type PlanScreenProps = {
 const VIEW_OPTIONS: { value: HomeView; label: string }[] = [
   { value: "space", label: "공간별" },
   { value: "trade", label: "공종별" },
+  { value: "table", label: "표" },
 ];
 
 /** 제목 아래 한 줄: 연결된 매물 이름(작게) 또는 연결 끊김. 플랜은 그대로다(AC-6) */
@@ -46,8 +49,9 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 }
 
 /**
- * 플랜 화면: 머리글(이름 + [공간 편집][공정 순서][가리기][⋯]) → 요약 → 할 일 → [공간별|공종별] → [항목 추가] → 묶음 목록.
- * [항목 추가]는 목록 위에 두어 항목 수와 상관없이 같은 자리에 있다.
+ * 플랜 화면: 머리글(이름 + [공간 편집][공정 순서][가리기][⋯]) → 요약 → 할 일 → [공간별|공종별|표] → [항목 추가] → 묶음 목록.
+ * [항목 추가]는 목록 위에 두어 항목 수와 상관없이 같은 자리에 있다. 표 보기는 그 자리부터 표 보기(내보내기 버튼 줄 + 표)다.
+ * `now`는 렌더마다 하나만 만들어 요약·표 머리·파일 이름이 같이 쓴다(A14).
  */
 function PlanScreen({
   plan,
@@ -62,7 +66,8 @@ function PlanScreen({
   onItemOpen,
   onItemAdd,
 }: PlanScreenProps) {
-  const summary = summarizeInteriorPlan(plan, new Date());
+  const now = new Date();
+  const summary = summarizeInteriorPlan(plan, now);
   const groups = view === "space" ? summary.spaceGroups : summary.tradeGroups;
   const canAddItem = plan.items.length < INTERIOR_ITEM_MAX_COUNT;
 
@@ -116,37 +121,46 @@ function PlanScreen({
       <PlanTodos summary={summary} isMasked={isPrivacyMode} onItemOpen={onItemOpen} />
       <ChoiceGroup
         name="interiorPlanView"
-        legend="목록 보기"
+        legend="보기"
         options={VIEW_OPTIONS}
         value={view}
         columns={VIEW_OPTIONS.length}
         onChange={onViewChange}
       />
-      <div className={styles.addRow}>
-        <button
-          type="button"
-          className={styles.addButton}
-          aria-haspopup="dialog"
-          disabled={!canAddItem}
-          onClick={(event) => onItemAdd(null, event.currentTarget)}
-        >
-          항목 추가
-        </button>
-        {!canAddItem && <p className={styles.limitNote}>{ITEM_LIMIT_MESSAGE}</p>}
-      </div>
-      {groups.length === 0 ? (
-        <p className={styles.emptyItems}>
-          아직 항목이 없습니다. [항목 추가]로 공간·공종별 예산과 견적을 적어 보세요
-        </p>
-      ) : (
-        <ItemGroups
-          groups={groups}
-          view={view}
-          isMasked={isPrivacyMode}
-          onItemOpen={onItemOpen}
-          onAddToSpace={(spaceId, button) => onItemAdd(spaceId, button)}
-          canAddItem={canAddItem}
+      {view === "table" ? (
+        <PlanTableView
+          planName={plan.name}
+          summary={summary}
+          today={toLocalDateString(now)}
+          isPrivacyMode={isPrivacyMode}
         />
+      ) : (
+        <>
+          <div className={styles.addRow}>
+            <button
+              type="button"
+              className={styles.addButton}
+              aria-haspopup="dialog"
+              disabled={!canAddItem}
+              onClick={(event) => onItemAdd(null, event.currentTarget)}
+            >
+              항목 추가
+            </button>
+            {!canAddItem && <p className={styles.limitNote}>{ITEM_LIMIT_MESSAGE}</p>}
+          </div>
+          {groups.length === 0 ? (
+            <EmptyItems message="아직 항목이 없습니다. [항목 추가]로 공간·공종별 예산과 견적을 적어 보세요" />
+          ) : (
+            <ItemGroups
+              groups={groups}
+              view={view}
+              isMasked={isPrivacyMode}
+              onItemOpen={onItemOpen}
+              onAddToSpace={(spaceId, button) => onItemAdd(spaceId, button)}
+              canAddItem={canAddItem}
+            />
+          )}
+        </>
       )}
     </>
   );

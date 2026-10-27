@@ -12,7 +12,7 @@ export const PATHS = {
   home: ({ planId, listingId, view }: HomePathParams = {}) => {
     const query = new URLSearchParams({
       ...(listingId !== undefined && { listing: listingId }),
-      ...(view === "trade" && { view }),
+      ...(view !== undefined && view !== "space" && { view }),
     }).toString();
     const path = planId === undefined ? "#/home" : `#/home/${planId}`;
     return query === "" ? path : `${path}?${query}`;

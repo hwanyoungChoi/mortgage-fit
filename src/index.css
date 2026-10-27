@@ -1,4 +1,4 @@
-/* 전역 CSS는 리셋과 변수만 둔다. 화면 스타일은 CSS Modules. */
+/* 전역 CSS는 리셋·변수와 인쇄 영역 규칙만 둔다. 화면 스타일은 CSS Modules. */
 :root {
   /*
    * 장부(achromatic ledger) 팔레트: 크롬에는 색을 쓰지 않는다. 돈은 잉크, 주 동작은 거의 검정,
@@ -175,4 +175,23 @@ button:disabled {
 :focus-visible {
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
+}
+
+/*
+ * 인쇄 영역(`data-print-area`, 계획 표 보기)이 있는 화면은 그 영역만 인쇄한다(허용 목록 방식).
+ * 영역도, 영역 안도, 영역을 품은 조상도 아닌 요소는 모두 숨긴다. 그래서 탭·버튼·요약처럼 나중에 더해지는 요소도 따로
+ * 적지 않아도 인쇄에 새지 않는다. 조상은 화면용 폭·여백을 풀어 영역이 용지 폭을 쓴다.
+ * 인쇄 영역이 없는 화면은 지금처럼 화면 그대로 인쇄된다. `:has()`를 모르는 브라우저도 화면 그대로 인쇄된다.
+ */
+@media print {
+  body:has([data-print-area])
+    :not([data-print-area], [data-print-area] *, :has([data-print-area])) {
+    display: none !important;
+  }
+
+  body:has([data-print-area]) :has([data-print-area]) {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }

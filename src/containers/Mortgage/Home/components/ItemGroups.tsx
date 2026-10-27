@@ -5,12 +5,12 @@ import { NO_SPACE_GROUP_ID } from "@/lib/utils/summarizeInteriorPlan";
 import styles from "./ItemGroups.module.css";
 import ItemRow from "./ItemRow";
 
-import type { HomeView } from "@/lib/types/route";
+import type { ListView } from "@/lib/types/route";
 import type { InteriorItemGroup } from "@/lib/utils/summarizeInteriorPlan";
 
 type ItemGroupsProps = {
   groups: InteriorItemGroup[];
-  view: HomeView;
+  view: ListView;
   isMasked: boolean;
   onItemOpen: (itemId: string, button: HTMLButtonElement) => void;
   /** 공간별 보기에서 묶음 머리의 [추가]: 그 공간을 채운 새 항목 시트 */
