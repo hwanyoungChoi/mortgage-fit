@@ -105,7 +105,7 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
   const values = (patch: Partial<Parameters<typeof addLineInput>[2]>) => ({
     trade: "욕실",
     vendor: "욕실나라",
-    amount: 400,
+    amountWon: 4_000_000,
     isConfirmed: false,
     ...patch,
   });
@@ -115,7 +115,7 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
     const raw = () => storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
     const writes: [string, () => { ok: boolean }][] = [
       [
-        "욕실나라 견적 400 → 380(X 제자리)",
+        "욕실나라 견적 400만 → 3,800,000원(X 제자리)",
         () =>
           store.updateItem(
             "plan-l",
@@ -123,13 +123,13 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
             editLineInput(
               itemOf(store, "plan-l", "item-x"),
               "q2",
-              values({ amount: 380, note: "폐기물 포함" }),
+              values({ amountWon: 3_800_000, note: "폐기물 포함" }),
               createId,
             ),
           ),
       ],
       [
-        "Y에 육문수·180 채우기",
+        "Y에 육문수·1,800,000원 채우기",
         () =>
           store.updateItem(
             "plan-l",
@@ -137,7 +137,7 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
             editLineInput(
               itemOf(store, "plan-l", "item-y"),
               null,
-              values({ trade: "도배", vendor: "육문수", amount: 180 }),
+              values({ trade: "도배", vendor: "육문수", amountWon: 1_800_000 }),
               createId,
             ),
           ),

@@ -171,7 +171,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     expect(window.location.hash).toBe("#/home");
   });
 
-  it("만들기 POST 본문: 이름·총 예산 1,500·listingId·items 2개(전체/도배 300·전체/샷시 1,200, 계획), 냉장고 없음, 매물 쓰기 0회", async () => {
+  it("만들기 POST 본문: 이름·총 예산 15,000,000원(budgetWon)·listingId·items 2개(전체/도배 300·전체/샷시 1,200, 계획), 냉장고 없음, 매물 쓰기 0회", async () => {
     const user = userEvent.setup();
     const { api, serverListings, listingsRawBefore } = setUp();
     renderApp(api, "#/listings");
@@ -179,7 +179,8 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
 
     const whole = plan.spaces[0];
     expect(whole.name).toBe("전체");
-    expect(plan).toMatchObject({ name: "래미안 84", budget: 1500, listingId: RAEMIAN_ID });
+    expect(plan).toMatchObject({ name: "래미안 84", budgetWon: 15_000_000, listingId: RAEMIAN_ID });
+    expect(Object.hasOwn(plan, "budget")).toBe(false);
     expect(plan.items).toEqual([
       { spaceId: whole.id, trade: "도배", budget: 300, status: "planned" },
       { spaceId: whole.id, trade: "샷시", budget: 1200, status: "planned" },
@@ -197,7 +198,8 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     renderApp(api, "#/listings");
     const plan = await createFromCard(user, api, { keepImport: false });
     expect("items" in plan).toBe(false);
-    expect(plan).toMatchObject({ name: "래미안 84", budget: 1500, listingId: RAEMIAN_ID });
+    expect(plan).toMatchObject({ name: "래미안 84", budgetWon: 15_000_000, listingId: RAEMIAN_ID });
+    expect(Object.hasOwn(plan, "budget")).toBe(false);
   });
 
   it("만든 뒤 같은 카드: #/home/{planId}로 replace(이력 +1 = 링크 클릭뿐), 새 POST 없음, 매물 쓰기 0회", async () => {

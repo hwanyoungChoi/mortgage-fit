@@ -197,7 +197,7 @@ describe("표 머리 — 지출 예정 조각에 '(금액 미정 n건 제외)'",
   });
 });
 
-describe("시트 입력 — 1단계 (AC-2 1단계)", () => {
+describe("시트 입력 — 미정·0원 채우기 (AC-2, 2단계)", () => {
   const rowOf = (plan: Pick<InteriorPlanWithItems, "items">, key: string) => {
     const row = buildInteriorPlanRows(plan)
       .groups.flatMap((group) => group.rows)
@@ -217,9 +217,9 @@ describe("시트 입력 — 1단계 (AC-2 1단계)", () => {
     });
   });
 
-  // ADR-034 조건 6: 1단계 만원 입력이 받지 않는 0은 빈칸으로 연다(안내를 붙인다, 2단계에서 원 입력으로)
-  it("금액 0인 줄은 견적 칸 ''", () => {
-    expect(toInteriorLineDraft(rowOf({ items: [zeroAmountRow()] }, "r6:rq6")).amount).toBe("");
+  // 2단계는 원 입력이라 0원(셀프 시공)을 "0"으로 연다. 미정(빈칸)과 섞이지 않는다
+  it("금액 0인 줄은 견적 칸 '0'", () => {
+    expect(toInteriorLineDraft(rowOf({ items: [zeroAmountRow()] }, "r6:rq6")).amount).toBe("0");
   });
 });
 

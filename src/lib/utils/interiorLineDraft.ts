@@ -3,11 +3,11 @@ import {
   INTERIOR_QUOTE_MEMO_MAX_LENGTH,
   INTERIOR_TRADE_MAX_LENGTH,
   INTERIOR_VENDOR_MAX_LENGTH,
+  QUOTE_MIN_WON,
 } from "@/lib/constants/interiorPlan";
 
-import { validateAmount } from "./amount";
+import { validateWonAmount } from "./amount";
 import { optionalTextError, requiredTextError } from "./interiorTextErrors";
-import { manwonInputTextOf } from "./manwonInputOfWon";
 
 import type { InteriorPlanRow } from "./interiorPlanRows";
 import type {
@@ -19,7 +19,6 @@ import type {
 
 const TRADE_REQUIRED_MESSAGE = "구분을 입력하세요";
 const VENDOR_REQUIRED_MESSAGE = "업체 이름을 입력하세요";
-const AMOUNT_REQUIRED_MESSAGE = "견적 금액을 입력하세요";
 
 /** 새 줄. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분을 채운다. 확정은 꺼진 채 시작한다(U3) */
 export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
@@ -39,9 +38,9 @@ export function toInteriorLineDraft({
   return {
     trade: item.trade,
     vendor: quote?.vendor ?? "",
-    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게).
-    // 1단계 입력은 만원이라 만원으로 떨어지지 않는 원 금액(1,234,500·0)도 빈칸이다(ADR-034 조건 6, 2단계에서 원으로)
-    amount: manwonInputTextOf(quoteWon),
+    // 원 글자로 채운다(옛 만원 `amount`도 `quoteWonOf`가 원으로 읽은 값). 0원은 "0"이다.
+    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게)
+    amount: quoteWon === undefined ? "" : String(quoteWon),
     detail: quote?.memo ?? "",
     note: item.memo ?? "",
     isConfirmed,
@@ -53,15 +52,15 @@ export function isSameLineDraft(a: InteriorLineDraft, b: InteriorLineDraft): boo
   return (Object.keys(a) as (keyof InteriorLineDraft)[]).every((key) => a[key] === b[key]);
 }
 
+/** 빈칸(공백만 포함)은 오류가 아니라 금액 미정이다(U1) */
 function amountError(raw: string): string | null {
-  const validation = validateAmount(raw);
-  if (validation.status === "empty") return AMOUNT_REQUIRED_MESSAGE;
+  const validation = validateWonAmount(raw, QUOTE_MIN_WON);
   return validation.status === "error" ? validation.message : null;
 }
 
 /**
  * 시트 입력의 오류(화면 순서). 길이는 앞뒤 공백을 뗀 코드포인트 수이고 저장 규칙은 공용 검증(`validateInteriorItemFields`)과 같다.
- * 구분·업체·견적은 필수, 세부내용·비고는 선택이다(U3).
+ * 구분·업체는 필수, 견적(비우면 미정)·세부내용·비고는 선택이다(U1·U3).
  */
 export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineDraftError[] {
   const candidates: [InteriorLineDraftField, string | null][] = [
@@ -77,7 +76,7 @@ export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineD
   return candidates.flatMap(([field, message]) => (message === null ? [] : [{ field, message }]));
 }
 
-/** 빈 칸(공백만 포함)은 undefined — 저장할 때 키를 쓰지 않는다(ADR-012) */
+/** 빈 칸(공백만 포함)은 undefined — 저장할 때 키를 쓰지 않는다(ADR-012). 견적 칸은 `validateWonAmount`의 empty가 같은 뜻이다 */
 function optionalText(raw: string): string | undefined {
   const text = raw.trim();
   return text === "" ? undefined : text;
@@ -88,8 +87,8 @@ export function validateInteriorLineDraft(
   draft: InteriorLineDraft,
 ): { ok: true; values: InteriorLineValues } | { ok: false; errors: InteriorLineDraftError[] } {
   const errors = interiorLineDraftErrors(draft);
-  const amount = validateAmount(draft.amount);
-  if (errors.length > 0 || amount.status !== "valid") return { ok: false, errors };
+  const amount = validateWonAmount(draft.amount, QUOTE_MIN_WON);
+  if (errors.length > 0 || amount.status === "error") return { ok: false, errors };
   const detail = optionalText(draft.detail);
   const note = optionalText(draft.note);
   return {
@@ -97,7 +96,7 @@ export function validateInteriorLineDraft(
     values: {
       trade: draft.trade.trim(),
       vendor: draft.vendor.trim(),
-      amount: amount.value,
+      ...(amount.status === "valid" && { amountWon: amount.value }),
       ...(detail !== undefined && { detail }),
       ...(note !== undefined && { note }),
       isConfirmed: draft.isConfirmed,

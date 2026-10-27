@@ -1,4 +1,5 @@
 // 스펙 interior-simple "줄 시트", AC-2(c) 입력 경계(필수·금액·글자 수·공백)와 AC-4(b) 비고 초기값.
+// 견적은 2단계(스펙 interior-tbd-amount AC-2 2단계, ADR-034): 원 단위 0~MAX_WON, 비우면 미정.
 import { describe, expect, it } from "vitest";
 
 import { makePlanL, makePlanM, makeSimplePlanP } from "@/test/interiorSimpleFixture";
@@ -19,7 +20,7 @@ import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 const validDraft = (patch: Partial<InteriorLineDraft> = {}): InteriorLineDraft => ({
   ...createInteriorLineDraft("도배"),
   vendor: "육문수",
-  amount: "180",
+  amount: "1800000",
   detail: "실크 전체",
   ...patch,
 });
@@ -48,11 +49,11 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
     expect(createInteriorLineDraft("욕실").trade).toBe("욕실");
   });
 
-  it("P의 R1 → 구분·업체·견적·세부내용·확정을 그대로", () => {
+  it("P의 R1(만원 180) → 구분·업체·견적(원 글자)·세부내용·확정을 그대로", () => {
     expect(toInteriorLineDraft(rowOf(makeSimplePlanP(), "r1:rq1"))).toEqual({
       trade: "도배",
       vendor: "육문수",
-      amount: "180",
+      amount: "1800000",
       detail: "실크 전체",
       note: "",
       isConfirmed: true,
@@ -63,7 +64,7 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
     expect(toInteriorLineDraft(rowOf(makePlanL(), "item-x:q2"))).toEqual({
       trade: "욕실",
       vendor: "욕실나라",
-      amount: "400",
+      amount: "4000000",
       detail: "",
       note: "폐기물 포함",
       isConfirmed: false,
@@ -83,17 +84,16 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
 
   it("isSameLineDraft: 칸 하나·확정 하나만 달라도 다르다", () => {
     expect(isSameLineDraft(validDraft(), validDraft())).toBe(true);
-    expect(isSameLineDraft(validDraft(), validDraft({ amount: "181" }))).toBe(false);
+    expect(isSameLineDraft(validDraft(), validDraft({ amount: "1800001" }))).toBe(false);
     expect(isSameLineDraft(validDraft(), validDraft({ isConfirmed: true }))).toBe(false);
   });
 });
 
 describe("필수 칸 (AC-2(c))", () => {
-  it("구분·업체·견적이 비면 그 칸의 오류(화면 순서), 세부내용·비고는 선택", () => {
+  it("구분·업체가 비면 그 칸의 오류(화면 순서), 견적(비우면 미정)·세부내용·비고는 선택", () => {
     expect(interiorLineDraftErrors(createInteriorLineDraft())).toEqual([
       { field: "trade", message: "구분을 입력하세요" },
       { field: "vendor", message: "업체 이름을 입력하세요" },
-      { field: "amount", message: "견적 금액을 입력하세요" },
     ]);
     expect(validateInteriorLineDraft(createInteriorLineDraft()).ok).toBe(false);
   });
@@ -102,6 +102,7 @@ describe("필수 칸 (AC-2(c))", () => {
     const draft = createInteriorLineDraft();
     const fields = interiorLineDraftErrors({
       ...draft,
+      amount: "12a",
       detail: "가".repeat(201),
       note: "가".repeat(501),
     }).map((error) => error.field);
@@ -114,35 +115,46 @@ describe("필수 칸 (AC-2(c))", () => {
     expect(errorOf(draft, "vendor")).toBe("업체 이름을 입력하세요");
   });
 
-  it("업체만 채우고 견적을 비우면 저장이 막힌다", () => {
-    const result = validateInteriorLineDraft(validDraft({ amount: "" }));
-    expect(result).toEqual({
-      ok: false,
-      errors: [{ field: "amount", message: "견적 금액을 입력하세요" }],
+  it.each(["", "   "])("견적 %j → 오류 없이 미정(amountWon 키 없음, U1)", (amount) => {
+    const draft = validDraft({ amount });
+    expect(interiorLineDraftErrors(draft)).toEqual([]);
+    const result = validateInteriorLineDraft(draft);
+    expect(result).toStrictEqual({
+      ok: true,
+      values: {
+        trade: "도배",
+        vendor: "육문수",
+        detail: "실크 전체",
+        isConfirmed: false,
+      },
     });
+    expect(result.ok && Object.hasOwn(result.values, "amountWon")).toBe(false);
   });
 });
 
-describe("견적 금액 (만원 정수 1~999,999,999, AC-2(c))", () => {
+describe("견적 금액 (원 정수 0~9,999,999,999,999, ADR-034·ADR-033 개정)", () => {
   it.each([
+    // 0원은 셀프 시공(미정이 아니다)
+    ["0", 0],
     ["1", 1],
-    ["999999999", 999_999_999],
+    ["9999", 9999],
+    ["9999999999999", 9_999_999_999_999],
+    // 만원 상한(999,999,999)을 넘는 원 금액도 받는다
+    ["1,000,000,000", 1_000_000_000],
     // 붙여넣은 쉼표·앞뒤 공백은 뗀다
-    ["1,000", 1000],
+    ["1,234,500", 1_234_500],
     [" 180 ", 180],
-  ])("%j → %i", (amount, value) => {
+  ])("%j → amountWon %i", (amount, value) => {
     const result = validateInteriorLineDraft(validDraft({ amount }));
-    expect(result.ok && result.values.amount).toBe(value);
+    expect(result.ok && result.values.amountWon).toBe(value);
   });
 
   it.each([
-    ["0", "0보다 큰 금액을 입력하세요"],
     ["-1", "숫자만 입력하세요"],
-    ["1.5", "정수(만원 단위)로 입력하세요"],
-    ["1000000000", "최대 9자리(999,999,999만원)까지 입력할 수 있습니다"],
-    ["1,000,000,000", "최대 9자리(999,999,999만원)까지 입력할 수 있습니다"],
+    ["1.5", "정수(원 단위)로 입력하세요"],
+    ["10000000000000", "최대 13자리(9,999,999,999,999원)까지 입력할 수 있습니다"],
+    ["10,000,000,000,000", "최대 13자리(9,999,999,999,999원)까지 입력할 수 있습니다"],
     ["12a", "숫자만 입력하세요"],
-    ["", "견적 금액을 입력하세요"],
   ])("%j → 오류 %j(저장 안 함)", (amount, message) => {
     const draft = validDraft({ amount });
     expect(errorOf(draft, "amount")).toBe(message);
@@ -185,7 +197,7 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
       values: {
         trade: "도배",
         vendor: "육문수",
-        amount: 180,
+        amountWon: 1_800_000,
         detail: "실크",
         note: "메모",
         isConfirmed: false,
@@ -198,7 +210,7 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
     expect(interiorLineDraftErrors(draft)).toEqual([]);
     expect(validateInteriorLineDraft(draft)).toStrictEqual({
       ok: true,
-      values: { trade: "도배", vendor: "육문수", amount: 180, isConfirmed: false },
+      values: { trade: "도배", vendor: "육문수", amountWon: 1_800_000, isConfirmed: false },
     });
   });
 
@@ -208,23 +220,31 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
   });
 });
 
-// ADR-034 조건 6(qa Q9): 1단계 시트는 만원으로 떨어지는 원 금액만 만원으로 채우고, 아니면 빈칸이다(2단계에서 원 입력으로).
-describe("toInteriorLineDraft — 원 단위 견적(예시 M, 1단계)", () => {
+// ADR-034 2단계: 시트는 저장된 금액을 원 글자로 채운다(옛 만원 `amount`도 `quoteWonOf`로 원). 미정만 빈칸이다.
+describe("toInteriorLineDraft — 원 단위 견적(예시 M, 2단계)", () => {
   it.each([
-    ["m1:mq1", "M1 { amount: 800 }", "800"],
-    ["m2:mq2", "M2 { amountWon: 1234500 }", ""],
-    ["m3:mq3", "M3 { amountWon: 1235000 }", ""],
-    ["m4:mq4", "M4 { amountWon: 999 }", ""],
+    ["m1:mq1", "M1 { amount: 800 }", "8000000"],
+    ["m2:mq2", "M2 { amountWon: 1234500 }", "1234500"],
+    ["m3:mq3", "M3 { amountWon: 1235000 }", "1235000"],
+    ["m4:mq4", "M4 { amountWon: 999 }", "999"],
     ["m5:mq5", "M5 금액 미정", ""],
   ])("%s %s → 견적 칸 %j", (key, _, amount) => {
     expect(toInteriorLineDraft(rowOf(makePlanM(), key)).amount).toBe(amount);
   });
 
-  it("{ amountWon: 12000000 } → '1200', { amountWon: 0 } → ''", () => {
+  it("{ amountWon: 0 } → '0'(빈칸이 아니다), { amount: 0 } → '0', { amountWon: 9,999,999,999,999 } → 13자리 그대로", () => {
     const plan = makePlanM();
-    plan.items[1].quotes = [{ id: "mq2", vendor: "하루바스", amountWon: 12_000_000 }];
-    plan.items[2].quotes = [{ id: "mq3", vendor: "욕실나라", amountWon: 0 }];
-    expect(toInteriorLineDraft(rowOf(plan, "m2:mq2")).amount).toBe("1200");
-    expect(toInteriorLineDraft(rowOf(plan, "m3:mq3")).amount).toBe("");
+    plan.items[1].quotes = [{ id: "mq2", vendor: "하루바스", amountWon: 0 }];
+    plan.items[2].quotes = [{ id: "mq3", vendor: "욕실나라", amount: 0 }];
+    plan.items[3].quotes = [{ id: "mq4", vendor: "빛나라조명", amountWon: 9_999_999_999_999 }];
+    expect(toInteriorLineDraft(rowOf(plan, "m2:mq2")).amount).toBe("0");
+    expect(toInteriorLineDraft(rowOf(plan, "m3:mq3")).amount).toBe("0");
+    expect(toInteriorLineDraft(rowOf(plan, "m4:mq4")).amount).toBe("9999999999999");
+  });
+
+  it("채운 칸을 그대로 검증하면 같은 원 금액이다(열고 저장만 해도 금액이 바뀌지 않는다)", () => {
+    const draft = toInteriorLineDraft(rowOf(makePlanM(), "m1:mq1"));
+    const result = validateInteriorLineDraft(draft);
+    expect(result.ok && result.values.amountWon).toBe(8_000_000);
   });
 });

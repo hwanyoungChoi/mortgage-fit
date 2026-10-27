@@ -136,7 +136,7 @@ async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   const itemSheet = screen.getByRole("dialog", { name: "줄 추가" });
   await user.type(within(itemSheet).getByLabelText("구분"), "도배");
   await user.type(within(itemSheet).getByLabelText("업체"), "육문수");
-  await user.type(within(itemSheet).getByLabelText("견적"), "300");
+  await user.type(within(itemSheet).getByLabelText("견적(비우면 미정)"), "300");
   await user.click(within(itemSheet).getByRole("button", { name: "저장" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();

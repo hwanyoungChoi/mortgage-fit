@@ -61,7 +61,7 @@ afterEach(() => {
 });
 
 describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 옛 계획 L)", () => {
-  it("L의 [+ 도배에 줄 추가] → 육문수·180 확정 저장 → spaceId s0(첫 공간)·상태 계획·비고 없음, 도배 묶음 끝, 지출 예정 550", async () => {
+  it("L의 [+ 도배에 줄 추가] → 육문수·1,800,000원 확정 저장 → spaceId s0(첫 공간)·상태 계획·비고 없음, 도배 묶음 끝, 지출 예정 550", async () => {
     const user = userEvent.setup();
     const storage = createMemoryStorage({
       [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans([makePlanL()]),
@@ -71,7 +71,7 @@ describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 �
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     expect(within(dialog).getByLabelText("구분")).toHaveValue("도배");
     await user.type(within(dialog).getByLabelText("업체"), "육문수");
-    await user.type(within(dialog).getByLabelText("견적"), "180");
+    await user.type(within(dialog).getByLabelText("견적(비우면 미정)"), "1800000");
     await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -84,7 +84,7 @@ describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 �
     expect(added).toStrictEqual({
       spaceId: "s0",
       trade: "도배",
-      quotes: [{ id: quoteId, vendor: "육문수", amount: 180 }],
+      quotes: [{ id: quoteId, vendor: "육문수", amountWon: 1_800_000 }],
       confirmedQuoteId: quoteId,
       status: "planned",
     });

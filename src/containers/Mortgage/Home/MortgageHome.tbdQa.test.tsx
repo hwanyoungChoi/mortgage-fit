@@ -157,7 +157,7 @@ describe("AC-1 옛 다견적 항목 F⁺ (q1 하루바스 370 확정, q2 욕실�
 
     await user.click(screen.getByRole("button", { name: `${F_Q2} 열기` }));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    expect(within(dialog).getByLabelText("견적")).toHaveValue("");
+    expect(within(dialog).getByLabelText("견적(비우면 미정)")).toHaveValue("");
     await user.click(within(dialog).getByRole("button", { name: "삭제" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(confirm).toHaveBeenCalledWith("이 줄을 지울까요?");
@@ -215,7 +215,7 @@ describe("시트 첫 포커스와 칸 순서", () => {
   it("떠 있는 [+]·미정 줄 R6·[+ 조명에 줄 추가] 모두 칸 순서 구분 → 세부내용 → 업체 → 견적 → 비고, 포커스는 시트 안(묶음 끝 [+]는 세부내용)", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makeSimplePlanPPlus()]));
-    const order = ["구분", "세부내용(선택)", "업체", "견적", "비고(선택)"];
+    const order = ["구분", "세부내용(선택)", "업체", "견적(비우면 미정)", "비고(선택)"];
     const textLabels = (dialog: HTMLElement) =>
       Array.from(
         dialog.querySelectorAll("input:not([type=checkbox]), textarea"),
@@ -233,7 +233,7 @@ describe("시트 첫 포커스와 칸 순서", () => {
     const line = screen.getByRole("dialog", { name: "줄" });
     expect(line.contains(document.activeElement)).toBe(true);
     expect(textLabels(line)).toEqual(order);
-    expect(within(line).getByLabelText("견적")).toHaveValue("");
+    expect(within(line).getByLabelText("견적(비우면 미정)")).toHaveValue("");
     await user.click(within(line).getByRole("button", { name: "취소" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 

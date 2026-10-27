@@ -171,7 +171,7 @@ async function walk(
 
   await user.click(r6Open);
   const r6Sheet = screen.getByRole("dialog", { name: "줄" });
-  expect(within(r6Sheet).getByLabelText("견적")).toHaveValue("");
+  expect(within(r6Sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("");
   check("R6 시트 열기");
   await user.click(within(r6Sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -203,10 +203,7 @@ async function walk(
   check("M 목록");
   await user.click(m2Open);
   const m2Sheet = screen.getByRole("dialog", { name: "줄" });
-  expect(within(m2Sheet).getByLabelText("견적")).toHaveValue("");
-  expect(
-    within(m2Sheet).getByText("원 단위로 저장된 금액이라 이 화면에서는 만원으로 다시 입력하세요"),
-  ).toBeInTheDocument();
+  expect(within(m2Sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("1,234,500");
   check("M2 시트 열기");
   await user.click(within(m2Sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -349,7 +346,7 @@ describe("AC-0(a) 로그인: 서버가 금액 없는 견적을 PUT·POST 응답�
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     await user.type(within(dialog).getByLabelText("구분"), "가구");
     await user.type(within(dialog).getByLabelText("업체"), "한샘");
-    await user.type(within(dialog).getByLabelText("견적"), "300");
+    await user.type(within(dialog).getByLabelText("견적(비우면 미정)"), "300");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 

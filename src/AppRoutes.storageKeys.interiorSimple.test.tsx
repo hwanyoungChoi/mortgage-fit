@@ -219,7 +219,7 @@ async function walk(user: User, api: FakePlanApi, check: Check) {
 
   await user.click(screen.getByRole("button", { name: "욕실 욕실나라 열기" }));
   const sheet = screen.getByRole("dialog", { name: "줄" });
-  expect(within(sheet).getByLabelText("견적")).toHaveValue("400");
+  expect(within(sheet).getByLabelText("견적(비우면 미정)")).toHaveValue("4,000,000");
   check("줄 시트 열기");
   await user.click(within(sheet).getByRole("button", { name: "취소" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());

@@ -5,7 +5,7 @@ export type InteriorLineDraft = {
   /** 구분(공정). 이 계획의 기존 구분이 제안으로 뜬다 */
   trade: string;
   vendor: string;
-  /** 쉼표를 뺀 견적 금액(만원) */
+  /** 쉼표를 뺀 견적 금액(원). 빈칸 = 금액 미정(ADR-033) */
   amount: string;
   /** 세부내용 = 그 견적의 메모 */
   detail: string;
@@ -20,12 +20,12 @@ export type InteriorLineDraftField = "trade" | "detail" | "vendor" | "amount" | 
 /** 칸 하나의 오류. 목록 순서 = 화면 순서(제출 실패 시 첫 오류로 포커스를 옮긴다) */
 export type InteriorLineDraftError = { field: InteriorLineDraftField; message: string };
 
-/** 검증을 통과한 줄 값. 글자는 앞뒤 공백을 뗐고, 비운 선택 칸(세부내용·비고)은 undefined다 */
+/** 검증을 통과한 줄 값. 글자는 앞뒤 공백을 뗐고, 비운 선택 칸(견적·세부내용·비고)은 undefined다 */
 export type InteriorLineValues = {
   trade: string;
   vendor: string;
-  /** 만원 정수 1~999,999,999 */
-  amount: number;
+  /** 원 정수 0~MAX_WON(ADR-034). 없으면 금액 미정(견적 칸을 비움, ADR-033) */
+  amountWon?: number;
   detail?: string;
   note?: string;
   isConfirmed: boolean;
