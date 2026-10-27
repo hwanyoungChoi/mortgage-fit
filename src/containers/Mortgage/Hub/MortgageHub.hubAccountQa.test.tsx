@@ -6,7 +6,7 @@
 // - 계정 확인: 500 + session-hint 없음은 로그아웃 모양([다시 시도] 없음), [다시 시도]가 로그아웃으로 확정되면 로그인 안내.
 // - 가구에서 [로그아웃]: 둘째 줄이 사라지고 카드는 이 기기 값.
 // - 저장 목록 머리: 로그인 혼자·가구에서도 매물이 있으면 [가리기](U7 설명)·[목록 공유]만.
-// - `#/?login=failed&a=1`·중복 login: 안내 한 번, 주소 #/, 다시 열면 안내 없음(결함 D1, it.fails로 고정).
+// - `#/?login=failed&a=1`·중복 login: 안내 한 번, 주소 #/, 다시 열면 안내 없음(결함 D1, `useHashRoute`가 화면이 바꾼 주소를 되돌리지 않게 고침).
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
@@ -419,11 +419,9 @@ describe("저장 목록 머리: 로그인 혼자·가구에서도 [가리기]·[
 });
 
 describe("로그인 결과 쿼리 경계 (AC-2 fe)", () => {
-  // [결함 D1, 담당 fe] 정규 경로가 아닌 로그인 결과 주소(`&a=1`·중복 login)는 주소가 `#/?login=failed`에 남는다.
-  // 홈의 replace("#/")가 먼저 돌고, 부모 useHashRoute의 정규화 effect가 옛 해시 기준으로 `#/?login=failed`로 다시 replace한다.
-  // login 값이 같아 홈 effect가 다시 돌지 않는다 → 같은 주소로 다시 열면(새로고침) 안내가 또 뜬다.
-  // 고쳐지면 이 테스트가 실패한다. 그때 `it.fails`를 `it`으로 바꾼다(기대값은 스펙 AC-2 그대로).
-  it.fails.each(["#/?login=failed&a=1", "#/?login=failed&login=cancelled"])(
+  // [결함 D1] 정규 경로가 아닌 로그인 결과 주소(`&a=1`·중복 login)가 `#/?login=failed`에 남던 것.
+  // 홈의 replace("#/") 뒤 부모 useHashRoute의 정규화 effect가 옛 해시 기준으로 다시 replace했다.
+  it.each(["#/?login=failed&a=1", "#/?login=failed&login=cancelled"])(
     "%s: 안내 한 번(StrictMode), 주소는 #/로 replace되고 같은 주소로 다시 열면 안내가 없다",
     async (start) => {
       const first = renderApp({ seed: {}, isLoggedIn: false, hash: start, isStrict: true });
