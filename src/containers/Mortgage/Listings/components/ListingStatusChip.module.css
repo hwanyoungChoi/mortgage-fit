@@ -5,7 +5,7 @@
   min-width: 56px;
   padding: 1px var(--space-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   font-size: var(--fs-tiny);
   font-weight: 600;
   line-height: 1.5;
@@ -13,12 +13,11 @@
   white-space: nowrap;
 }
 
-/* 후보: 데이터 신호(강조 파랑)로 채운다. 목록에서 가장 먼저 눈에 띈다. */
+/* 후보: 옅은 코발트 면 + 진한 코발트 글자(배지 규칙). 목록에서 가장 먼저 눈에 띈다. */
 .candidate {
   composes: chip;
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-on-primary);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
 }
 
 .hold {
@@ -27,11 +26,10 @@
   color: var(--color-badge-text);
 }
 
-/* 비후보: 채우지 않고 흐리게. 취소선은 쓰지 않는다(이름이 읽혀야 한다). */
+/* 비후보: 채우지 않고 흐린 글자만. 취소선은 쓰지 않는다(이름이 읽혀야 한다). */
 .rejected {
   composes: chip;
-  border-color: var(--color-control);
-  background: var(--color-surface);
+  background: none;
   color: var(--color-text-muted);
 }
 

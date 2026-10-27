@@ -15,7 +15,7 @@
   gap: var(--space-2) var(--space-4);
   min-height: var(--summary-bar-height);
   padding: var(--space-3) var(--bar-inline);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-rule);
   background: var(--color-surface);
 }
 
@@ -42,7 +42,7 @@
   align-self: flex-end;
   margin-top: 2px;
   padding: 0 var(--space-2);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
   font-size: var(--fs-tiny);
@@ -50,12 +50,14 @@
   overflow-wrap: anywhere;
 }
 
+/* 요약 두 줄: 라벨(muted) 왼쪽, 금액 20px 700 오른쪽. 예상 한도는 이 화면의 주 데이터라 코발트, 자기자금은 잉크. */
 .figure {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
   font-size: var(--fs-body);
+  line-height: 1.3;
 }
 
 .figure dt {
@@ -64,28 +66,24 @@
 }
 
 .figure dd {
+  font-size: var(--fs-figure);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
   overflow-wrap: anywhere;
 }
 
-/* 두 번째 줄(필요한 자기자금)이 이 화면의 답이라 한 단계 크게 둔다. */
-.figure + .figure dt {
-  color: var(--color-text);
-}
-
-.figure + .figure dd {
-  font-size: var(--fs-figure);
+.figure:first-child dd {
+  color: var(--color-accent);
 }
 
 .saveButton {
   flex: none;
   min-width: 80px;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--space-5);
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;

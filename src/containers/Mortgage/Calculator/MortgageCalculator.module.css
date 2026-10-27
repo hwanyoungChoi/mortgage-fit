@@ -11,16 +11,18 @@
 .title {
   min-width: 0;
   font-size: var(--fs-title);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
 }
 
+/* 제목 아래 보조 줄. 제목(h1) 안에 있어 접근성 이름에 들어간다. */
 .subtitle {
   display: block;
-  margin-top: 2px;
   color: var(--color-text-muted);
   font-size: var(--fs-small);
   font-weight: 400;
+  line-height: 1.5;
 }
 
 /* 하단 바에 저장 불가 이유나 상태 태그가 붙어 높아지면 그만큼 내용이 바에 가리지 않게 한다. */
@@ -29,9 +31,10 @@
   padding-bottom: calc(var(--summary-bar-height) + 3em + var(--bottom-tab-offset) + var(--space-5));
 }
 
+/* 제목 왼쪽, [새 계산] 오른쪽 같은 줄(모든 화면 머리글 구조). 버튼은 제목 첫 줄(36px)에 맞춘다. */
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-1);
@@ -50,12 +53,12 @@
   white-space: nowrap;
 }
 
-/* 스크린샷·실거래가 같은 보조 동작 버튼 */
+/* 스크린샷·실거래가 같은 보조 동작 버튼. 바탕 위에 놓이므로 흰 면으로 띄운다(테두리 없음). */
 .secondaryAction {
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-control);
-  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  border-radius: 14px;
   background: var(--color-surface);
   font-weight: 600;
 }
@@ -73,11 +76,12 @@
   pointer-events: none;
 }
 
+/* 잠깐 뜨는 저장 알림(토스트). 떠 있는 잉크 면 */
 .notice {
   max-width: 448px;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-primary);
+  background: var(--color-text);
   color: var(--color-on-primary);
   font-size: var(--fs-body);
   overflow-wrap: anywhere;

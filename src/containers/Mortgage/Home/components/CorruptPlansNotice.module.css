@@ -2,8 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -22,9 +21,9 @@
 .rawText {
   width: 100%;
   padding: var(--space-2);
-  border: 1px solid var(--color-control);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
-  background: var(--color-bg);
+  background: var(--color-raised);
   font-family: ui-monospace, monospace;
   /* iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다. */
   font-size: var(--fs-input);
@@ -48,19 +47,19 @@
 .secondaryButton,
 .dangerButton {
   flex: 1;
-  min-height: 48px;
-  border-radius: var(--radius-control);
+  min-height: 52px;
+  border-radius: 14px;
   font-weight: 600;
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-control);
-  background: var(--color-surface);
+  border: 0;
+  background: var(--color-raised);
 }
 
-/* 되돌릴 수 없는 동작은 오류색 테두리 버튼. 채운 빨강은 쓰지 않는다. */
+/* 되돌릴 수 없는 동작은 옅은 오류 면 + 오류색 글자. 채운 빨강은 쓰지 않는다. */
 .dangerButton {
-  border: 1px solid var(--color-error);
-  background: var(--color-surface);
+  border: 0;
+  background: var(--color-error-bg);
   color: var(--color-error);
 }

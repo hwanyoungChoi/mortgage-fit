@@ -10,13 +10,13 @@
 
 .title {
   font-size: var(--fs-title);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
 }
 
 .notice {
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -24,9 +24,9 @@
 .panelLink {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 52px;
   padding: 0 var(--space-5);
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;

@@ -182,7 +182,10 @@ describe("AC-6 내 현황 요약 (로그아웃, 이 기기 데이터)", () => {
     await expectDescription("listings", "저장한 매물 3개");
     await expectDescription("calculator", "작성 중 · 매매가 12억 5,000만원");
     // "우리 집"은 탭 이름과 겹치므로 카드 안으로 좁힌다
-    expect(within(card("home")).getByText("우리 집 · 지출 예정 15,300,000원")).toBeInTheDocument();
+    // 줄은 "이름(흐림) / 금액" 두 줄 배치라 이름이 따로 감싸져 있다. 금액 글자로 줄을 찾고 줄 전체 글자를 그대로 본다
+    expect(within(card("home")).getByText(/지출 예정/)).toHaveTextContent(
+      /^우리 집 · 지출 예정 15,300,000원$/,
+    );
     expect(planLines()).toEqual(["우리 집 · 지출 예정 15,300,000원"]);
     expect(card("home")).toHaveAccessibleDescription("우리 집 · 지출 예정 15,300,000원");
     // 링크 이름은 제목 그대로(요약은 설명으로만 읽힌다)
@@ -320,7 +323,7 @@ describe("AC-6 가리기(privacy-mode 읽기만)", () => {
     // 요약이 그려진 뒤(개수는 가리지 않는다)에 본다. 로딩 중이면 금액이 없어 거짓 통과한다
     await expectDescription("listings", "저장한 매물 3개");
     await waitFor(() =>
-      expect(within(card("home")).getByText(/우리 집 · 지출 예정/)).toBeInTheDocument(),
+      expect(within(card("home")).getByText(/지출 예정/)).toHaveTextContent(/^우리 집 · 지출 예정/),
     );
 
     expect(hub.innerHTML).not.toContain("12억");

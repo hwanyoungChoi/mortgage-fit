@@ -9,8 +9,16 @@
 
 .title {
   font-size: var(--fs-title);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
+}
+
+/* 계정 자리: 흰 카드 한 장(로그인 안내·계정 줄·함께 쓰기 줄) */
+.account {
+  padding: calc(var(--space-4) + var(--space-1));
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
 
 .cards {
@@ -19,7 +27,11 @@
   gap: var(--space-3);
 }
 
-/* 우리 집 카드의 계획 한 줄(계획마다 줄을 바꾼다) */
+/* 우리 집 카드의 계획 한 묶음(계획마다 두 줄씩 쌓는다) */
 .planLine {
   display: block;
+}
+
+.planLine + .planLine {
+  margin-top: var(--space-2);
 }

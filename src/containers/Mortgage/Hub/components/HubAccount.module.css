@@ -12,7 +12,7 @@
 
 .status {
   color: var(--color-text-muted);
-  font-size: var(--fs-small);
+  font-size: var(--fs-body);
 }
 
 /* 계정 확인 중: 자리만 차지하고 보이지 않는다(보조기기·포커스에서도 빠진다, aria-hidden·inert). */
@@ -43,14 +43,14 @@
   font-weight: 600;
 }
 
-/* 저장 목록 머리 버튼과 같은 크기 */
+/* 저장 목록 머리 버튼과 같은 크기. 계정 카드(흰 면) 위라 채운 면 */
 .button {
   flex: none;
   min-height: 36px;
   padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius-control);
-  background: var(--color-raised-on-bg);
+  background: var(--color-raised);
   font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;

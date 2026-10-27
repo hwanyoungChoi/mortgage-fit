@@ -14,11 +14,14 @@
   margin-bottom: var(--space-1);
 }
 
-/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
+/*
+ * 제목 왼쪽, 작은 버튼 묶음([가리기]·[목록 공유]) 오른쪽 같은 줄(모든 화면 머리글 구조). 다 들어가지 않으면 제목 아래
+ * 줄로 내려간다. 제목 줄 높이 = 머리글 버튼 높이 36px.
+ */
 .titleRow {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2) var(--space-3);
 }
@@ -41,14 +44,14 @@
   white-space: nowrap;
 }
 
-/* 가리기: 켜진 동안 주 동작 색으로 채운다. */
+/* 가리기: 켜진 동안 선택 표시(옅은 코발트 면 + 진한 코발트 글자)로 채운다. */
 .privacyButton {
   composes: headerButton;
 }
 
 .privacyButton[aria-pressed="true"] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
 }
 
 /* 화면에서는 숨기고 보조기기에는 읽힌다 */
@@ -63,18 +66,18 @@
 
 .title {
   font-size: var(--fs-title);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
 }
 
 .baseDate {
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
 }
 
 .notice {
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -87,7 +90,7 @@
 
 /* 받아 둔 목록은 그대로 두고 다시 조회에 실패했다는 작은 경고 */
 .warning {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
@@ -110,8 +113,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: var(--space-5) calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -120,21 +122,20 @@
 .emptyAction {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 52px;
   padding: 0 var(--space-5);
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;
   text-decoration: none;
 }
 
-/* 목록: 흰 카드 한 장 안에 줄을 쌓는다. */
+/* 목록: 흰 카드 한 장 안에 줄을 쌓는다(테두리 없음). */
 .compactTable {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -144,8 +145,7 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) calc(var(--space-4) + var(--space-1)) var(--space-1);
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
 }

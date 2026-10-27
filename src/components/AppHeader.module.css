@@ -10,9 +10,9 @@
 }
 
 .brand {
-  color: var(--color-text-muted);
-  font-size: var(--fs-small);
-  font-weight: 600;
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  font-weight: 700;
 }
 
 /* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼 */

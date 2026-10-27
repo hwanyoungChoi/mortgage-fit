@@ -1,13 +1,26 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
+}
+
+/*
+ * 이름 왼쪽, [⋯] 오른쪽 같은 줄(저장 목록·계산 화면 머리글과 같은 구조). 긴 이름은 이름 칸 안에서 줄을 바꾸고 [⋯]은
+ * 첫 줄에 남는다(제목 줄 높이 = 머리글 버튼 높이 36px).
+ */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .title {
+  min-width: 0;
   font-size: var(--fs-title);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
   overflow-wrap: anywhere;
 }
 
@@ -21,13 +34,6 @@
 .linkedListingMissing {
   composes: linkedListing;
   color: var(--color-warning-text);
-}
-
-/* 제목 아래 작은 버튼 줄. 360px·큰 글자에서도 한 줄에 들어가고, 안 되면 줄을 바꾼다(가로 스크롤 없음). */
-.headerActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 
 /* 저장 목록 머리글 버튼과 같은 모양 */

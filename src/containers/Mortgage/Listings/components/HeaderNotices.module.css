@@ -4,15 +4,14 @@
   gap: var(--space-1);
 }
 
-/* 흰 면 한 줄. [다시 시도]가 붙으면 오른쪽 끝에 둔다. */
+/* 알림 줄: 바탕 위 흰 면(테두리 없음). [다시 시도]가 붙으면 오른쪽 끝에 둔다. */
 .line {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
   min-height: 36px;
-  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   font-size: var(--fs-small);
@@ -20,9 +19,11 @@
   overflow-wrap: anywhere;
 }
 
+/* 오류 알림: 옅은 오류 면 + 진한 오류 글자 */
 .errorLine {
   composes: line;
-  color: var(--color-error);
+  background: var(--color-error-bg);
+  color: var(--color-error-ink);
 }
 
 .retryButton {

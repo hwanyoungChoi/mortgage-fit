@@ -4,9 +4,10 @@
   gap: var(--space-2);
 }
 
+/* 칸 위 라벨: 입력칸 라벨과 같은 14px 600 */
 .legend {
   margin-bottom: var(--space-2);
-  font-size: var(--fs-body);
+  font-size: calc(var(--fs-body) - 1px);
   font-weight: 600;
 }
 
@@ -28,6 +29,7 @@
   opacity: 0;
 }
 
+/* 고르지 않은 칸: 채운 면, 테두리 없음(투명 테두리는 고대비 모드의 윤곽), 잉크 글자 500 */
 .label {
   display: flex;
   flex: 1;
@@ -35,24 +37,43 @@
   justify-content: center;
   min-height: 44px;
   padding: var(--space-2);
-  border: 1px solid var(--color-control);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
   font-size: var(--fs-body);
+  font-weight: 500;
   line-height: 1.3;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
 }
 
-/* 고른 칸은 색 대신 2px 잉크 테두리(1px 테두리 + 안쪽 1px)와 잉크 글자로 표시한다. 크기는 그대로다. */
+/* 바탕(--color-bg) 위에 놓일 때는 흰 면 위 채움이 바탕과 겹쳐 보이지 않으므로 한 단계 진한 채움 */
+.groupOnBackground {
+  composes: group;
+}
+
+.groupOnBackground .label {
+  background: var(--color-raised-on-bg);
+}
+
+/* 고른 칸: 옅은 코발트 면 + 진한 코발트 글자 600. 크기는 그대로다. */
 .input:checked + .label {
-  border-color: var(--color-text);
-  box-shadow: inset 0 0 0 1px var(--color-text);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
   font-weight: 600;
 }
 
 .input:focus-visible + .label {
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label {
+    transition: none;
+  }
 }

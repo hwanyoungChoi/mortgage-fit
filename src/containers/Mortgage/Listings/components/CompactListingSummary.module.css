@@ -11,15 +11,17 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--fs-section);
+  font-size: calc(var(--fs-body) + 1px);
+  font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
+/* 금액: 오른쪽 정렬 tabular 16px 600(줄 목록 금액 규칙) */
 .amount {
   flex: none;
-  font-size: var(--fs-section);
-  font-weight: 700;
+  font-size: calc(var(--fs-body) + 1px);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;

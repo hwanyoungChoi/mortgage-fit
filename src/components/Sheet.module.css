@@ -8,7 +8,10 @@
   background: var(--color-scrim);
 }
 
-/* 내용이 길면 시트 전체가, 내용이 스스로 스크롤 영역을 두면(min-height: 0) 그 영역만 스크롤한다. */
+/*
+ * 위쪽만 둥근 흰 시트. 맨 위 손잡이(36×4 막대)는 시트임을 알리는 장식이라 마크업 없이 그린다.
+ * 내용이 길면 시트 전체가, 내용이 스스로 스크롤 영역을 두면(min-height: 0) 그 영역만 스크롤한다.
+ */
 .sheet {
   display: flex;
   flex-direction: column;
@@ -17,15 +20,27 @@
   max-width: 480px;
   max-height: 90dvh;
   overflow-y: auto;
-  padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  padding: var(--space-2) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   background: var(--color-surface);
+}
+
+.sheet::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  margin-bottom: calc(var(--space-1) - var(--space-4));
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
 }
 
 .sheet:focus {
   outline: none;
 }
 
+/* 제목 왼쪽, [닫기] 오른쪽 같은 줄(화면 머리글과 같은 구조) */
 .titleRow {
   display: flex;
   flex: none;
@@ -36,17 +51,21 @@
 
 .title {
   min-width: 0;
-  font-size: var(--fs-figure);
+  font-size: var(--fs-section);
   font-weight: 600;
 }
 
+/* 텍스트 동작(코발트 글자). 누르는 자리는 44px */
 .closeButton {
   flex: none;
-  min-height: 40px;
-  padding: 0 var(--space-3);
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: calc(var(--space-2) * -1);
+  padding: 0 var(--space-2);
   border: 0;
   border-radius: var(--radius-control);
-  background: var(--color-raised);
+  background: none;
+  color: var(--color-accent);
   font-size: var(--fs-body);
   font-weight: 600;
 }

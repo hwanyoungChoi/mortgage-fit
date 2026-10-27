@@ -12,7 +12,7 @@ type PlanSummaryProps = {
 };
 
 /**
- * 요약 줄(U6). 남은 예산·지출 예정을 크게, 총 예산을 작게 둔다. 지출 예정 = 확정이고 금액이 있는 줄의 견적 합이다.
+ * 요약 줄(U6). 남은 예산(코발트)·지출 예정을 화면에서 가장 크게, 총 예산을 작게 둔다. 지출 예정 = 확정이고 금액이 있는 줄의 견적 합이다.
  * 금액은 원("1,234,500원"). 남은 예산이 음수면 "예산 초과 n원"(0은 "0원"), 총 예산이 없으면 그 자리에 [총 예산 입력]이다.
  * 확정한 미정 줄이 있으면 두 칸 아래 전체 폭 한 줄로 "금액 미정 n건 제외"다(두 칸 모두 같은 기준).
  */
@@ -37,7 +37,7 @@ function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
         <strong className={styles.overFigure}>예산 초과 {formatWon(-summary.remainingWon)}</strong>
       );
     }
-    return <strong className={styles.figure}>{formatWon(summary.remainingWon)}</strong>;
+    return <strong className={styles.remainingFigure}>{formatWon(summary.remainingWon)}</strong>;
   };
 
   return (

@@ -2,15 +2,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
 
+/*
+ * 답 두 개(남은 예산·지출 예정)를 위아래로 쌓는다. 화면에서 가장 큰 글자(--fs-answer)라 360px에서 두 칸으로 나누면
+ * "1,234,500원"이 숫자 중간에서 끊긴다.
+ */
 .headline {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
 }
 
@@ -29,10 +32,18 @@
 }
 
 .figure {
-  font-size: var(--fs-figure);
+  font-size: var(--fs-answer);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+/* 남은 예산: 이 화면의 주 데이터라 코발트 */
+.remainingFigure {
+  composes: figure;
+  color: var(--color-accent);
 }
 
 .overFigure {
@@ -46,12 +57,14 @@
   font-size: var(--fs-small);
 }
 
+/* 보조 버튼(채운 면) */
 .budgetButton {
   min-height: 36px;
+  margin-top: var(--space-1);
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-control);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
-  background: var(--color-surface);
+  background: var(--color-raised);
   font-size: var(--fs-body);
   font-weight: 600;
 }

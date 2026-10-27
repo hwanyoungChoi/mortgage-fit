@@ -17,7 +17,8 @@
 
 .title {
   font-size: var(--fs-title);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.25;
 }
 
@@ -32,8 +33,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
   font-size: var(--fs-body);
@@ -41,7 +41,7 @@
 }
 
 .warning {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
@@ -73,10 +73,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 var(--space-5);
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;
@@ -85,12 +85,13 @@
 }
 
 .primaryButton:disabled {
-  background: var(--color-raised);
+  background: var(--color-raised-on-bg);
   color: var(--color-text-muted);
 }
 
+/* 바탕 위 보조 동작: 흰 면으로 띄운다(테두리 없음, 투명 테두리는 고대비 모드의 윤곽). */
 .secondaryLink {
-  border: 1px solid var(--color-control);
+  border: 1px solid transparent;
   background: var(--color-surface);
   color: var(--color-text);
 }

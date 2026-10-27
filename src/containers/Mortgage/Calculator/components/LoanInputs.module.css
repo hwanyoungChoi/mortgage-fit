@@ -1,9 +1,8 @@
 .inputs {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
+  gap: var(--space-5);
+  padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -14,7 +13,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
-  margin-top: calc(var(--space-3) * -1);
+  margin-top: calc(var(--space-4) * -1);
   color: var(--color-text-muted);
   font-size: var(--fs-small);
 }
@@ -29,14 +28,12 @@
   /* 링크(<a>)도 버튼과 같은 높이로 눌리게 한다 */
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-text);
+  color: var(--color-accent);
   font-size: var(--fs-body);
   font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: var(--color-control);
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
