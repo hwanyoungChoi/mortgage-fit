@@ -93,7 +93,7 @@ const detailValue = (label: string) =>
 
 const check = (name: string) => screen.getByRole("checkbox", { name });
 
-/** 목록 묶음: [구분, [줄 여는 버튼 글자, 확정 여부]...] */
+/** 목록 묶음: [구분, [줄 여는 버튼 글자(세부내용·업체·비고·견적 순), 확정 여부]...] */
 function listShape() {
   return screen
     .getAllByRole("region")
@@ -130,16 +130,16 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
       [
         "도배",
         [
-          ["육문수실크 전체180만원", true],
-          ["동네도배합지150만원", false],
+          ["실크 전체육문수180만원", true],
+          ["합지동네도배150만원", false],
         ],
       ],
       [
         "욕실",
         [
-          ["하루바스철거·방수 (1)370만원", true],
-          ["욕실나라철거·방수 (1)400만원", false],
-          ["하루바스타일 덧방 (2)250만원", true],
+          ["철거·방수 (1)하루바스370만원", true],
+          ["철거·방수 (1)욕실나라400만원", false],
+          ["타일 덧방 (2)하루바스250만원", true],
         ],
       ],
     ]);
@@ -206,6 +206,48 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
       );
     }
+  });
+});
+
+describe("줄 글자 순서: 첫 줄 세부내용, 그 아래 업체", () => {
+  /** 여는 버튼 왼쪽 글자 묶음의 줄들: [클래스, 글자] (금액은 빼고) */
+  const rowLines = (openName: string) =>
+    Array.from(
+      screen.getByRole("button", { name: openName }).firstElementChild?.children ?? [],
+      (line) => [line.className, line.textContent] as const,
+    );
+
+  it("세부내용이 있으면 세부내용이 첫 줄, 업체는 그 아래 줄 자리(세부내용 자리 스타일)다", async () => {
+    await renderLoggedOut(storageWith([makePlanL()]), L_HASH);
+    const withDetail = rowLines("욕실 하루바스 철거·방수 열기");
+    const withoutDetail = rowLines("욕실 욕실나라 열기");
+
+    expect(withDetail.map(([, text]) => text)).toEqual(["철거·방수", "하루바스", "폐기물 포함"]);
+    // 세부내용이 없으면 업체가 첫 줄로 올라온다(빈 줄 없음)
+    expect(withoutDetail.map(([, text]) => text)).toEqual(["욕실나라", "폐기물 포함"]);
+    // 첫 줄은 내용과 상관없이 같은 스타일, 둘째 줄(업체)은 첫 줄과 다른 스타일이다
+    expect(withDetail[0][0]).toBe(withoutDetail[0][0]);
+    expect(withDetail[1][0]).not.toBe(withDetail[0][0]);
+  });
+
+  it("가리기 중에는 업체가 첫 줄이고, 가려진 세부내용은 그 아래 •••다", async () => {
+    const user = userEvent.setup();
+    await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    const [firstLineClass, secondLineClass] = rowLines("도배 육문수 실크 전체 열기").map(
+      ([className]) => className,
+    );
+
+    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(rowLines("도배 육문수 열기")).toEqual([
+      [firstLineClass, "육문수"],
+      [secondLineClass, "•••가려짐"],
+    ]);
+
+    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(rowLines("도배 육문수 실크 전체 열기").map(([, text]) => text)).toEqual([
+      "실크 전체",
+      "육문수",
+    ]);
   });
 });
 
@@ -385,9 +427,9 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
       [
         "욕실",
         [
-          ["하루바스철거·방수폐기물 포함370만원", true],
+          ["철거·방수하루바스폐기물 포함370만원", true],
           ["욕실나라폐기물 포함400만원", false],
-          ["하루바스타일 덧방250만원", false],
+          ["타일 덧방하루바스250만원", false],
         ],
       ],
       ["도배", [["견적 없음예산 200만원", false]]],
