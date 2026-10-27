@@ -3,10 +3,10 @@ import {
   INTERIOR_PLAN_EXPORT_FILE_LABEL,
   INTERIOR_PLAN_TABLE_HEADING,
   INTERIOR_PLAN_TABLE_SEPARATOR,
-  WON_PER_MANWON,
 } from "@/lib/constants/interiorPlanTable";
 
-import { formatThousands } from "./amount";
+import { formatWon } from "./amount";
+import { tbdExclusionNote } from "./interiorPlanRows";
 
 import type { InteriorPlanSummary } from "./interiorPlanRows";
 
@@ -17,7 +17,7 @@ export type InteriorPlanTableHeading = {
   basis: string;
   /** `총 예산 10,000,000원`. 총 예산이 없으면 undefined */
   budget: string | undefined;
-  /** `지출 예정 8,000,000원`(0이어도 있음) */
+  /** `지출 예정 8,000,000원`(0이어도 있음). 확정 미정 줄이 있으면 뒤에 `(금액 미정 n건 제외)` — 조각 하나라 같이 가린다 */
   plannedTotal: string;
   /** `남은 예산 2,000,000원`, 음수면 `예산 초과 1,000,000원`. 총 예산이 없으면 undefined */
   remaining: string | undefined;
@@ -25,16 +25,11 @@ export type InteriorPlanTableHeading = {
   line: string;
 };
 
-/** 만원 → `15,000,000`(원, 천 단위 쉼표) */
-function formatWon(manwon: number): string {
-  return formatThousands(manwon * WON_PER_MANWON);
-}
-
-function remainingOf(remaining: number | null): string | undefined {
-  if (remaining === null) return undefined;
-  return remaining < 0
-    ? INTERIOR_PLAN_TABLE_HEADING.overBudget(formatWon(-remaining))
-    : INTERIOR_PLAN_TABLE_HEADING.remaining(formatWon(remaining));
+function remainingOf(remainingWon: number | null): string | undefined {
+  if (remainingWon === null) return undefined;
+  return remainingWon < 0
+    ? INTERIOR_PLAN_TABLE_HEADING.overBudget(formatWon(-remainingWon))
+    : INTERIOR_PLAN_TABLE_HEADING.remaining(formatWon(remainingWon));
 }
 
 /**
@@ -48,11 +43,14 @@ export function interiorPlanTableHeading(
 ): InteriorPlanTableHeading {
   const basis = INTERIOR_PLAN_TABLE_HEADING.basis(today);
   const budget =
-    summary.budget === null
+    summary.budgetWon === null
       ? undefined
-      : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budget));
-  const plannedTotal = INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotal));
-  const remaining = remainingOf(summary.remaining);
+      : INTERIOR_PLAN_TABLE_HEADING.budget(formatWon(summary.budgetWon));
+  const tbdNote = tbdExclusionNote(summary.tbdCount);
+  const plannedTotal =
+    INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotalWon)) +
+    (tbdNote === "" ? "" : `(${tbdNote})`);
+  const remaining = remainingOf(summary.remainingWon);
   const pieces = [basis, budget, plannedTotal, remaining].filter(
     (piece): piece is string => piece !== undefined,
   );

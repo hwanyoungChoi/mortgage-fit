@@ -5,6 +5,7 @@ import type {
   InteriorItem,
   InteriorItemStatus,
   InteriorPlanWithItems,
+  InteriorQuote,
 } from "@/lib/types/interiorPlan";
 
 /** 시각은 `toISOString` 형식. n번째 항목은 n분에 만든다 */
@@ -124,8 +125,8 @@ export function makePlanL(overrides: Partial<InteriorPlanWithItems> = {}): Inter
 }
 
 /**
- * 모든 선택 키가 채워진 항목(AC-0(c) c3): 예산 · 견적 2개(연락처·메모 포함) · 확정 · 지급 2줄(지급함/미지급, 예정일) ·
- * 시작·끝 · 메모. 상태만 바꿔 5종 각각으로 쓴다
+ * 모든 선택 키가 채워진 항목(AC-0(c) c3): 예산 · 견적 2개(연락처·메모 포함, 금액은 fq1 `amount` 만원·fq2 `amountWon` 원) ·
+ * 확정 · 지급 2줄(지급함/미지급, 예정일) · 시작·끝 · 메모. 상태만 바꿔 5종 각각으로 쓴다
  */
 export const makeFullItem = (status: InteriorItemStatus): InteriorItem => ({
   id: "item-full",
@@ -134,7 +135,13 @@ export const makeFullItem = (status: InteriorItemStatus): InteriorItem => ({
   budget: 350,
   quotes: [
     { id: "fq1", vendor: "하루바스", contact: "010-1234-5678", amount: 370, memo: "철거·방수" },
-    { id: "fq2", vendor: "욕실나라", contact: "02-123-4567", amount: 400, memo: "도기 포함" },
+    {
+      id: "fq2",
+      vendor: "욕실나라",
+      contact: "02-123-4567",
+      amountWon: 4_000_000,
+      memo: "도기 포함",
+    },
   ],
   confirmedQuoteId: "fq1",
   payments: [
@@ -173,3 +180,114 @@ export const LEGACY_L_CSV_LINES = [
 /** CSV 파일 전체: 맨 앞 BOM(U+FEFF) 하나, 모든 줄 끝(마지막 줄 포함) CRLF */
 export const toCsvFile = (lines: string[]) =>
   "\uFEFF" + lines.map((line) => `${line}\r\n`).join("");
+
+// 스펙 interior-tbd-amount "수용 기준"의 예시 P⁺: P의 R1~R5 뒤에 금액 미정 줄 R6·R7을 이 순서로 더한다(총 예산 1,000).
+
+/** 금액 미정 줄 = 견적 1개 항목, 견적에 `amount` 키가 없다(ADR-033). 세부내용이 null이면 `memo` 키도 없다 */
+function tbdRow(
+  index: number,
+  trade: string,
+  vendor: string,
+  detail: string | null,
+  isConfirmed: boolean,
+): InteriorItem {
+  const quoteId = `rq${index}`;
+  return {
+    id: `r${index}`,
+    spaceId: "sp-whole",
+    trade,
+    quotes: [{ id: quoteId, vendor, ...(detail !== null && { memo: detail }) }],
+    ...(isConfirmed && { confirmedQuoteId: quoteId }),
+    status: "planned",
+    createdAt: simpleTime(index),
+    updatedAt: simpleTime(index),
+  };
+}
+
+/** R6 조명·빛나라조명·거실 매입등·금액 없음 ✓ */
+export const r6 = () => tbdRow(6, "조명", "빛나라조명", "거실 매입등", true);
+/** R7 도배·한솔도배·세부내용 없음·금액 없음(미확정) */
+export const r7 = () => tbdRow(7, "도배", "한솔도배", null, false);
+
+/** 계획 P⁺ = P + R6·R7. 부를 때마다 새 객체다 */
+export function makeSimplePlanPPlus(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return makeSimplePlanP({ items: [r1(), r2(), r3(), r4(), r5(), r6(), r7()], ...overrides });
+}
+
+/** P⁺의 CSV 본문 줄(AC-3): 머리 + 줄 7 + 계 = 9행 */
+export const SIMPLE_P_PLUS_CSV_LINES = [
+  "구분,업체,세부내용,견적(원),확정(원),비고",
+  "도배,육문수,실크 전체,1800000,1800000,",
+  "도배,동네도배,합지,1500000,,",
+  "도배,한솔도배,,미정,,",
+  "욕실,하루바스,철거·방수 (1),3700000,3700000,",
+  "욕실,욕실나라,철거·방수 (1),4000000,,",
+  "욕실,하루바스,타일 덧방 (2),2500000,2500000,",
+  "조명,빛나라조명,거실 매입등,미정,미정,",
+  "계,,,,8000000,금액 미정 1건 제외",
+];
+
+// ADR-034 조건 8(qa Q4)의 예시 M: 옛 키(만원)와 원 단위 키가 섞인 계획. 총 예산 1,000만원(옛 키), 줄 5개를 M1 → M5 순으로 더했다.
+// 확정 M1 `{amount: 800}`·M2 `{amountWon: 1234500}`·M3 `{amountWon: 1235000}`, 미확정 M4 `{amountWon: 999}`, 확정 미정 M5.
+// 지출 예정 8,000,000 + 1,234,500 + 1,235,000 = 10,469,500원, 예산 초과 469,500원, 미정 1건.
+// 총 예산을 `{ budgetWon: 12000000 }`으로 바꾸면 남은 예산 1,530,500원이다.
+// M2(123.45만원)와 M3(123.5만원)는 원 → 만원 내림·반올림 오류를, M1은 만원을 원으로 읽는 오류를 가른다.
+
+/** 예시 M의 줄 하나 = 견적 1개 항목. 금액 키는 받은 그대로(없으면 미정) */
+function mixedRow(
+  index: number,
+  trade: string,
+  vendor: string,
+  amountKeys: Pick<InteriorQuote, "amount" | "amountWon">,
+  isConfirmed: boolean,
+): InteriorItem {
+  const quoteId = `mq${index}`;
+  return {
+    id: `m${index}`,
+    spaceId: "sp-whole",
+    trade,
+    quotes: [{ id: quoteId, vendor, ...amountKeys }],
+    ...(isConfirmed && { confirmedQuoteId: quoteId }),
+    status: "planned",
+    createdAt: simpleTime(index),
+    updatedAt: simpleTime(index),
+  };
+}
+
+/** M1 도배·육문수·800만원(옛 키) ✓ */
+export const m1 = () => mixedRow(1, "도배", "육문수", { amount: 800 }, true);
+/** M2 욕실·하루바스·1,234,500원 ✓ */
+export const m2 = () => mixedRow(2, "욕실", "하루바스", { amountWon: 1_234_500 }, true);
+/** M3 욕실·욕실나라·1,235,000원 ✓ */
+export const m3 = () => mixedRow(3, "욕실", "욕실나라", { amountWon: 1_235_000 }, true);
+/** M4 조명·빛나라조명·999원(미확정) */
+export const m4 = () => mixedRow(4, "조명", "빛나라조명", { amountWon: 999 }, false);
+/** M5 조명·한빛전기·금액 미정 ✓ */
+export const m5 = () => mixedRow(5, "조명", "한빛전기", {}, true);
+
+/** 계획 M. 부를 때마다 새 객체다 */
+export function makePlanM(overrides: Partial<InteriorPlanWithItems> = {}): InteriorPlanWithItems {
+  return {
+    id: "plan-m",
+    name: "섞인 집",
+    budget: 1000,
+    spaces: [{ id: "sp-whole", name: "전체" }],
+    createdAt: simpleTime(0),
+    updatedAt: simpleTime(0),
+    items: [m1(), m2(), m3(), m4(), m5()],
+    ...overrides,
+  };
+}
+
+/** M의 CSV 본문 줄: 머리 + 줄 5 + 계 = 7행(총 예산은 CSV에 없어 두 총 예산에서 같다) */
+export const PLAN_M_CSV_LINES = [
+  "구분,업체,세부내용,견적(원),확정(원),비고",
+  "도배,육문수,,8000000,8000000,",
+  "욕실,하루바스,,1234500,1234500,",
+  "욕실,욕실나라,,1235000,1235000,",
+  "조명,빛나라조명,,999,,",
+  "조명,한빛전기,,미정,미정,",
+  "계,,,,10469500,금액 미정 1건 제외",
+];

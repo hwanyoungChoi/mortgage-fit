@@ -53,6 +53,11 @@ export function formatThousands(n: number): string {
   return numberFormat.format(n);
 }
 
+/** 원 정수 → "1,234,500원"(천 단위 쉼표 + 원). 우리 집 목록·요약·허브·표 머리·비고가 같이 쓴다(ADR-034 조건 9) */
+export function formatWon(won: number): string {
+  return `${formatThousands(won)}원`;
+}
+
 /** 0 이상 정수(만원) → "12억 5,000만원" */
 export function formatManwon(n: number): string {
   const eok = Math.floor(n / 10000);

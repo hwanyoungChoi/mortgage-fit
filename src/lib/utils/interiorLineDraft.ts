@@ -7,6 +7,7 @@ import {
 
 import { validateAmount } from "./amount";
 import { optionalTextError, requiredTextError } from "./interiorTextErrors";
+import { manwonInputTextOf } from "./manwonInputOfWon";
 
 import type { InteriorPlanRow } from "./interiorPlanRows";
 import type {
@@ -27,17 +28,20 @@ export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
 
 /**
  * 저장된 줄 → 시트 입력. 시트를 연 시점의 값으로만 쓴다(재조회로 바뀌어도 입력을 덮지 않는다).
- * 비고는 `item.memo`뿐이다. 빈 줄의 "예산 n만원"은 표시용이라 넣지 않는다(합성 비고 미저장).
+ * 비고는 `item.memo`뿐이다. 빈 줄의 "예산 n원"은 표시용이라 넣지 않는다(합성 비고 미저장).
  */
 export function toInteriorLineDraft({
   item,
   quote,
+  quoteWon,
   isConfirmed,
 }: InteriorPlanRow): InteriorLineDraft {
   return {
     trade: item.trade,
     vendor: quote?.vendor ?? "",
-    amount: quote === null ? "" : String(quote.amount),
+    // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게).
+    // 1단계 입력은 만원이라 만원으로 떨어지지 않는 원 금액(1,234,500·0)도 빈칸이다(ADR-034 조건 6, 2단계에서 원으로)
+    amount: manwonInputTextOf(quoteWon),
     detail: quote?.memo ?? "",
     note: item.memo ?? "",
     isConfirmed,
@@ -62,12 +66,12 @@ function amountError(raw: string): string | null {
 export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineDraftError[] {
   const candidates: [InteriorLineDraftField, string | null][] = [
     ["trade", requiredTextError(draft.trade, INTERIOR_TRADE_MAX_LENGTH, TRADE_REQUIRED_MESSAGE)],
+    ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
     [
       "vendor",
       requiredTextError(draft.vendor, INTERIOR_VENDOR_MAX_LENGTH, VENDOR_REQUIRED_MESSAGE),
     ],
     ["amount", amountError(draft.amount)],
-    ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
     ["note", optionalTextError(draft.note, INTERIOR_ITEM_MEMO_MAX_LENGTH)],
   ];
   return candidates.flatMap(([field, message]) => (message === null ? [] : [{ field, message }]));

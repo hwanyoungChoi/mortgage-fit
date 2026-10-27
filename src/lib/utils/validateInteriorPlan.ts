@@ -23,6 +23,7 @@ import {
   INTERIOR_SPACE_NAME_MAX_LENGTH,
   INTERIOR_TRADE_MAX_LENGTH,
   INTERIOR_VENDOR_MAX_LENGTH,
+  MAX_WON,
 } from "../constants/interiorPlan";
 
 import type {
@@ -64,9 +65,24 @@ export function isInteriorPlanId(value: unknown): value is string {
   return isInteriorId(value) && value !== RESERVED_PLAN_ID;
 }
 
-/** 예산·견적·지급 금액: 만원 정수 1~999,999,999. 소수·문자열·NaN은 아니다 */
+/** 예산·지급 금액: 만원 정수 1~999,999,999. 소수·문자열·NaN은 아니다 */
 export function isInteriorAmount(value: unknown): value is number {
   return Number.isSafeInteger(value) && (value as number) >= 1 && (value as number) <= MAX_AMOUNT;
+}
+
+/** 견적 금액: 만원 정수 0~999,999,999. 0은 셀프 시공처럼 금액이 정해진 0이다(미정 아님, ADR-033 개정) */
+function isInteriorQuoteAmount(value: unknown): value is number {
+  return value === 0 || isInteriorAmount(value);
+}
+
+/** 총 예산(원): 원 정수 1~9,999,999,999,999(ADR-034). 소수·문자열·NaN은 아니다 */
+export function isInteriorWon(value: unknown): value is number {
+  return Number.isSafeInteger(value) && (value as number) >= 1 && (value as number) <= MAX_WON;
+}
+
+/** 견적 금액(원): 원 정수 0~9,999,999,999,999. 0은 금액이 정해진 0이다(ADR-034 조건 3) */
+function isInteriorQuoteWon(value: unknown): value is number {
+  return value === 0 || isInteriorWon(value);
 }
 
 export function isInteriorItemStatus(value: unknown): value is InteriorItemStatus {
@@ -144,17 +160,33 @@ export function parseInteriorSpaces(value: unknown): InteriorSpace[] | null {
   return hasUniqueIds(spaces) ? spaces : null;
 }
 
+/**
+ * 견적 금액은 선택이다. `amount`(만원)·`amountWon`(원) 둘 다 키 없음 = 금액 미정, 0은 금액이 0인 견적(ADR-033).
+ * 두 키가 함께 있으면 어느 쪽도 고르지 않고 거부한다(같은 환산값이어도, ADR-034). 받은 키를 그대로 돌려준다
+ */
 function parseQuote(value: unknown): InteriorQuote | null {
-  if (!isRecord(value) || !isInteriorId(value.id) || !isInteriorAmount(value.amount)) return null;
+  if (!isRecord(value) || !isInteriorId(value.id)) return null;
   const vendor = parseRequiredText(value.vendor, INTERIOR_VENDOR_MAX_LENGTH);
   const contact = parseOptionalText(value, "contact", INTERIOR_CONTACT_MAX_LENGTH);
+  const amount = parseOptional(value, "amount", isInteriorQuoteAmount);
+  const amountWon = parseOptional(value, "amountWon", isInteriorQuoteWon);
   const memo = parseOptionalText(value, "memo", INTERIOR_QUOTE_MEMO_MAX_LENGTH);
-  if (vendor === null || contact === null || memo === null) return null;
+  if (
+    vendor === null ||
+    contact === null ||
+    amount === null ||
+    amountWon === null ||
+    memo === null ||
+    (amount !== undefined && amountWon !== undefined)
+  ) {
+    return null;
+  }
   return {
     id: value.id,
     vendor,
     ...(contact !== undefined && { contact }),
-    amount: value.amount,
+    ...(amount !== undefined && { amount }),
+    ...(amountWon !== undefined && { amountWon }),
     ...(memo !== undefined && { memo }),
   };
 }
@@ -193,17 +225,31 @@ function parseOptionalList<T extends { id: string }>(
   return entries.length > 0 ? entries : undefined;
 }
 
-/** 플랜 필드(id·시각 제외)를 검증하고 알려진 키만 담은 새 객체를 돌려준다. 어긋나면 null */
+/**
+ * 플랜 필드(id·시각 제외)를 검증하고 알려진 키만 담은 새 객체를 돌려준다. 어긋나면 null.
+ * 총 예산 `budget`(만원)·`budgetWon`(원)이 함께 있으면 거부한다(ADR-034)
+ */
 export function validateInteriorPlanFields(value: unknown): InteriorPlanInput | null {
   if (!isRecord(value)) return null;
   const name = parseInteriorPlanName(value.name);
   const budget = parseOptional(value, "budget", isInteriorAmount);
+  const budgetWon = parseOptional(value, "budgetWon", isInteriorWon);
   const listingId = parseOptional(value, "listingId", isListingId);
   const spaces = parseInteriorSpaces(value.spaces);
-  if (name === null || budget === null || listingId === null || spaces === null) return null;
+  if (
+    name === null ||
+    budget === null ||
+    budgetWon === null ||
+    listingId === null ||
+    spaces === null ||
+    (budget !== undefined && budgetWon !== undefined)
+  ) {
+    return null;
+  }
   return {
     name,
     ...(budget !== undefined && { budget }),
+    ...(budgetWon !== undefined && { budgetWon }),
     ...(listingId !== undefined && { listingId }),
     spaces,
   };

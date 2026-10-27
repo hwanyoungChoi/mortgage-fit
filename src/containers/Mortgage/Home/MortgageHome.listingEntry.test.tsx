@@ -181,7 +181,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     // 화면: 그 플랜, 연결 매물 이름, 총 예산 1,500, 두 항목
     expect(screen.getByRole("heading", { level: 1, name: "래미안 84" })).toBeInTheDocument();
     expect(screen.getByText("연결된 매물 · 래미안 84")).toBeInTheDocument();
-    expect(detailValue("총 예산")).toBe("1,500만원");
+    expect(detailValue("총 예산")).toBe("15,000,000원");
     expect(screen.getByRole("button", { name: "도배 열기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "샷시 열기" })).toBeInTheDocument();
     expect(screen.queryByText(/냉장고/)).not.toBeInTheDocument();

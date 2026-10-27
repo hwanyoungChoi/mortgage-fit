@@ -24,8 +24,8 @@ export const INTERIOR_PLAN_TABLE_COLUMN_LABELS: Record<InteriorPlanTableColumn, 
   note: "비고",
 };
 
-/** 표에서만 원 단위로 보인다(입력·저장은 만원 정수, ADR-002). 원 = 만원 × 이 값 */
-export const WON_PER_MANWON = 10_000;
+/** 금액 키가 없는 견적(ADR-033)의 표시 글자. 목록·표·CSV·인쇄·홈이 같이 쓴다(U4) */
+export const INTERIOR_PLAN_TBD_LABEL = "미정";
 
 /** 맨 아래 합계 줄의 첫 칸 */
 export const INTERIOR_PLAN_TABLE_TOTAL_LABEL = "계";
@@ -33,14 +33,14 @@ export const INTERIOR_PLAN_TABLE_TOTAL_LABEL = "계";
 /** 표 머리 조각을 잇는 구분자(앞뒤 공백 포함 가운뎃점) */
 export const INTERIOR_PLAN_TABLE_SEPARATOR = " · ";
 
-/** 표 머리(화면·인쇄). 금액 인자는 원 단위 천 단위 쉼표 문자열이다(U8) */
+/** 표 머리(화면·인쇄). 금액 인자는 `formatWon` 글자(예: "1,234,500원")다(U8) */
 export const INTERIOR_PLAN_TABLE_HEADING = {
   title: (planName: string) => `${planName} 인테리어 계획`,
   basis: (today: string) => `${today} 기준`,
-  budget: (won: string) => `총 예산 ${won}원`,
-  plannedTotal: (won: string) => `지출 예정 ${won}원`,
-  remaining: (won: string) => `남은 예산 ${won}원`,
-  overBudget: (won: string) => `예산 초과 ${won}원`,
+  budget: (won: string) => `총 예산 ${won}`,
+  plannedTotal: (won: string) => `지출 예정 ${won}`,
+  remaining: (won: string) => `남은 예산 ${won}`,
+  overBudget: (won: string) => `예산 초과 ${won}`,
 };
 
 /** 내려받는 파일 이름 `{이름}-인테리어-{YYYY-MM-DD}.csv`의 고정 부분(U20) */

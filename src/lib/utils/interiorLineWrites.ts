@@ -28,13 +28,17 @@ function withConfirmedQuoteId(
   return confirmedQuoteId === undefined ? rest : { ...rest, confirmedQuoteId };
 }
 
-/** 견적의 업체·금액·세부내용만 바꾼다. id·연락처는 그대로 둔다(A11) */
+/**
+ * 견적의 업체·금액·세부내용만 바꾼다. id·연락처는 그대로 둔다(A11).
+ * 1단계 입력은 만원이라 금액은 `amount`로 쓰고 원 키 `amountWon`은 지운다(한 견적에 두 키가 함께 있을 수 없다, ADR-034 조건 4).
+ * 같은 항목의 형제 견적은 이 함수를 거치지 않아 원래 금액 키 그대로다.
+ */
 function editedQuote(
   quote: Omit<InteriorQuote, "vendor" | "amount">,
   values: InteriorLineValues,
 ): InteriorQuote {
-  const { memo: previous, ...rest } = quote;
-  void previous;
+  const { memo: previousMemo, amountWon: previousWon, ...rest } = quote;
+  void [previousMemo, previousWon];
   return {
     ...rest,
     vendor: values.vendor,

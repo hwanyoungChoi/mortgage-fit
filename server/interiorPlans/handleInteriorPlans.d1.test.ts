@@ -649,7 +649,7 @@ describe("POST /api/interior-plans/{id}/items", () => {
       "지급 금액 1,000,000,000",
       itemInput({ payments: [payment("p1", { amount: 1_000_000_000 })] }),
     ],
-    ["견적 금액 0", itemInput({ quotes: [quote("q1", 0)] })],
+    ["견적 금액 -1", itemInput({ quotes: [quote("q1", -1)] })],
     ["지급 6개", itemInput({ payments: [1, 2, 3, 4, 5, 6].map((n) => payment(`p${n}`)) })],
     ["공종 31자", itemInput({ trade: "가".repeat(31) })],
     ["끝 < 시작", itemInput({ startDate: "2026-11-02", endDate: "2026-11-01" })],

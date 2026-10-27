@@ -164,7 +164,7 @@ function MortgageHome({
     // 주소에서 listing을 지운다. 새로고침·뒤로 가기로 시트·안내가 다시 뜨지 않는다.
     window.location.replace(PATHS.home({ planId, view }));
     if (listingEntry.action === "create") {
-      sheet.open({ name: "create", listing: listingEntry.listing }, null);
+      sheet.openFromAddress({ name: "create", listing: listingEntry.listing });
     } else {
       setShownNotice(LISTING_ENTRY_NOTICES[listingEntry.reason]);
     }
@@ -190,20 +190,14 @@ function MortgageHome({
 
   const handleCreate = async (input: InteriorPlanCreateInput) => {
     const result = await source.createPlan(input);
-    if (result.ok) {
-      sheet.close();
-      // 만든 플랜으로 간다. replace라 뒤로 가기가 빈 상태(이제는 같은 플랜)로 돌아가지 않는다.
-      window.location.replace(PATHS.home({ planId: result.plan.id }));
-    }
+    // 만든 플랜으로 간다. replace라 뒤로 가기가 빈 상태(이제는 같은 플랜)로 돌아가지 않는다.
+    if (result.ok) sheet.closeAndReplace(PATHS.home({ planId: result.plan.id }));
     return result;
   };
 
   const handleDeletePlan = async (plan: InteriorPlanWithItems) => {
     const result = await source.removePlan(plan.id);
-    if (result.ok) {
-      sheet.close();
-      window.location.replace(PATHS.home());
-    }
+    if (result.ok) sheet.closeAndReplace(PATHS.home());
     return result;
   };
 

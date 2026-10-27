@@ -15,7 +15,7 @@ export type InteriorLineDraft = {
 };
 
 /** 오류를 보일 칸(화면 순서) */
-export type InteriorLineDraftField = "trade" | "vendor" | "amount" | "detail" | "note";
+export type InteriorLineDraftField = "trade" | "detail" | "vendor" | "amount" | "note";
 
 /** 칸 하나의 오류. 목록 순서 = 화면 순서(제출 실패 시 첫 오류로 포커스를 옮긴다) */
 export type InteriorLineDraftError = { field: InteriorLineDraftField; message: string };

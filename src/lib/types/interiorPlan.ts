@@ -1,5 +1,7 @@
 // 인테리어 플랜(ADR-029). 공유 검증(server/)의 전이 의존이라 `@/` 별칭·DOM 타입을 쓰지 않는다.
-// 금액은 모두 만원 정수 1~MAX_AMOUNT(ADR-002, D5). 선택 필드는 키 없음 = 없음(ADR-012 규칙).
+// 금액은 만원 정수 1~MAX_AMOUNT(ADR-002, D5)이고, 견적·총 예산만 원 정수 새 키(`amountWon`·`budgetWon`, ADR-034)가 있다.
+// 같은 뜻의 두 키(`amount`·`amountWon`, `budget`·`budgetWon`)는 한 견적·한 플랜에 함께 있을 수 없다.
+// 선택 필드는 키 없음 = 없음(ADR-012 규칙).
 // 합계·초과·할 일은 저장하지 않고 계산한다(ADR-007). 상한·이름 길이는 `constants/interiorPlan.ts`
 
 /** 공간 하나. 순서 = 화면 순서 */
@@ -14,8 +16,10 @@ export type InteriorPlan = {
   id: string;
   /** 1~40자(코드포인트) */
   name: string;
-  /** 총 예산(만원) */
+  /** 총 예산(만원). `budgetWon`과 함께 있을 수 없다 */
   budget?: number;
+  /** 총 예산(원 정수 1~MAX_WON, ADR-034). `budget`과 함께 있을 수 없다 */
+  budgetWon?: number;
   /** 연결된 매물 id. 참조만 하고 매물이 없어도 된다(D3) */
   listingId?: string;
   /** 1~30개, id 유일 */
@@ -34,7 +38,10 @@ export type InteriorQuote = {
   vendor: string;
   /** 자유 문자열 1~30자 */
   contact?: string;
-  amount: number;
+  /** 만원 정수 0~MAX_AMOUNT. `amount`·`amountWon` 둘 다 키 없음 = 금액 미정(ADR-033) */
+  amount?: number;
+  /** 원 정수 0~MAX_WON(ADR-034). `amount`와 함께 있을 수 없다 */
+  amountWon?: number;
   /** 1~200자 */
   memo?: string;
 };
@@ -79,7 +86,10 @@ export type InteriorItem = {
 export type InteriorPlanWithItems = InteriorPlan & { items: InteriorItem[] };
 
 /** 플랜 필드(id·시각 제외). 서버 `interior_plans.data`에 들어가는 값 */
-export type InteriorPlanInput = Pick<InteriorPlan, "name" | "budget" | "listingId" | "spaces">;
+export type InteriorPlanInput = Pick<
+  InteriorPlan,
+  "name" | "budget" | "budgetWon" | "listingId" | "spaces"
+>;
 
 /** 항목 필드(id·시각 제외). 항목 POST·PUT 본문 `{ item }`과 서버 `interior_plan_items.data`의 값 */
 export type InteriorItemInput = Omit<InteriorItem, "id" | "createdAt" | "updatedAt">;
@@ -87,10 +97,14 @@ export type InteriorItemInput = Omit<InteriorItem, "id" | "createdAt" | "updated
 /** 플랜 POST 본문 `{ plan }`. `items`는 만들 때 가져오기(≤30개), id·시각은 서버가 발급한다 */
 export type InteriorPlanCreateInput = InteriorPlanInput & { items?: InteriorItemInput[] };
 
-/** 플랜 PATCH 본문 `{ plan }`(JSON Merge Patch). 키 없음 = 그대로, null = 지움. 하나 이상 */
+/**
+ * 플랜 PATCH 본문 `{ plan }`(JSON Merge Patch). 키 없음 = 그대로, null = 지움. 하나 이상.
+ * `budget`·`budgetWon` 중 하나라도 보내면 두 키를 함께 정한다(다른 키는 지움, `budgetMergePatch`). 둘 다 숫자면 400
+ */
 export type InteriorPlanPatch = {
   name?: string;
   budget?: number | null;
+  budgetWon?: number | null;
   listingId?: string | null;
   spaces?: InteriorSpace[];
 };

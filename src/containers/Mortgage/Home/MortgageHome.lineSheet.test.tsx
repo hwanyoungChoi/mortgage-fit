@@ -135,16 +135,16 @@ describe("AC-2 줄 추가", () => {
         .getAllByRole("checkbox")
         .map((box) => box.getAttribute("aria-label")),
     ).toEqual(["도배 동네도배 합지 확정", "도배 육문수 실크 전체 확정"]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
-  it("(b) 욕실 묶음의 [+ 욕실에 줄 추가] → 구분 '욕실'이 채워지고 포커스는 업체 칸, 구분 칸은 이 계획의 기존 구분을 제안한다", async () => {
+  it("(b) 욕실 묶음의 [+ 욕실에 줄 추가] → 구분 '욕실'이 채워지고 포커스는 세부내용 칸, 구분 칸은 이 계획의 기존 구분을 제안한다", async () => {
     const user = userEvent.setup();
     await renderApp(storageWith([makeSimplePlanP()]));
     await user.click(screen.getByRole("button", { name: "욕실에 줄 추가" }));
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     expect(field(dialog, "구분")).toHaveValue("욕실");
-    expect(field(dialog, "업체")).toHaveFocus();
+    expect(field(dialog, "세부내용(선택)")).toHaveFocus();
     const listId = field(dialog, "구분").getAttribute("list");
     const datalist = document.getElementById(listId ?? "");
     expect(datalist?.tagName).toBe("DATALIST");
@@ -337,7 +337,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
     expect(confirm).toHaveBeenCalledWith("이 줄을 지울까요?");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(storedItems(storage).map((item) => item.id)).toEqual(["r1", "r3", "r4", "r5"]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
   it("삭제 확인을 취소하면 쓰지 않는다", async () => {
@@ -370,7 +370,7 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
       quotes: [{ id: "rq2", vendor: "동네도배", amount: 150 }],
       confirmedQuoteId: "rq2",
     });
-    expect(headlineValue("지출 예정")).toBe("950만원");
+    expect(headlineValue("지출 예정")).toBe("9,500,000원");
   });
 
   // 옛 "견적 중 항목을 [확정]하면 상태가 '확정'으로 바뀐다"의 반전(A4)
@@ -435,7 +435,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     expect(within(dialog).queryByText(/같이 씁니다/)).not.toBeInTheDocument();
   });
 
-  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 200만원' 아님), 육문수·180 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
+  it("(b) Y를 열면 비고 칸이 비어 있고(합성 '예산 2,000,000원' 아님), 육문수·180 저장 → memo 키 없음·예산 200·상태·공간 s0 유지 + 견적 1개, 확정 꺼짐이라 지출 예정 370", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanL()]);
     await renderApp(storage, L_HASH);
@@ -451,7 +451,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
       ...fieldsOf(legacyY()),
       quotes: [{ id: stored?.quotes?.[0].id, vendor: "육문수", amount: 180 }],
     });
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
     expect(screen.getByRole("checkbox", { name: "도배 육문수 확정" })).toBeEnabled();
   });
 
@@ -469,7 +469,7 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
       ...fieldsOf(x),
       quotes: [x.quotes![0]],
     });
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
   });
 
   it("(c) 타일 덧방 삭제 → removeItem(Z)", async () => {
@@ -496,8 +496,8 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     const { confirmedQuoteId, ...rest } = fieldsOf(legacyX());
     void confirmedQuoteId;
     expect(fieldsOf(stored)).toStrictEqual({ ...rest, quotes: [legacyX().quotes![1]] });
-    expect(headlineValue("지출 예정")).toBe("0만원");
-    expect(headlineValue("남은 예산")).toBe("3,000만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
+    expect(headlineValue("남은 예산")).toBe("30,000,000원");
   });
 
   it("(e) 견적 1개 + 지급 2건 항목의 줄 삭제 → '이 줄을 지울까요? 지급 2건도 함께 지워집니다' 뒤 removeItem, 지급이 없으면 문구 없음", async () => {
@@ -523,5 +523,49 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
     const blank = await openLine(user, "도배");
     await user.click(within(blank).getByRole("button", { name: "삭제" }));
     expect(confirm).toHaveBeenLastCalledWith("이 줄을 지울까요?");
+  });
+});
+
+describe("줄 시트 입력 순서 (스펙 interior-tbd-amount 추가 요청)", () => {
+  it("칸 순서는 구분 → 세부내용(선택) → 업체 → 견적 → 비고(선택) → 확정이다(새 줄·기존 줄 같음)", async () => {
+    const user = userEvent.setup();
+    await renderApp(storageWith([makeSimplePlanP()]));
+    const order = ["구분", "세부내용(선택)", "업체", "견적", "비고(선택)", "확정"];
+    const labelsIn = (dialog: HTMLElement) =>
+      Array.from(dialog.querySelectorAll("input, textarea"), (input) =>
+        input.getAttribute("type") === "checkbox"
+          ? input.closest("label")?.textContent
+          : dialog.querySelector(`label[for="${input.id}"]`)?.textContent,
+      );
+
+    expect(labelsIn(await openNewLine(user))).toEqual(order);
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "취소" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(labelsIn(await openLine(user, "도배 육문수 실크 전체"))).toEqual(order);
+  });
+
+  it("세부내용 201자와 업체 빈칸 → 첫 오류(세부내용)로 포커스, 세부내용을 고치면 다음 오류(업체)로", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith([makeSimplePlanP()]);
+    await renderApp(storage);
+    const setItem = vi.spyOn(storage, "setItem");
+    await user.click(screen.getByRole("button", { name: "욕실에 줄 추가" }));
+    const dialog = screen.getByRole("dialog", { name: "줄 추가" });
+    const detail = field(dialog, "세부내용(선택)");
+    // 붙여넣기로 한 번에 넣는다(201자를 한 글자씩 치지 않는다)
+    await user.click(detail);
+    await user.paste("가".repeat(201));
+    await user.type(field(dialog, "견적"), "150");
+    await save(user, dialog);
+    expect(detail).toHaveFocus();
+    expect(field(dialog, "업체")).toHaveAccessibleDescription(
+      expect.stringContaining("업체 이름을 입력하세요"),
+    );
+
+    await user.clear(detail);
+    await user.type(detail, "타일");
+    await save(user, dialog);
+    expect(field(dialog, "업체")).toHaveFocus();
+    expect(setItem).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 // 스펙 interior-simple "줄 시트", AC-2(c) 입력 경계(필수·금액·글자 수·공백)와 AC-4(b) 비고 초기값.
 import { describe, expect, it } from "vitest";
 
-import { makePlanL, makeSimplePlanP } from "@/test/interiorSimpleFixture";
+import { makePlanL, makePlanM, makeSimplePlanP } from "@/test/interiorSimpleFixture";
 
 import {
   createInteriorLineDraft,
@@ -96,6 +96,16 @@ describe("필수 칸 (AC-2(c))", () => {
       { field: "amount", message: "견적 금액을 입력하세요" },
     ]);
     expect(validateInteriorLineDraft(createInteriorLineDraft()).ok).toBe(false);
+  });
+
+  it("오류 순서는 시트 칸 순서(구분 → 세부내용 → 업체 → 견적 → 비고): 첫 오류로 포커스를 옮긴다", () => {
+    const draft = createInteriorLineDraft();
+    const fields = interiorLineDraftErrors({
+      ...draft,
+      detail: "가".repeat(201),
+      note: "가".repeat(501),
+    }).map((error) => error.field);
+    expect(fields).toEqual(["trade", "detail", "vendor", "amount", "note"]);
   });
 
   it('구분·업체 "   " → 필수 오류', () => {
@@ -195,5 +205,26 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
   it("확정 체크는 그대로 넘긴다", () => {
     const result = validateInteriorLineDraft(validDraft({ isConfirmed: true }));
     expect(result.ok && result.values.isConfirmed).toBe(true);
+  });
+});
+
+// ADR-034 조건 6(qa Q9): 1단계 시트는 만원으로 떨어지는 원 금액만 만원으로 채우고, 아니면 빈칸이다(2단계에서 원 입력으로).
+describe("toInteriorLineDraft — 원 단위 견적(예시 M, 1단계)", () => {
+  it.each([
+    ["m1:mq1", "M1 { amount: 800 }", "800"],
+    ["m2:mq2", "M2 { amountWon: 1234500 }", ""],
+    ["m3:mq3", "M3 { amountWon: 1235000 }", ""],
+    ["m4:mq4", "M4 { amountWon: 999 }", ""],
+    ["m5:mq5", "M5 금액 미정", ""],
+  ])("%s %s → 견적 칸 %j", (key, _, amount) => {
+    expect(toInteriorLineDraft(rowOf(makePlanM(), key)).amount).toBe(amount);
+  });
+
+  it("{ amountWon: 12000000 } → '1200', { amountWon: 0 } → ''", () => {
+    const plan = makePlanM();
+    plan.items[1].quotes = [{ id: "mq2", vendor: "하루바스", amountWon: 12_000_000 }];
+    plan.items[2].quotes = [{ id: "mq3", vendor: "욕실나라", amountWon: 0 }];
+    expect(toInteriorLineDraft(rowOf(plan, "m2:mq2")).amount).toBe("1200");
+    expect(toInteriorLineDraft(rowOf(plan, "m3:mq3")).amount).toBe("");
   });
 });

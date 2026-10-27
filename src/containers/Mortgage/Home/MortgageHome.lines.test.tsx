@@ -130,22 +130,22 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
       [
         "도배",
         [
-          ["실크 전체육문수180만원", true],
-          ["합지동네도배150만원", false],
+          ["실크 전체육문수1,800,000원", true],
+          ["합지동네도배1,500,000원", false],
         ],
       ],
       [
         "욕실",
         [
-          ["철거·방수 (1)하루바스370만원", true],
-          ["철거·방수 (1)욕실나라400만원", false],
-          ["타일 덧방 (2)하루바스250만원", true],
+          ["철거·방수 (1)하루바스3,700,000원", true],
+          ["철거·방수 (1)욕실나라4,000,000원", false],
+          ["타일 덧방 (2)하루바스2,500,000원", true],
         ],
       ],
     ]);
-    expect(headlineValue("지출 예정")).toBe("800만원");
-    expect(headlineValue("남은 예산")).toBe("200만원");
-    expect(detailValue("총 예산")).toBe("1,000만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
+    expect(headlineValue("남은 예산")).toBe("2,000,000원");
+    expect(detailValue("총 예산")).toBe("10,000,000원");
     // 보기는 [목록 | 표] 두 개이고 목록이 기본이다
     expect(screen.getByRole("radio", { name: "목록" })).toBeChecked();
     expect(screen.getAllByRole("radio").map((radio) => radio.getAttribute("value"))).toEqual([
@@ -168,13 +168,13 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
   });
 
   it.each([
-    [800, "0만원"],
-    [799, "예산 초과 1만원"],
-    [700, "예산 초과 100만원"],
+    [800, "0원"],
+    [799, "예산 초과 10,000원"],
+    [700, "예산 초과 1,000,000원"],
   ])("총 예산 %i → 남은 예산 '%s'", async (budget, text) => {
     await renderLoggedOut(storageWith([makeSimplePlanP({ budget })]));
     expect(headlineValue("남은 예산")).toBe(text);
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
   it("총 예산이 없으면 남은 예산 자리에 [총 예산 입력], 누르면 계획 관리 시트", async () => {
@@ -187,12 +187,12 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("줄 0개: 지출 예정 0만원 · 남은 예산 = 총 예산 · 빈 문구, [줄 추가]는 같은 자리", async () => {
+  it("줄 0개: 지출 예정 0원 · 남은 예산 = 총 예산 · 빈 문구, [줄 추가]는 같은 자리", async () => {
     await renderLoggedOut(storageWith([makeSimplePlanP({ items: [] })]));
-    expect(headlineValue("지출 예정")).toBe("0만원");
-    expect(headlineValue("남은 예산")).toBe("1,000만원");
+    expect(headlineValue("지출 예정")).toBe("0원");
+    expect(headlineValue("남은 예산")).toBe("10,000,000원");
     expect(
-      screen.getByText("아직 줄이 없습니다. [줄 추가]로 공정별 업체 견적을 적어 보세요"),
+      screen.getByText("아직 줄이 없습니다. 오른쪽 아래 [+]를 눌러 공정별 업체 견적을 적어 보세요"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
@@ -222,9 +222,9 @@ describe("줄 글자 순서: 첫 줄 세부내용, 그 아래 업체", () => {
     const withDetail = rowLines("욕실 하루바스 철거·방수 열기");
     const withoutDetail = rowLines("욕실 욕실나라 열기");
 
-    expect(withDetail.map(([, text]) => text)).toEqual(["철거·방수", "하루바스", "폐기물 포함"]);
+    expect(withDetail.map(([, text]) => text)).toEqual(["철거·방수", "하루바스"]);
     // 세부내용이 없으면 업체가 첫 줄로 올라온다(빈 줄 없음)
-    expect(withoutDetail.map(([, text]) => text)).toEqual(["욕실나라", "폐기물 포함"]);
+    expect(withoutDetail.map(([, text]) => text)).toEqual(["욕실나라"]);
     // 첫 줄은 내용과 상관없이 같은 스타일, 둘째 줄(업체)은 첫 줄과 다른 스타일이다
     expect(withDetail[0][0]).toBe(withoutDetail[0][0]);
     expect(withDetail[1][0]).not.toBe(withDetail[0][0]);
@@ -266,8 +266,8 @@ describe("AC-3 확정 토글 (로그아웃)", () => {
       ...fieldsOf(r4()),
       confirmedQuoteId: "rq4",
     });
-    expect(headlineValue("지출 예정")).toBe("1,200만원");
-    expect(headlineValue("남은 예산")).toBe("예산 초과 200만원");
+    expect(headlineValue("지출 예정")).toBe("12,000,000원");
+    expect(headlineValue("남은 예산")).toBe("예산 초과 2,000,000원");
 
     await user.click(check(R1_CHECK));
     await waitFor(() => expect(check(R1_CHECK)).not.toBeChecked());
@@ -277,8 +277,8 @@ describe("AC-3 확정 토글 (로그아웃)", () => {
     const { confirmedQuoteId, ...r1WithoutConfirm } = fieldsOf(r1());
     void confirmedQuoteId;
     expect(fieldsOf(storedR1)).toStrictEqual(r1WithoutConfirm);
-    expect(headlineValue("지출 예정")).toBe("1,020만원");
-    expect(headlineValue("남은 예산")).toBe("예산 초과 20만원");
+    expect(headlineValue("지출 예정")).toBe("10,200,000원");
+    expect(headlineValue("남은 예산")).toBe("예산 초과 200,000원");
   });
 
   // 옛 "견적 중 항목을 [확정]하면 상태가 확정으로 바뀐다"의 반전(A4): 상태는 읽지도 바꾸지도 않는다
@@ -325,7 +325,7 @@ describe("AC-3 확정 토글 (로그아웃)", () => {
     );
     expect(check(R4_CHECK)).not.toBeChecked();
     expect(check(R4_CHECK)).toBeEnabled();
-    expect(headlineValue("지출 예정")).toBe("800만원");
+    expect(headlineValue("지출 예정")).toBe("8,000,000원");
   });
 
   it("다른 탭이 그 항목을 먼저 고쳤으면(conflict) 쓰지 않고 '방금 다른 곳에서 바뀌었습니다. 다시 눌러 주세요'", async () => {
@@ -375,7 +375,7 @@ describe("AC-3 확정 토글 (로그인, 서버 출처)", () => {
     expect(check(X_Q1_CHECK)).toBeChecked();
     expect(check(X_Q1_CHECK)).toBeDisabled();
     expect(check("욕실 하루바스 타일 덧방 확정")).toBeEnabled();
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
     fireEvent.click(check(X_Q1_CHECK));
     expect(api.callsTo("PUT", xPut)).toHaveLength(1);
 
@@ -388,7 +388,7 @@ describe("AC-3 확정 토글 (로그인, 서버 출처)", () => {
     expect(check(X_Q2_CHECK)).not.toBeChecked();
     expect(check(X_Q2_CHECK)).toBeEnabled();
     expect(check(X_Q1_CHECK)).toBeChecked();
-    expect(headlineValue("지출 예정")).toBe("370만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
   });
 
   it("성공하면 PUT 정확히 1건(확정만 바뀐 X 전체), 체크·요약이 함께 바뀐다", async () => {
@@ -405,7 +405,7 @@ describe("AC-3 확정 토글 (로그인, 서버 출처)", () => {
       ...fieldsOf(legacyX()),
       confirmedQuoteId: "q2",
     });
-    expect(headlineValue("지출 예정")).toBe("400만원");
+    expect(headlineValue("지출 예정")).toBe("4,000,000원");
   });
 
   it("함께 쓰는 사람이 확정한 줄이 재조회 뒤 보인다(체크·요약)", async () => {
@@ -416,26 +416,26 @@ describe("AC-3 확정 토글 (로그인, 서버 출처)", () => {
       window.dispatchEvent(new Event("visibilitychange"));
     });
     await waitFor(() => expect(check(R4_CHECK)).toBeChecked());
-    expect(headlineValue("지출 예정")).toBe("1,200만원");
+    expect(headlineValue("지출 예정")).toBe("12,000,000원");
   });
 });
 
 describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
-  it("[욕실: 하루바스 철거·방수 370 ✓ 폐기물 포함, 욕실나라 400 폐기물 포함, 하루바스 타일 덧방 250] → [도배: 업체·견적 빈 줄, 예산 200만원], 지출 예정 370 · 남은 예산 2,630", async () => {
+  it("[욕실: 하루바스 철거·방수 370 ✓, 욕실나라 400, 하루바스 타일 덧방 250] → [도배: 업체·견적 빈 줄], 목록에 비고 없음, 지출 예정 370 · 남은 예산 2,630", async () => {
     await renderLoggedOut(storageWith([makePlanL()]), L_HASH);
     expect(listShape()).toEqual([
       [
         "욕실",
         [
-          ["철거·방수하루바스폐기물 포함370만원", true],
-          ["욕실나라폐기물 포함400만원", false],
-          ["타일 덧방하루바스250만원", false],
+          ["철거·방수하루바스3,700,000원", true],
+          ["욕실나라4,000,000원", false],
+          ["타일 덧방하루바스2,500,000원", false],
         ],
       ],
-      ["도배", [["견적 없음예산 200만원", false]]],
+      ["도배", [["견적 없음", false]]],
     ]);
-    expect(headlineValue("지출 예정")).toBe("370만원");
-    expect(headlineValue("남은 예산")).toBe("2,630만원");
+    expect(headlineValue("지출 예정")).toBe("3,700,000원");
+    expect(headlineValue("남은 예산")).toBe("26,300,000원");
     // 공간 이름·지급·상태·날짜·연락처는 화면에 없다
     for (const hidden of ["욕실1", "욕실2", "계약금", "진행 중", "2026-11-03", "010-1234-5678"]) {
       expect(document.body.textContent).not.toContain(hidden);
@@ -466,8 +466,8 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
     );
     expect(check(X_Q2_CHECK)).toBeChecked();
     expect(check(X_Q1_CHECK)).not.toBeChecked();
-    expect(headlineValue("지출 예정")).toBe("400만원");
-    expect(headlineValue("남은 예산")).toBe("2,600만원");
+    expect(headlineValue("지출 예정")).toBe("4,000,000원");
+    expect(headlineValue("남은 예산")).toBe("26,000,000원");
     expect(fieldsOf(storedItem(storage, "item-x"))).toStrictEqual({
       ...fieldsOf(legacyX()),
       confirmedQuoteId: "q2",
@@ -480,12 +480,21 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
     await user.click(check("욕실 하루바스 타일 덧방 확정"));
     await waitFor(() => expect(check("욕실 하루바스 타일 덧방 확정")).toBeChecked());
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    expect(headlineValue("지출 예정")).toBe("620만원");
+    expect(headlineValue("지출 예정")).toBe("6,200,000원");
   });
 });
 
 describe("AC-1 가리기 (A8·A10)", () => {
-  const SECRETS = ["실크 전체", "합지", "철거·방수", "180", "150", "370", "800만원", "200만원"];
+  const SECRETS = [
+    "실크 전체",
+    "합지",
+    "철거·방수",
+    "180",
+    "150",
+    "370",
+    "8,000,000원",
+    "2,000,000원",
+  ];
 
   it("켜면 세부내용·비고·금액이 DOM(innerHTML·aria-label·title)에 없고 구분·업체는 보인다, 체크 이름은 '{구분} {업체} 확정', 기존 줄 시트는 열리지 않는다", async () => {
     const user = userEvent.setup();
@@ -515,7 +524,7 @@ describe("AC-1 가리기 (A8·A10)", () => {
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
 
     await user.click(screen.getByRole("button", { name: "가리기" }));
-    expect(headlineValue("지출 예정")).toBe("1,200만원");
+    expect(headlineValue("지출 예정")).toBe("12,000,000원");
     expect(container.innerHTML).toContain("실크 전체");
   });
 
@@ -525,7 +534,7 @@ describe("AC-1 가리기 (A8·A10)", () => {
       L_HASH,
     );
     expect(headlineValue("남은 예산")).toBe("예산 초과 •••가려짐");
-    for (const secret of ["예산 200만원", "폐기물 포함", "70만원", "370", "400"]) {
+    for (const secret of ["예산 2,000,000원", "폐기물 포함", "700,000원", "370", "400"]) {
       expect(container.innerHTML).not.toContain(secret);
     }
     expect(check("도배 확정")).toBeDisabled();
@@ -568,5 +577,67 @@ describe("AC-2(e) 상한은 항목 수 100개(줄 수가 아님)", () => {
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "도배에 줄 추가" })).toBeDisabled();
     expect(screen.getByText("항목은 계획마다 100개까지 적을 수 있습니다")).toBeInTheDocument();
+  });
+});
+
+describe("목록에서 비고 숨기기 (스펙 interior-tbd-amount 추가 요청)", () => {
+  it("목록 줄에는 비고(항목 메모)와 견적 없는 줄의 '예산 n만원'이 없고, 줄 시트·표에는 그대로 있다", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith([makePlanL()]);
+    await renderLoggedOut(storage, L_HASH);
+    const bath = screen.getByRole("region", { name: "욕실" });
+    const wallpaper = screen.getByRole("region", { name: "도배" });
+    expect(bath).not.toHaveTextContent("폐기물 포함");
+    expect(wallpaper).not.toHaveTextContent("예산 2,000,000원");
+    expect(wallpaper).toHaveTextContent("견적 없음");
+
+    // 줄 시트의 비고 칸은 그대로(항목 메모)
+    await user.click(screen.getByRole("button", { name: "욕실 욕실나라 열기" }));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    expect(within(dialog).getByLabelText("비고(선택)")).toHaveValue("폐기물 포함");
+    await user.click(within(dialog).getByRole("button", { name: "취소" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    // 표 보기의 비고 열도 그대로(항목 메모, 합성 비고 원 단위)
+    await user.click(screen.getByRole("radio", { name: "표" }));
+    const table = await screen.findByRole("table");
+    expect(within(table).getAllByText("폐기물 포함")).toHaveLength(2);
+    expect(within(table).getByText("예산 2,000,000원")).toBeInTheDocument();
+  });
+});
+
+describe("떠 있는 [줄 추가] (스펙 interior-tbd-amount 추가 요청)", () => {
+  it("목록 보기에서 하나, 아이콘(aria-hidden)만 있고 이름은 '줄 추가'. 누르면 줄 시트, 시트가 열린 동안 화면과 함께 inert, 닫으면 포커스가 돌아온다", async () => {
+    const user = userEvent.setup();
+    await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    const [add] = screen.getAllByRole("button", { name: "줄 추가" });
+    expect(screen.getAllByRole("button", { name: "줄 추가" })).toHaveLength(1);
+    expect(add).toHaveAttribute("aria-haspopup", "dialog");
+    expect(add).toHaveTextContent("");
+    expect(add.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    // 목록 맨 끝(마지막 묶음 뒤)이라 키보드 순서도 보이는 자리(목록 아래)와 같다
+    const lastGroup = screen.getByRole("region", { name: "욕실" });
+    expect(lastGroup.compareDocumentPosition(add)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    await user.click(add);
+    expect(screen.getByRole("dialog", { name: "줄 추가" })).toBeInTheDocument();
+    expect(add.closest("[inert]")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "닫기" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(add.closest("[inert]")).toBeNull();
+    expect(add).toHaveFocus();
+  });
+
+  it("표 보기에는 없고, 가리기 중에는 있다(묶음 끝 버튼처럼 가리기 중에도 줄 추가)", async () => {
+    const user = userEvent.setup();
+    await renderLoggedOut(storageWith([makeSimplePlanP()]));
+    await user.click(screen.getByRole("radio", { name: "표" }));
+    await screen.findByRole("table");
+    expect(screen.queryByRole("button", { name: "줄 추가" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: "목록" }));
+    expect(await screen.findByRole("button", { name: "줄 추가" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "가리기" }));
+    expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
   });
 });

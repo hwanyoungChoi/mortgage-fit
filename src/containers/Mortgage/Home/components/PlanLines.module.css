@@ -1,22 +1,48 @@
-.addRow {
+/*
+ * 목록 보기 전체. 아래 여백은 떠 있는 [+]의 높이와 간격만큼이라, 끝까지 내리면 마지막 줄·[+ {구분}에 줄 추가]가
+ * [+]에 가리지 않는다(화면 아래 탭 줄 높이는 페이지 여백이 이미 가진다).
+ */
+.lines {
+  --add-fab-size: 56px;
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-3);
+  padding-bottom: calc(var(--add-fab-size) + var(--space-3));
 }
 
-.addButton {
-  min-height: 48px;
-  padding: 0 var(--space-4);
+/*
+ * 떠 있는 [+](줄 추가). 하단 탭 줄 바로 위, 본문 열(480px) 오른쪽 안에 붙는다(넓은 화면에서 열 밖으로 나가지 않게).
+ * `--bottom-tab-offset`이 safe-area를 이미 가지므로 env()를 다시 더하지 않는다. 시트(z 10)가 이 버튼을 덮는다.
+ */
+.addFab {
+  position: fixed;
+  right: max(var(--space-4), calc((100vw - 480px) / 2 + var(--space-4)));
+  bottom: calc(var(--bottom-tab-offset) + var(--space-3));
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--add-fab-size);
+  height: var(--add-fab-size);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 50%;
   background: var(--color-primary);
   color: var(--color-on-primary);
-  font-weight: 600;
+  box-shadow: var(--shadow-lifted);
 }
 
-.addButton:disabled {
+.addFab:disabled {
   background: var(--color-raised);
   color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+@media print {
+  .addFab {
+    display: none;
+  }
 }
 
 .limitNote {
@@ -111,8 +137,7 @@
   color: var(--color-text-muted);
 }
 
-.secondaryText,
-.note {
+.secondaryText {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -126,6 +151,12 @@
   flex: none;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* 금액 미정: 금액과 같은 자리·크기, 흐린 글자로 구분한다(새 토큰 없음) */
+.tbdAmount {
+  composes: amount;
+  color: var(--color-text-muted);
 }
 
 /* 터치 영역 44px 이상 */

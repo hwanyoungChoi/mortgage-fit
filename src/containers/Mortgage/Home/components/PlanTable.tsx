@@ -5,11 +5,16 @@ import {
   INTERIOR_PLAN_TABLE_TOTAL_LABEL,
 } from "@/lib/constants/interiorPlanTable";
 import { formatThousands } from "@/lib/utils/amount";
+import { tableAmountText } from "@/lib/utils/buildInteriorPlanTable";
 
 import styles from "./PlanTable.module.css";
 
 import type { InteriorPlanTableColumn } from "@/lib/constants/interiorPlanTable";
-import type { InteriorPlanTable, InteriorPlanTableRow } from "@/lib/utils/buildInteriorPlanTable";
+import type {
+  InteriorPlanTable,
+  InteriorPlanTableAmount,
+  InteriorPlanTableRow,
+} from "@/lib/utils/buildInteriorPlanTable";
 
 /** 열마다 칸 모양(금액 열만 오른쪽 정렬·고정폭 숫자) */
 const COLUMN_CLASS_NAMES: Record<InteriorPlanTableColumn, string> = {
@@ -21,11 +26,12 @@ const COLUMN_CLASS_NAMES: Record<InteriorPlanTableColumn, string> = {
   note: styles.noteCell,
 };
 
-/** 원 단위 금액(천 단위 쉼표). 없으면 빈칸 */
-function AmountCell({ won, isMasked }: { won: number | undefined; isMasked: boolean }) {
+/** 원 단위 금액(천 단위 쉼표) 또는 "미정". 둘 다 금액처럼 가린다. 없으면 빈칸 */
+function AmountCell({ won, isMasked }: { won: InteriorPlanTableAmount; isMasked: boolean }) {
+  const text = tableAmountText(won, formatThousands);
   return (
     <td className={styles.amountCell}>
-      {won !== undefined && <MaskedValue isMasked={isMasked}>{formatThousands(won)}</MaskedValue>}
+      {text !== "" && <MaskedValue isMasked={isMasked}>{text}</MaskedValue>}
     </td>
   );
 }
@@ -69,6 +75,7 @@ type PlanTableProps = {
 /**
  * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정 칸만, U6).
  * 금액은 이미 원 단위라 천 단위 쉼표만 붙이고 다시 곱하지 않는다. 빈칸은 비워 둔다.
+ * "계" 비고의 "금액 미정 n건 제외"는 가리기 중에는 통째로 뺀다(U6).
  */
 function PlanTable({ table, title, isMasked }: PlanTableProps) {
   return (
@@ -104,7 +111,7 @@ function PlanTable({ table, title, isMasked }: PlanTableProps) {
           <td className={styles.detailCell} />
           <td className={styles.amountCell} />
           <AmountCell won={table.confirmedTotal} isMasked={isMasked} />
-          <td className={styles.noteCell} />
+          <td className={styles.noteCell}>{!isMasked && table.totalNote}</td>
         </tr>
       </tfoot>
     </table>

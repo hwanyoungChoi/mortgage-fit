@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { makePlanP } from "@/test/interiorPlanFixture";
 import { makePlanL, makeSimplePlanP, r1, simpleTime } from "@/test/interiorSimpleFixture";
 
-import { formatManwon } from "./amount";
 import { buildInteriorPlanRows, rowNoteOf, summarizeInteriorPlan } from "./interiorPlanRows";
 
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
@@ -57,7 +56,7 @@ describe("buildInteriorPlanRows — 예시 P (AC-1)", () => {
         ],
       ],
     ]);
-    expect(buildInteriorPlanRows(makeSimplePlanP()).plannedTotal).toBe(800);
+    expect(buildInteriorPlanRows(makeSimplePlanP()).plannedTotalWon).toBe(8_000_000);
   });
 
   it("줄 key는 `item.id:quote.id`이고 모두 다르다(인덱스가 아니다)", () => {
@@ -70,11 +69,15 @@ describe("buildInteriorPlanRows — 예시 P (AC-1)", () => {
   it("줄은 항목 전체를 들고 있다(숨은 값을 쓰기에서 돌려보낼 수 있게)", () => {
     const [first] = buildInteriorPlanRows(makeSimplePlanP()).groups[0].rows;
     expect(first.item).toStrictEqual(r1());
-    expect(first.budgetNote).toBeNull();
+    expect(first.budgetNoteWon).toBeNull();
   });
 
   it("줄 0개면 묶음 없음, 지출 예정 0", () => {
-    expect(buildInteriorPlanRows({ items: [] })).toEqual({ groups: [], plannedTotal: 0 });
+    expect(buildInteriorPlanRows({ items: [] })).toEqual({
+      groups: [],
+      plannedTotalWon: 0,
+      tbdCount: 0,
+    });
   });
 });
 
@@ -144,7 +147,7 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
       ],
       ["도배", [["", "", null, false]]],
     ]);
-    expect(rows.plannedTotal).toBe(370);
+    expect(rows.plannedTotalWon).toBe(3_700_000);
     expect(rows.groups.flatMap((group) => group.rows.map((row) => row.key))).toEqual([
       "item-x:q1",
       "item-x:q2",
@@ -155,11 +158,11 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
 
   it("빈 줄(견적 0개)만 비고용 예산을 들고, 견적이 있는 줄은 항목 예산이 있어도 null", () => {
     const rows = buildInteriorPlanRows(makePlanL()).groups.flatMap((group) => group.rows);
-    expect(rows.map((row) => [row.key, row.budgetNote])).toEqual([
+    expect(rows.map((row) => [row.key, row.budgetNoteWon])).toEqual([
       ["item-x:q1", null],
       ["item-x:q2", null],
       ["item-z:q3", null],
-      ["item-y:", 200],
+      ["item-y:", 2_000_000],
     ]);
   });
 
@@ -174,7 +177,14 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
     };
     const [group] = buildInteriorPlanRows({ items: [empty] }).groups;
     expect(group.rows).toEqual([
-      { key: "e:", item: empty, quote: null, isConfirmed: false, budgetNote: null },
+      {
+        key: "e:",
+        item: empty,
+        quote: null,
+        quoteWon: undefined,
+        isConfirmed: false,
+        budgetNoteWon: null,
+      },
     ]);
   });
 
@@ -182,79 +192,81 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
     const item: InteriorItem = { ...line("x", "도배", 1), confirmedQuoteId: "no-such-quote" };
     const rows = buildInteriorPlanRows({ items: [item] });
     expect(rows.groups[0].rows.map((row) => row.isConfirmed)).toEqual([false]);
-    expect(rows.plannedTotal).toBe(0);
+    expect(rows.plannedTotalWon).toBe(0);
   });
 
   it("옛 P(makePlanP): 지출 예정 1,530 = 도배 A 280 + 샷시 E 1,250(예산·미확정 견적은 세지 않는다)", () => {
-    expect(buildInteriorPlanRows(makePlanP()).plannedTotal).toBe(1530);
+    expect(buildInteriorPlanRows(makePlanP()).plannedTotalWon).toBe(15_300_000);
   });
 });
 
 describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC-1)", () => {
   it("P: 총 예산 1,000 · 지출 예정 800 · 남은 예산 200", () => {
     expect(summarizeInteriorPlan(makeSimplePlanP())).toEqual({
-      budget: 1000,
-      plannedTotal: 800,
-      remaining: 200,
+      budgetWon: 10_000_000,
+      plannedTotalWon: 8_000_000,
+      tbdCount: 0,
+      remainingWon: 2_000_000,
     });
   });
 
   it.each([
     [800, 0],
-    [799, -1],
-    [700, -100],
-  ])("총 예산 %i → 남은 예산 %i(0은 초과 아님, 음수는 예산 초과)", (budget, remaining) => {
-    expect(summarizeInteriorPlan(makeSimplePlanP({ budget })).remaining).toBe(remaining);
+    [799, -10_000],
+    [700, -1_000_000],
+  ])("총 예산 %i만원 → 남은 예산 %i원(0은 초과 아님, 음수는 예산 초과)", (budget, remainingWon) => {
+    expect(summarizeInteriorPlan(makeSimplePlanP({ budget })).remainingWon).toBe(remainingWon);
   });
 
-  it("총 예산이 없으면 budget·remaining null, 지출 예정은 그대로", () => {
+  it("총 예산이 없으면 budgetWon·remainingWon null, 지출 예정은 그대로", () => {
     const { budget, ...withoutBudget } = makeSimplePlanP();
     void budget;
     expect(summarizeInteriorPlan(withoutBudget)).toEqual({
-      budget: null,
-      plannedTotal: 800,
-      remaining: null,
+      budgetWon: null,
+      plannedTotalWon: 8_000_000,
+      tbdCount: 0,
+      remainingWon: null,
     });
   });
 
   it("줄 0개: 지출 예정 0 · 남은 예산 = 총 예산", () => {
     expect(summarizeInteriorPlan(makeSimplePlanP({ items: [] }))).toEqual({
-      budget: 1000,
-      plannedTotal: 0,
-      remaining: 1000,
+      budgetWon: 10_000_000,
+      plannedTotalWon: 0,
+      tbdCount: 0,
+      remainingWon: 10_000_000,
     });
   });
 
   it("L: 총 예산 3,000 · 지출 예정 370 · 남은 예산 2,630", () => {
     expect(summarizeInteriorPlan(makePlanL())).toEqual({
-      budget: 3000,
-      plannedTotal: 370,
-      remaining: 2630,
+      budgetWon: 30_000_000,
+      plannedTotalWon: 3_700_000,
+      tbdCount: 0,
+      remainingWon: 26_300_000,
     });
   });
 
-  it("항목 100개 모두 999,999,999 확정 → 지출 예정 99,999,999,900(정수 오차 없음)", () => {
+  it("항목 100개 모두 999,999,999만원 확정 → 지출 예정 999,999,999,000,000원(정수 오차 없음)", () => {
     const items = Array.from({ length: 100 }, (_, index) => ({
       ...line(`m${index}`, "도배", 1, 999_999_999),
       confirmedQuoteId: `m${index}-q`,
     }));
-    const { plannedTotal } = summarizeInteriorPlan(makeSimplePlanP({ items }));
-    expect(plannedTotal).toBe(99_999_999_900);
-    expect(Number.isSafeInteger(plannedTotal)).toBe(true);
+    const { plannedTotalWon } = summarizeInteriorPlan(makeSimplePlanP({ items }));
+    expect(plannedTotalWon).toBe(999_999_999_000_000);
+    expect(Number.isSafeInteger(plannedTotalWon)).toBe(true);
   });
 });
 
 describe("rowNoteOf — 비고 = 항목 메모 · (빈 줄이면) 예산", () => {
   const notesOf = (plan: InteriorPlanWithItems) =>
-    buildInteriorPlanRows(plan).groups.flatMap((group) =>
-      group.rows.map((row) => rowNoteOf(row, formatManwon)),
-    );
+    buildInteriorPlanRows(plan).groups.flatMap((group) => group.rows.map((row) => rowNoteOf(row)));
 
-  it("L: 항목 메모는 그 항목의 모든 줄에, 빈 줄은 '예산 200만원', 견적 있는 줄에는 예산 조각이 없다", () => {
-    expect(notesOf(makePlanL())).toEqual(["폐기물 포함", "폐기물 포함", "", "예산 200만원"]);
+  it("L: 항목 메모는 그 항목의 모든 줄에, 빈 줄은 '예산 2,000,000원', 견적 있는 줄에는 예산 조각이 없다", () => {
+    expect(notesOf(makePlanL())).toEqual(["폐기물 포함", "폐기물 포함", "", "예산 2,000,000원"]);
   });
 
-  it("빈 줄에 메모와 예산이 둘 다 있으면 ' · '로 잇고, 금액 표기는 부르는 쪽이 정한다", () => {
+  it("빈 줄에 메모와 예산이 둘 다 있으면 ' · '로 잇고, 금액은 원(항목 예산 만원 × 10,000)", () => {
     const item: InteriorItem = {
       id: "a",
       spaceId: "s0",
@@ -266,8 +278,7 @@ describe("rowNoteOf — 비고 = 항목 메모 · (빈 줄이면) 예산", () =>
       updatedAt: simpleTime(1),
     };
     const [row] = buildInteriorPlanRows({ items: [item] }).groups[0].rows;
-    expect(rowNoteOf(row, formatManwon)).toBe("추후 구매 · 예산 150만원");
-    expect(rowNoteOf(row, (manwon) => `${manwon * 10_000}원`)).toBe("추후 구매 · 예산 1500000원");
+    expect(rowNoteOf(row)).toBe("추후 구매 · 예산 1,500,000원");
   });
 
   it("P: 메모·예산이 없어 모두 빈 문자열", () => {
