@@ -500,7 +500,7 @@ describe("useInteriorPlanImport — 본문 1MB 실측", () => {
           memo: swap(item.memo!),
           quotes: item.quotes!.map((quote) => ({
             ...quote,
-            vendor: swap(quote.vendor),
+            vendor: swap(quote.vendor!),
             contact: swap(quote.contact!),
             memo: swap(quote.memo!),
           })),

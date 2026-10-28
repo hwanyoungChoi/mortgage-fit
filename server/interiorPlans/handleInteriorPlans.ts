@@ -33,6 +33,12 @@ import type {
 
 /** 플랜·항목 쓰기 본문 한도. 항목 최악 ~7KB(짝 없는 서로게이트 2배 ~14KB), 플랜 + 가져올 항목 30개도 이 안이다 */
 const WRITE_MAX_BYTES = 16 * 1024;
+/**
+ * 플랜 PATCH 본문 한도(ADR-036 D2 A). `lineOrder` 최악은 줄 key 129자(64자 id 두 개 + `:`) → JSON 원소 132바이트 × 500개
+ * ≈ 66KB이고, 함께 보낼 수 있는 다른 키(공간 30개 등 수 KB) 여유를 더해 128KB. key는 ASCII뿐이라 이스케이프로 부풀지 않는다.
+ * 항목 쓰기·계획 POST는 `WRITE_MAX_BYTES` 그대로다
+ */
+const PLAN_PATCH_MAX_BYTES = 128 * 1024;
 /** import는 플랜 1개씩. 본문을 통째로 바인딩하므로 D1 바인딩 한도(2MB) 안 */
 const IMPORT_MAX_BYTES = 1024 * 1024;
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -277,8 +283,8 @@ export async function importInteriorPlan(
 }
 
 /**
- * PATCH /api/interior-plans/{id} `{ plan: { name?, budget?, listingId?, spaces? } }` → 200 `{ plan }`(항목 없음).
- * merge patch 한 문장이라 다른 기기가 바꾼 다른 필드를 되돌리지 않는다. `spaces`는 배열이라 통째로 바뀐다.
+ * PATCH /api/interior-plans/{id} `{ plan: { name?, budget?, listingId?, spaces?, lineOrder? } }` → 200 `{ plan }`(항목 없음).
+ * merge patch 한 문장이라 다른 기기가 바꾼 다른 필드를 되돌리지 않는다. `spaces`·`lineOrder`는 배열이라 통째로 바뀐다.
  */
 export async function updateInteriorPlan(
   request: Request,
@@ -288,7 +294,7 @@ export async function updateInteriorPlan(
   now: () => Date,
 ): Promise<Response> {
   if (!isInteriorPlanId(id)) return invalidPlanId();
-  const body = await readJsonBody(request, WRITE_MAX_BYTES);
+  const body = await readJsonBody(request, PLAN_PATCH_MAX_BYTES);
   if (!body.ok) return body.response;
   const parsed = parsePlanPatchRequest(body.value);
   if (!parsed.ok) return invalidParams(parsed.message);

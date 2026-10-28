@@ -24,6 +24,11 @@ export type InteriorPlan = {
   listingId?: string;
   /** 1~30개, id 유일 */
   spaces: InteriorSpace[];
+  /**
+   * 줄 key(`item.id:quote.id`, 견적 없는 줄은 `item.id:`)를 보이는 순서대로(ADR-036 D1 A). 키 없음 = 기본 순서.
+   * 1~`INTERIOR_LINE_ORDER_MAX_COUNT`개, 중복 없음. 항목에 실제로 있는 key인지는 보지 않는다(읽을 때 없는 key는 무시)
+   */
+  lineOrder?: string[];
   /** `toISOString` 형식(YYYY-MM-DDTHH:mm:ss.sssZ)만. 정렬이 문자열 비교다 */
   createdAt: string;
   updatedAt: string;
@@ -34,8 +39,8 @@ export type InteriorItemStatus = "planned" | "quoting" | "confirmed" | "inProgre
 
 export type InteriorQuote = {
   id: string;
-  /** 업체 1~30자 */
-  vendor: string;
+  /** 업체 1~30자. 키 없음 = 업체 미정(ADR-036). `""`·null은 미정이 아니라 올바르지 않은 값이다 */
+  vendor?: string;
   /** 자유 문자열 1~30자 */
   contact?: string;
   /** 만원 정수 0~MAX_AMOUNT. `amount`·`amountWon` 둘 다 키 없음 = 금액 미정(ADR-033) */
@@ -88,7 +93,7 @@ export type InteriorPlanWithItems = InteriorPlan & { items: InteriorItem[] };
 /** 플랜 필드(id·시각 제외). 서버 `interior_plans.data`에 들어가는 값 */
 export type InteriorPlanInput = Pick<
   InteriorPlan,
-  "name" | "budget" | "budgetWon" | "listingId" | "spaces"
+  "name" | "budget" | "budgetWon" | "listingId" | "spaces" | "lineOrder"
 >;
 
 /** 항목 필드(id·시각 제외). 항목 POST·PUT 본문 `{ item }`과 서버 `interior_plan_items.data`의 값 */
@@ -99,7 +104,8 @@ export type InteriorPlanCreateInput = InteriorPlanInput & { items?: InteriorItem
 
 /**
  * 플랜 PATCH 본문 `{ plan }`(JSON Merge Patch). 키 없음 = 그대로, null = 지움. 하나 이상.
- * `budget`·`budgetWon` 중 하나라도 보내면 두 키를 함께 정한다(다른 키는 지움, `budgetMergePatch`). 둘 다 숫자면 400
+ * `budget`·`budgetWon` 중 하나라도 보내면 두 키를 함께 정한다(다른 키는 지움, `budgetMergePatch`). 둘 다 숫자면 400.
+ * `lineOrder`는 배열이라 통째로 바뀌고, null과 `[]`는 같다(키 삭제, ADR-036 조건 2)
  */
 export type InteriorPlanPatch = {
   name?: string;
@@ -107,6 +113,7 @@ export type InteriorPlanPatch = {
   budgetWon?: number | null;
   listingId?: string | null;
   spaces?: InteriorSpace[];
+  lineOrder?: string[] | null;
 };
 
 // --- /api/interior-plans 계약(스펙 interior-planner "API 계약"). 요청·응답 봉투는 `{ plan }`·`{ item }`이다.

@@ -14,6 +14,7 @@ import {
   INTERIOR_CONTACT_MAX_LENGTH,
   INTERIOR_ITEM_MEMO_MAX_LENGTH,
   INTERIOR_ITEM_STATUSES,
+  INTERIOR_LINE_ORDER_MAX_COUNT,
   INTERIOR_PAYMENT_LABEL_MAX_LENGTH,
   INTERIOR_PAYMENT_MAX_COUNT,
   INTERIOR_PLAN_NAME_MAX_LENGTH,
@@ -37,7 +38,11 @@ import type {
   InteriorSpace,
 } from "../types/interiorPlan";
 
+/** id 한 개의 모양. 줄 key 패턴도 여기서 만든다(id 규칙이 바뀌면 저장된 `lineOrder`도 같이 바뀌어야 하므로 한 곳) */
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+const ID_SOURCE = ID_PATTERN.source.slice(1, -1);
+/** 줄 key: `item.id:quote.id`, 견적 없는 줄은 `item.id:`(ADR-032·036) */
+const LINE_KEY_PATTERN = new RegExp(`^${ID_SOURCE}:(?:${ID_SOURCE})?$`);
 /** 플랜 id로 쓸 수 없는 값. `/api/interior-plans/import` 경로와 겹친다 */
 const RESERVED_PLAN_ID = "import";
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -162,11 +167,15 @@ export function parseInteriorSpaces(value: unknown): InteriorSpace[] | null {
 
 /**
  * 견적 금액은 선택이다. `amount`(만원)·`amountWon`(원) 둘 다 키 없음 = 금액 미정, 0은 금액이 0인 견적(ADR-033).
- * 두 키가 함께 있으면 어느 쪽도 고르지 않고 거부한다(같은 환산값이어도, ADR-034). 받은 키를 그대로 돌려준다
+ * 두 키가 함께 있으면 어느 쪽도 고르지 않고 거부한다(같은 환산값이어도, ADR-034). 받은 키를 그대로 돌려준다.
+ * 업체도 선택이다: 키 없음(undefined 포함) = 업체 미정(ADR-036). 값이 있으면 `""`·공백·null도 필수 문자열 규칙으로 거부한다
+ * (미정의 표현은 키 없음 하나다. 선택 문자열처럼 `""`를 받아 키를 빼지 않는다)
  */
 function parseQuote(value: unknown): InteriorQuote | null {
   if (!isRecord(value) || !isInteriorId(value.id)) return null;
-  const vendor = parseRequiredText(value.vendor, INTERIOR_VENDOR_MAX_LENGTH);
+  const vendor = hasValue(value, "vendor")
+    ? parseRequiredText(value.vendor, INTERIOR_VENDOR_MAX_LENGTH)
+    : undefined;
   const contact = parseOptionalText(value, "contact", INTERIOR_CONTACT_MAX_LENGTH);
   const amount = parseOptional(value, "amount", isInteriorQuoteAmount);
   const amountWon = parseOptional(value, "amountWon", isInteriorQuoteWon);
@@ -183,7 +192,7 @@ function parseQuote(value: unknown): InteriorQuote | null {
   }
   return {
     id: value.id,
-    vendor,
+    ...(vendor !== undefined && { vendor }),
     ...(contact !== undefined && { contact }),
     ...(amount !== undefined && { amount }),
     ...(amountWon !== undefined && { amountWon }),
@@ -203,6 +212,23 @@ function parsePayment(value: unknown): InteriorPayment | null {
     ...(dueDate !== undefined && { dueDate }),
     isPaid: value.isPaid,
   };
+}
+
+/**
+ * 줄 순서(ADR-036 조건 2): 비어 있지 않고, 원소가 모두 줄 key이고, 중복이 없고, `INTERIOR_LINE_ORDER_MAX_COUNT`개 이하인
+ * 배열만 새 배열로 돌려준다(받은 순서 그대로). 그 밖(빈 배열 포함)은 null. 빈 배열의 뜻은 부르는 쪽이 정한다
+ * (플랜 필드: 키 없음, 서버 PATCH: null과 같은 키 삭제). 항목에 실제로 있는 key인지는 보지 않는다
+ */
+export function parseLineOrder(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length < 1 || value.length > INTERIOR_LINE_ORDER_MAX_COUNT) {
+    return null;
+  }
+  const keys: string[] = [];
+  for (const key of value as unknown[]) {
+    if (typeof key !== "string" || !LINE_KEY_PATTERN.test(key)) return null;
+    keys.push(key);
+  }
+  return new Set(keys).size === keys.length ? keys : null;
 }
 
 /** 선택 배열: 키 없음·빈 배열은 undefined, 0~maxCount개이고 각 줄이 맞고 id가 유일하면 새 배열, 그 밖은 null */
@@ -227,7 +253,7 @@ function parseOptionalList<T extends { id: string }>(
 
 /**
  * 플랜 필드(id·시각 제외)를 검증하고 알려진 키만 담은 새 객체를 돌려준다. 어긋나면 null.
- * 총 예산 `budget`(만원)·`budgetWon`(원)이 함께 있으면 거부한다(ADR-034)
+ * 총 예산 `budget`(만원)·`budgetWon`(원)이 함께 있으면 거부한다(ADR-034). `lineOrder`의 빈 배열은 키 없음이다(ADR-036 조건 2)
  */
 export function validateInteriorPlanFields(value: unknown): InteriorPlanInput | null {
   if (!isRecord(value)) return null;
@@ -236,12 +262,16 @@ export function validateInteriorPlanFields(value: unknown): InteriorPlanInput | 
   const budgetWon = parseOptional(value, "budgetWon", isInteriorWon);
   const listingId = parseOptional(value, "listingId", isListingId);
   const spaces = parseInteriorSpaces(value.spaces);
+  const isLineOrderEmpty = Array.isArray(value.lineOrder) && value.lineOrder.length === 0;
+  const lineOrder =
+    !hasValue(value, "lineOrder") || isLineOrderEmpty ? undefined : parseLineOrder(value.lineOrder);
   if (
     name === null ||
     budget === null ||
     budgetWon === null ||
     listingId === null ||
     spaces === null ||
+    lineOrder === null ||
     (budget !== undefined && budgetWon !== undefined)
   ) {
     return null;
@@ -252,6 +282,7 @@ export function validateInteriorPlanFields(value: unknown): InteriorPlanInput | 
     ...(budgetWon !== undefined && { budgetWon }),
     ...(listingId !== undefined && { listingId }),
     spaces,
+    ...(lineOrder !== undefined && { lineOrder }),
   };
 }
 

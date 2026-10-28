@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { INTERIOR_LINE_ORDER_MAX_COUNT } from "@/lib/constants/interiorPlan";
+
 import {
   isCalendarDate,
   isInteriorAmount,
@@ -13,6 +15,7 @@ import {
   parseInteriorPlan,
   parseInteriorPlanName,
   parseInteriorSpaces,
+  parseLineOrder,
   validateInteriorItemFields,
   validateInteriorPlanFields,
 } from "./validateInteriorPlan";
@@ -189,7 +192,10 @@ describe("문자열 길이 상한 (trim 후 코드포인트)", () => {
     expect(itemFields({ quotes: [quote({ vendor: "가".repeat(31) })] })).toBeNull();
     expect(itemFields({ quotes: [quote({ vendor: "" })] })).toBeNull();
     expect(itemFields({ quotes: [quote({ vendor: "  " })] })).toBeNull();
-    expect(itemFields({ quotes: [quote({ vendor: undefined })] })).toBeNull();
+    // 의도된 반전(ADR-036, 스펙 AC-0(b)): 업체 키가 undefined면 업체 미정으로 통과하고 결과에 vendor 키가 없다
+    const tbdVendorQuote = itemFields({ quotes: [quote({ vendor: undefined })] })?.quotes?.[0];
+    expect(tbdVendorQuote).toStrictEqual({ id: "q1", amount: 300 });
+    expect(Object.hasOwn(tbdVendorQuote ?? {}, "vendor")).toBe(false);
     expect(itemFields({ quotes: [quote({ vendor: " 가나 " })] })?.quotes?.[0].vendor).toBe("가나");
   });
 
@@ -658,5 +664,103 @@ describe("id 형식", () => {
     expect(isInteriorItem({ ...minimalItem(), id: "a".repeat(65) })).toBe(false);
     expect(isInteriorItem({ ...minimalItem(), spaceId: "s/1" })).toBe(false);
     expect(isInteriorPlan({ ...minimalPlan(), id: "plan 1" })).toBe(false);
+  });
+});
+
+describe("업체 미정: 키 없음 = 미정, 값이 있으면 1~30자 (ADR-036, 스펙 AC-0(b))", () => {
+  const withoutVendor = () => {
+    const { vendor, ...rest } = quote();
+    void vendor;
+    return rest;
+  };
+
+  it("업체 키 없음 → 통과, 결과에 vendor 키가 없다", () => {
+    const result = itemFields({ quotes: [withoutVendor()] })?.quotes?.[0];
+    expect(result).toStrictEqual({ id: "q1", amount: 300 });
+    expect(Object.hasOwn(result ?? {}, "vendor")).toBe(false);
+  });
+
+  it("vendor: null·0 → 거부", () => {
+    expect(itemFields({ quotes: [quote({ vendor: null })] })).toBeNull();
+    expect(itemFields({ quotes: [quote({ vendor: 0 })] })).toBeNull();
+  });
+
+  it("{ id }만 있는 견적(업체·금액·세부내용 없음) → 통과, 그대로", () => {
+    expect(itemFields({ quotes: [{ id: "rq9" }] })?.quotes).toStrictEqual([{ id: "rq9" }]);
+  });
+
+  it("저장된 항목(parseInteriorItem)도 업체 없는 견적을 받고, 업체 있는 견적과 섞여도 그대로", () => {
+    const input = {
+      ...minimalItem(),
+      quotes: [quote(), { id: "q2", amountWon: 300_000 }],
+      confirmedQuoteId: "q2",
+    };
+    expect(parseInteriorItem(input)).toStrictEqual(input);
+  });
+});
+
+describe("줄 순서 lineOrder (ADR-036 조건 2, 스펙 AC-0(b))", () => {
+  const ID_64 = "a".repeat(64);
+  const ID_65 = "a".repeat(65);
+  /** 서로 다른 key n개 */
+  const keys = (count: number) => Array.from({ length: count }, (_, i) => `item${i}:q${i}`);
+
+  it("상한 = 항목 100 × 견적 5 = 500", () => {
+    expect(INTERIOR_LINE_ORDER_MAX_COUNT).toBe(500);
+  });
+
+  it("키 없음·[] → 결과에 lineOrder 키가 없다", () => {
+    expect(Object.hasOwn(planFields({}) ?? {}, "lineOrder")).toBe(false);
+    const empty = planFields({ lineOrder: [] });
+    expect(empty).toStrictEqual({ name: "우리 집", spaces: [{ id: "s1", name: "전체" }] });
+    expect(Object.hasOwn(empty ?? {}, "lineOrder")).toBe(false);
+    expect(Object.hasOwn(planFields({ lineOrder: undefined }) ?? {}, "lineOrder")).toBe(false);
+  });
+
+  it('["r1:rq1", "item-y:"] → 받은 순서 그대로(새 배열)', () => {
+    const lineOrder = ["r1:rq1", "item-y:"];
+    const result = planFields({ lineOrder });
+    expect(result?.lineOrder).toStrictEqual(["r1:rq1", "item-y:"]);
+    expect(result?.lineOrder).not.toBe(lineOrder);
+    expect(parseLineOrder(["item-y:", "r1:rq1"])).toStrictEqual(["item-y:", "r1:rq1"]);
+  });
+
+  it("저장된 플랜(parseInteriorPlan)도 lineOrder를 그대로 돌려준다", () => {
+    const input = { ...minimalPlan(), lineOrder: ["r2:rq2", "r1:rq1"] };
+    expect(parseInteriorPlan(input)).toStrictEqual(input);
+  });
+
+  it("500개 통과, 64자 id 두 개로 만든 key 통과", () => {
+    expect(planFields({ lineOrder: keys(500) })?.lineOrder).toHaveLength(500);
+    expect(parseLineOrder([`${ID_64}:${ID_64}`, `${ID_64}:`])).toStrictEqual([
+      `${ID_64}:${ID_64}`,
+      `${ID_64}:`,
+    ]);
+  });
+
+  it.each([
+    ["501개", keys(501)],
+    ["중복", ["r1:rq1", "r2:rq2", "r1:rq1"]],
+    ['"a"(콜론 없음)', ["a"]],
+    ['"a:b:c"', ["a:b:c"]],
+    ['":q"(항목 id 없음)', [":q"]],
+    ["앞 id 65자", [`${ID_65}:q1`]],
+    ["뒤 id 65자", [`r1:${ID_65}`]],
+    ["id 규칙 밖 글자", ["r 1:q1"]],
+    ["줄바꿈 꼬리", ["r1:q1\n"]],
+    ["숫자 원소", ["r1:rq1", 1]],
+    ["null 원소", [null]],
+    ["문자열(배열 아님)", "r1:rq1"],
+    ["객체", { 0: "r1:rq1" }],
+    ["null", null],
+  ])("%s → 플랜 null, parseLineOrder null", (_, lineOrder) => {
+    expect(planFields({ lineOrder })).toBeNull();
+    expect(parseInteriorPlan({ ...minimalPlan(), lineOrder })).toBeNull();
+    expect(parseLineOrder(lineOrder)).toBeNull();
+  });
+
+  it("parseLineOrder([])는 null이다(빈 배열의 뜻은 부르는 쪽이 정한다)", () => {
+    expect(parseLineOrder([])).toBeNull();
+    expect(parseLineOrder(undefined)).toBeNull();
   });
 });

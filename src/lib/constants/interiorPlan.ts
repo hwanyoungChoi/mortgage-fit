@@ -26,6 +26,8 @@ export const INTERIOR_PLAN_CREATE_MAX_ITEMS = 30;
 export const INTERIOR_QUOTE_MAX_COUNT = 5;
 /** 항목 하나의 지급 줄 수 상한 */
 export const INTERIOR_PAYMENT_MAX_COUNT = 5;
+/** 플랜 `lineOrder`의 key 수 상한 = 플랜 하나의 최대 줄 수(항목마다 견적 수만큼, ADR-036) */
+export const INTERIOR_LINE_ORDER_MAX_COUNT = INTERIOR_ITEM_MAX_COUNT * INTERIOR_QUOTE_MAX_COUNT;
 /** 플랜 하나의 공간 수 상한(최소 1) */
 export const INTERIOR_SPACE_MAX_COUNT = 30;
 
