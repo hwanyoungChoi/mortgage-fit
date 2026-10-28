@@ -90,10 +90,9 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
 });
 
 describe("필수 칸 (AC-2(c))", () => {
-  it("구분·업체가 비면 그 칸의 오류(화면 순서), 견적(비우면 미정)·세부내용·비고는 선택", () => {
+  it("구분이 비면 그 칸의 오류, 업체(비우면 미정)·견적(비우면 미정)·세부내용·비고는 선택(ADR-036)", () => {
     expect(interiorLineDraftErrors(createInteriorLineDraft())).toEqual([
       { field: "trade", message: "구분을 입력하세요" },
-      { field: "vendor", message: "업체 이름을 입력하세요" },
     ]);
     expect(validateInteriorLineDraft(createInteriorLineDraft()).ok).toBe(false);
   });
@@ -102,6 +101,7 @@ describe("필수 칸 (AC-2(c))", () => {
     const draft = createInteriorLineDraft();
     const fields = interiorLineDraftErrors({
       ...draft,
+      vendor: "가".repeat(31),
       amount: "12a",
       detail: "가".repeat(201),
       note: "가".repeat(501),
@@ -109,10 +109,12 @@ describe("필수 칸 (AC-2(c))", () => {
     expect(fields).toEqual(["trade", "detail", "vendor", "amount", "note"]);
   });
 
-  it('구분·업체 "   " → 필수 오류', () => {
+  it('구분 "   " → 필수 오류, 업체 "   " → 오류 없이 미정(vendor 키 없음)', () => {
     const draft = validDraft({ trade: "   ", vendor: "   " });
     expect(errorOf(draft, "trade")).toBe("구분을 입력하세요");
-    expect(errorOf(draft, "vendor")).toBe("업체 이름을 입력하세요");
+    expect(errorOf(draft, "vendor")).toBeNull();
+    const result = validateInteriorLineDraft({ ...draft, trade: "도배" });
+    expect(result.ok && Object.hasOwn(result.values, "vendor")).toBe(false);
   });
 
   it.each(["", "   "])("견적 %j → 오류 없이 미정(amountWon 키 없음, U1)", (amount) => {

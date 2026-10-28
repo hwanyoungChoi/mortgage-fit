@@ -19,7 +19,6 @@ import type {
 } from "@/lib/types/interiorLineDraft";
 
 const TRADE_REQUIRED_MESSAGE = "구분을 입력하세요";
-const VENDOR_REQUIRED_MESSAGE = "업체 이름을 입력하세요";
 
 /** 새 줄. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분을 채운다. 확정은 꺼진 채 시작한다(U3) */
 export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
@@ -62,23 +61,20 @@ function amountError(raw: string): string | null {
 
 /**
  * 시트 입력의 오류(화면 순서). 길이는 앞뒤 공백을 뗀 코드포인트 수이고 저장 규칙은 공용 검증(`validateInteriorItemFields`)과 같다.
- * 구분·업체는 필수, 견적(비우면 미정)·세부내용·비고는 선택이다(U1·U3).
+ * 구분은 필수, 업체(비우면 미정)·견적(비우면 미정)·세부내용·비고는 선택이다(U1·U3, ADR-036).
  */
 export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineDraftError[] {
   const candidates: [InteriorLineDraftField, string | null][] = [
     ["trade", requiredTextError(draft.trade, INTERIOR_TRADE_MAX_LENGTH, TRADE_REQUIRED_MESSAGE)],
     ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
-    [
-      "vendor",
-      requiredTextError(draft.vendor, INTERIOR_VENDOR_MAX_LENGTH, VENDOR_REQUIRED_MESSAGE),
-    ],
+    ["vendor", optionalTextError(draft.vendor, INTERIOR_VENDOR_MAX_LENGTH)],
     ["amount", amountError(draft.amount)],
     ["note", optionalTextError(draft.note, INTERIOR_ITEM_MEMO_MAX_LENGTH)],
   ];
   return candidates.flatMap(([field, message]) => (message === null ? [] : [{ field, message }]));
 }
 
-/** 빈 칸(공백만 포함)은 undefined — 저장할 때 키를 쓰지 않는다(ADR-012). 견적 칸은 `validateWonAmount`의 empty가 같은 뜻이다 */
+/** 빈 칸(공백만 포함)은 undefined — 저장할 때 키를 쓰지 않는다(ADR-012·036). 견적 칸은 `validateWonAmount`의 empty가 같은 뜻이다 */
 function optionalText(raw: string): string | undefined {
   const text = raw.trim();
   return text === "" ? undefined : text;
@@ -91,13 +87,14 @@ export function validateInteriorLineDraft(
   const errors = interiorLineDraftErrors(draft);
   const amount = validateWonAmount(draft.amount, QUOTE_MIN_WON);
   if (errors.length > 0 || amount.status === "error") return { ok: false, errors };
+  const vendor = optionalText(draft.vendor);
   const detail = optionalText(draft.detail);
   const note = optionalText(draft.note);
   return {
     ok: true,
     values: {
       trade: draft.trade.trim(),
-      vendor: draft.vendor.trim(),
+      ...(vendor !== undefined && { vendor }),
       ...(amount.status === "valid" && { amountWon: amount.value }),
       ...(detail !== undefined && { detail }),
       ...(note !== undefined && { note }),

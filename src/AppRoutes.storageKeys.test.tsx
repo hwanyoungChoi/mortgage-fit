@@ -168,7 +168,7 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   await user.click(screen.getByRole("button", { name: "줄 추가" }));
   const itemSheet = screen.getByRole("dialog", { name: "줄 추가" });
   await user.type(within(itemSheet).getByLabelText("구분"), "도배");
-  await user.type(within(itemSheet).getByLabelText("업체"), "육문수");
+  await user.type(within(itemSheet).getByLabelText("업체(비우면 미정)"), "육문수");
   await user.type(within(itemSheet).getByLabelText("견적(비우면 미정)"), "300");
   await user.click(within(itemSheet).getByRole("button", { name: "저장" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());

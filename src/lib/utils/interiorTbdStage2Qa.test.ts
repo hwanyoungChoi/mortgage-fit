@@ -198,10 +198,8 @@ describe("[줄 추가] (AC-2 2단계)", () => {
     });
   });
 
-  it("업체를 비우면 업체 필수 오류(견적 빈칸은 오류가 아니다)", () => {
-    expect(interiorLineDraftErrors(draftOf({ vendor: "  " }))).toStrictEqual([
-      { field: "vendor", message: "업체 이름을 입력하세요" },
-    ]);
+  it("업체를 비워도 오류가 없다(업체 미정, ADR-036 2단계; 견적 빈칸도 오류가 아니다)", () => {
+    expect(interiorLineDraftErrors(draftOf({ vendor: "  " }))).toStrictEqual([]);
   });
 });
 

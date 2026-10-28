@@ -581,3 +581,34 @@ describe("2단계 금액 쓰기 — editedQuote(ADR-034 조건 4, ADR-033 조건
     ]);
   });
 });
+
+describe("2단계 업체 비우기 (ADR-036 조건 9, U2)", () => {
+  it("R1의 업체를 지우고 저장 → quotes[0]에 vendor 키가 없다(지운 업체가 남지 않음)", () => {
+    const input = editLineInput(
+      r1(),
+      "rq1",
+      { trade: "도배", amountWon: 1_800_000, detail: "실크 전체", isConfirmed: true },
+      fixedId,
+    );
+    expect(input.quotes).toStrictEqual([{ id: "rq1", amountWon: 1_800_000, memo: "실크 전체" }]);
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+  });
+
+  it("구분만 적고 확정 끈 채 추가 → quotes 키 없는 항목(견적 없는 줄)", () => {
+    const input = addLineInput("sp-whole", "nq", { trade: "철거", isConfirmed: false });
+    expect(input).toStrictEqual({ spaceId: "sp-whole", trade: "철거", status: "planned" });
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+  });
+
+  it("구분만 적고 확정 켠 채 추가 → 견적 { id } 하나로 확정", () => {
+    const input = addLineInput("sp-whole", "nq", { trade: "철거", isConfirmed: true });
+    expect(input).toStrictEqual({
+      spaceId: "sp-whole",
+      trade: "철거",
+      quotes: [{ id: "nq" }],
+      confirmedQuoteId: "nq",
+      status: "planned",
+    });
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
+  });
+});

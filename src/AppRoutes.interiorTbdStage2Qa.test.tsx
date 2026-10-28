@@ -213,7 +213,7 @@ describe("AC-0 로그인 쓰기 본문 (2단계): 금액 키·예산 키 규칙,
       let dialog = screen.getByRole("dialog", { name: "줄 추가" });
       await user.type(within(dialog).getByLabelText("구분"), "조명");
       await user.type(within(dialog).getByLabelText("세부내용(선택)"), "거실 매입등");
-      await user.type(within(dialog).getByLabelText("업체"), "빛나라조명");
+      await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "빛나라조명");
       await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
       await user.click(within(dialog).getByRole("button", { name: "저장" }));
       await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -254,7 +254,7 @@ describe("AC-0 로그인 쓰기 본문 (2단계): 금액 키·예산 키 규칙,
       await user.click(openButton("욕실 하루바스 철거·방수 (1)"));
       dialog = screen.getByRole("dialog", { name: "줄" });
       expect(within(dialog).getByLabelText(AMOUNT)).toHaveValue("3,700,000");
-      await user.type(within(dialog).getByLabelText("업체"), "2");
+      await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "2");
       await user.click(within(dialog).getByRole("button", { name: "저장" }));
       await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
       const renamed = itemBody(api, "PUT", `${PLANS_PATH}/plan-simple/items/r3`);
@@ -318,6 +318,22 @@ describe("AC-0 로그인 쓰기 본문 (2단계): 금액 키·예산 키 규칙,
       expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBeNull();
     },
   );
+
+  it("혼자: R1의 업체를 지우고 저장 → PUT 견적에 vendor 키가 없다(ADR-036 2단계)", async () => {
+    const user = userEvent.setup();
+    const { api } = await renderLoggedIn(false);
+    await user.click(openButton("도배 육문수 실크 전체"));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(within(dialog).getByLabelText("업체(비우면 미정)"));
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const cleared = itemBody(api, "PUT", `${PLANS_PATH}/plan-simple/items/r1`);
+    expect(cleared).toStrictEqual({
+      ...fieldsOf(r1()),
+      quotes: [{ id: "rq1", amountWon: 1_800_000, memo: "실크 전체" }],
+    });
+    expect(validateInteriorItemFields(cleared)).toStrictEqual(cleared);
+  });
 });
 
 describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로컬 원문(두 키 공존 없음)", () => {
@@ -333,7 +349,7 @@ describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로
     // L의 Y: 업체만
     await user.click(await screen.findByRole("button", { name: "도배 열기" }));
     let dialog = screen.getByRole("dialog", { name: "줄" });
-    await user.type(within(dialog).getByLabelText("업체"), "육문수");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "육문수");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 
@@ -364,7 +380,7 @@ describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로
       await user.click(screen.getByRole("button", { name: "줄 추가" }));
       dialog = screen.getByRole("dialog", { name: "줄 추가" });
       await user.type(within(dialog).getByLabelText("구분"), trade);
-      await user.type(within(dialog).getByLabelText("업체"), vendor);
+      await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), vendor);
       if (amount !== "") await user.type(within(dialog).getByLabelText(AMOUNT), amount);
       await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
       await user.click(within(dialog).getByRole("button", { name: "저장" }));
@@ -420,7 +436,7 @@ describe("AC-2 2단계: L의 Y(업체·견적 빈 줄)에 업체만 채워 저�
     await user.click(await screen.findByRole("button", { name: "도배 열기" }));
     const dialog = screen.getByRole("dialog", { name: "줄" });
     expect(within(dialog).getByLabelText(AMOUNT)).toHaveValue("");
-    await user.type(within(dialog).getByLabelText("업체"), "육문수");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "육문수");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 
@@ -477,7 +493,7 @@ describe("AC-2 2단계: L의 Y(업체·견적 빈 줄)에 업체만 채워 저�
     );
     await user.click(await screen.findByRole("button", { name: "도배 열기" }));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    await user.type(within(dialog).getByLabelText("업체"), "육문수");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "육문수");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     const puts = api.callsTo("PUT", `${PLANS_PATH}/plan-l/items/item-y`);
@@ -511,7 +527,7 @@ describe("AC-2 2단계 입력 경계 (화면)", () => {
     await user.click(screen.getByRole("button", { name: "줄 추가" }));
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     await user.type(within(dialog).getByLabelText("구분"), "가구");
-    await user.type(within(dialog).getByLabelText("업체"), "한샘");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "한샘");
     const amount = within(dialog).getByLabelText(AMOUNT);
     await user.type(amount, "1000000000");
     expect(amount).toHaveValue("1,000,000,000");

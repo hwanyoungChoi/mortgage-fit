@@ -395,7 +395,7 @@ describe("AC-0(a) 로그인: 서버가 금액 없는 견적을 PUT·POST 응답�
     await user.click(screen.getByRole("button", { name: "줄 추가" }));
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     await user.type(within(dialog).getByLabelText("구분"), "가구");
-    await user.type(within(dialog).getByLabelText("업체"), "한샘");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "한샘");
     await user.type(within(dialog).getByLabelText("견적(비우면 미정)"), "300");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
