@@ -82,6 +82,61 @@
   overflow-wrap: anywhere;
 }
 
+/*
+ * 묶음을 드는 손잡이(묶음 2개 이상). 제목 칸 전체가 누를 자리가 되도록 제목의 여백을 버튼이 가져간다.
+ * 길게 누를 때 글자 선택·iOS 메뉴가 뜨지 않게 한다(줄 여는 버튼과 같은 설정). 짧게 누르면 아무 일도 없다.
+ */
+.groupHandle {
+  display: block;
+  width: calc(100% + 2 * (var(--space-4) + var(--space-1)));
+  margin: calc(-1 * var(--space-2)) calc(-1 * (var(--space-4) + var(--space-1)))
+    calc(-1 * var(--space-1));
+  padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-1);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.groupHandle:focus-visible {
+  outline-offset: -2px;
+}
+
+/* 끄는 동안 원래 묶음은 바탕색 빈 자리로 남아 놓일 자리를 보인다(줄과 같은 방식). */
+.placeholderGroup {
+  composes: group;
+  background: var(--color-bg);
+}
+
+.placeholderGroup > * {
+  opacity: 0;
+}
+
+/* 끄는 동안 뜬 묶음: 제목과 줄 글자(버튼·체크 없음)를 옅은 코발트 면 한 장에 그린다(뜬 줄과 같은 면). */
+.liftedGroup {
+  height: 100%;
+  overflow: hidden;
+  padding-top: var(--space-2);
+  border-radius: var(--radius-card);
+  background: var(--color-accent-soft);
+  cursor: grabbing;
+}
+
+.liftedGroupRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--row-min-height);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  font-size: var(--fs-body);
+}
+
 .rows > li + li {
   border-top: 1px solid var(--color-rule);
 }

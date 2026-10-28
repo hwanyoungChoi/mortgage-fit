@@ -3,22 +3,25 @@ import {
   DragOverlay,
   closestCenter,
   type Announcements,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import Plus from "lucide-react/icons/plus";
 import { useState } from "react";
 
 import { useLongPressSensors } from "@/hooks/useLongPressSensors";
 import { SCREEN_READER_INSTRUCTIONS } from "@/lib/constants/dragReorder";
-import { lineOrderAfterMove } from "@/lib/utils/lineOrderAfterMove";
+import { lineOrderAfterGroupMove, lineOrderAfterMove } from "@/lib/utils/lineOrderAfterMove";
 
 import EmptyItems from "./EmptyItems";
 import LineGroup from "./LineGroup";
 import LineSummary from "./LineSummary";
 import styles from "./PlanLines.module.css";
 import { useLineConfirmToggle } from "../hooks/useLineConfirmToggle";
+import { dragKindOf, groupDragIdOf, type LineDragKind } from "../lineDrag";
 import { lineNameOf } from "../lineName";
 import { ITEM_LIMIT_MESSAGE, lineOrderFailureMessage } from "../planWriteFailure";
 
@@ -57,12 +60,27 @@ function findLine(groups: readonly InteriorPlanRowGroup[], key: UniqueIdentifier
   return null;
 }
 
+/** 든 것과 같은 종류(줄·묶음)만 놓을 자리로 본다. 줄이 다른 묶음 위에, 묶음이 줄 위에 놓이지 않는다 */
+const sameKindClosestCenter: CollisionDetection = (args) =>
+  closestCenter({
+    ...args,
+    droppableContainers: args.droppableContainers.filter(
+      (container) => dragKindOf(container) === dragKindOf(args.active),
+    ),
+  });
+
+/** 든 순간의 묶음에서 묶음 찾기(묶음, 자리) */
+function findGroup(groups: readonly InteriorPlanRowGroup[], id: UniqueIdentifier) {
+  const index = groups.findIndex((group) => groupDragIdOf(group.trade) === id);
+  return index === -1 ? null : { group: groups[index], position: index + 1 };
+}
+
 /**
  * 목록 보기: (상한이면 안내) → 안내 한 줄(확정 저장 결과·순서 저장 실패) → 공정(구분)별 묶음 + 떠 있는 [+](줄 추가).
  * [+]는 화면 오른쪽 아래, 하단 탭 줄 바로 위에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있다.
  * 시트가 열리면 이 화면과 함께 inert다.
  * 줄 DOM은 key `item.id:quote.id`로 유지돼 저장·폴링 뒤에도 다시 마운트되지 않는다(스크롤 위치 유지).
- * 줄을 꾹 눌러(키보드는 스페이스) 같은 묶음 안에서 옮긴다. 든 동안에는 든 순간의 묶음을 그린다(재조회로 줄이 바뀌어도
+ * 줄을 꾹 눌러(키보드는 스페이스) 같은 묶음 안에서 옮기고, 묶음 제목을 꾹 눌러 묶음을 통째로 옮긴다. 든 동안에는 든 순간의 묶음을 그린다(재조회로 줄이 바뀌어도
  * 끄는 줄이 밀리지 않게, 놓은 뒤 반영). 놓을 때 저장 값은 그 스냅샷과 놓는 순간의 묶음으로 만든다(`lineOrderAfterMove`).
  */
 function PlanLines({
@@ -78,9 +96,13 @@ function PlanLines({
   const { savingItemIds, toggle } = useLineConfirmToggle(onConfirmWrite, setNotice);
   const [draggedGroups, setDraggedGroups] = useState<InteriorPlanRowGroup[] | null>(null);
   const [activeKey, setActiveKey] = useState<UniqueIdentifier | null>(null);
+  const [dragKind, setDragKind] = useState<LineDragKind | null>(null);
   const sensors = useLongPressSensors();
   const shownGroups = draggedGroups ?? groups;
-  const activeLine = activeKey === null ? null : findLine(shownGroups, activeKey);
+  const activeLine =
+    activeKey === null || dragKind !== "line" ? null : findLine(shownGroups, activeKey);
+  const activeGroup =
+    activeKey === null || dragKind !== "group" ? null : findGroup(shownGroups, activeKey);
 
   const nameOfKey = (key: UniqueIdentifier) => {
     const line = findLine(shownGroups, key);
@@ -93,7 +115,34 @@ function PlanLines({
     return line === null || over === null || over.group !== line.group ? null : over.position;
   };
 
-  const announcements: Announcements = {
+  const groupAnnouncements: Announcements = {
+    onDragStart: ({ active }) => {
+      const found = findGroup(shownGroups, active.id);
+      return found === null
+        ? ""
+        : `'${found.group.trade}' 묶음을 들었습니다. 묶음 ${shownGroups.length}개 중 ${found.position}번째입니다.`;
+    },
+    onDragOver: ({ active, over }) => {
+      const trade = findGroup(shownGroups, active.id)?.group.trade ?? "";
+      const position = over === null ? null : findGroup(shownGroups, over.id)?.position;
+      return position === undefined || position === null
+        ? `'${trade}' 묶음이 목록 밖에 있습니다. 놓으면 제자리입니다.`
+        : `'${trade}' 묶음을 ${position}번째 자리로 옮겼습니다.`;
+    },
+    onDragEnd: ({ active, over }) => {
+      const trade = findGroup(shownGroups, active.id)?.group.trade ?? "";
+      const position = over === null ? null : findGroup(shownGroups, over.id)?.position;
+      return position === undefined || position === null
+        ? `'${trade}' 묶음을 놓았습니다. 순서는 그대로입니다.`
+        : `'${trade}' 묶음을 ${position}번째 자리에 놓았습니다.`;
+    },
+    onDragCancel: ({ active }) => {
+      const found = findGroup(shownGroups, active.id);
+      return `옮기기를 취소했습니다. '${found?.group.trade ?? ""}' 묶음은 ${found?.position ?? 0}번째 자리 그대로입니다.`;
+    },
+  };
+
+  const lineAnnouncements: Announcements = {
     onDragStart: ({ active }) => {
       const line = findLine(shownGroups, active.id);
       return line === null
@@ -116,6 +165,16 @@ function PlanLines({
       `옮기기를 취소했습니다. '${nameOfKey(active.id)}' 줄은 ${findLine(shownGroups, active.id)?.position ?? 0}번째 자리 그대로입니다.`,
   };
 
+  /** 알림은 든 것의 종류에 따라 묶음·줄 문장을 고른다 */
+  const announcementsOf = (active: DragStartEvent["active"]) =>
+    dragKindOf(active) === "group" ? groupAnnouncements : lineAnnouncements;
+  const announcements: Announcements = {
+    onDragStart: (event) => announcementsOf(event.active).onDragStart(event),
+    onDragOver: (event) => announcementsOf(event.active).onDragOver(event),
+    onDragEnd: (event) => announcementsOf(event.active).onDragEnd(event),
+    onDragCancel: (event) => announcementsOf(event.active).onDragCancel(event),
+  };
+
   const reorder = async (lineOrder: string[]) => {
     const result = await onReorder(lineOrder);
     // 성공하면 앞선 실패 안내를 지운다. 실패하면 저장 중 순서가 풀려 원래 순서로 돌아와 있다
@@ -125,16 +184,31 @@ function PlanLines({
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveKey(active.id);
+    setDragKind(dragKindOf(active));
     setDraggedGroups(groups);
+  };
+
+  const clearDrag = () => {
+    setActiveKey(null);
+    setDragKind(null);
+    setDraggedGroups(null);
   };
 
   // 고정 해제와 저장 중 순서 설정(onReorder)은 같은 이벤트 안이라 원래 순서가 한 프레임도 보이지 않는다
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     const snapshot = draggedGroups;
-    setActiveKey(null);
-    setDraggedGroups(null);
-    const line = snapshot === null ? null : findLine(snapshot, active.id);
-    if (snapshot === null || line === null || over === null) return;
+    clearDrag();
+    if (snapshot === null || over === null) return;
+    if (dragKindOf(active) === "group") {
+      const from = findGroup(snapshot, active.id);
+      const to = findGroup(snapshot, over.id);
+      if (from === null || to === null) return;
+      const lineOrder = lineOrderAfterGroupMove(snapshot, groups, from.group.trade, to.group.trade);
+      if (lineOrder !== null) void reorder(lineOrder);
+      return;
+    }
+    const line = findLine(snapshot, active.id);
+    if (line === null) return;
     const lineOrder = lineOrderAfterMove(
       snapshot,
       groups,
@@ -161,7 +235,7 @@ function PlanLines({
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={sameKindClosestCenter}
           // 끌기 알림 영역(role="status")은 body로 보내 목록 위 안내 줄(role="status"·"alert")과 섞이지 않게 한다
           accessibility={{
             announcements,
@@ -170,30 +244,47 @@ function PlanLines({
           }}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => {
-            setActiveKey(null);
-            setDraggedGroups(null);
-          }}
+          onDragCancel={clearDrag}
         >
-          <div className={styles.groups}>
-            {shownGroups.map((group) => (
-              <LineGroup
-                key={group.trade}
-                group={group}
-                canReorder={canReorder}
-                savingItemIds={savingItemIds}
-                canAddLine={canAddLine}
-                onLineAdd={onLineAdd}
-                onLineOpen={onLineOpen}
-                onConfirmChange={(row, isConfirmed) => void toggle(row, isConfirmed)}
-              />
-            ))}
-          </div>
-          {/* 뜬 줄은 버튼·체크 없는 표시라 보조기기에서 뺀다(이름·체크가 겹치지 않게) */}
+          <SortableContext
+            id="groups"
+            items={shownGroups.map((group) => groupDragIdOf(group.trade))}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className={styles.groups}>
+              {shownGroups.map((group) => (
+                <LineGroup
+                  key={group.trade}
+                  group={group}
+                  canReorder={canReorder}
+                  canMoveGroup={canReorder && shownGroups.length > 1}
+                  dragKind={dragKind}
+                  savingItemIds={savingItemIds}
+                  canAddLine={canAddLine}
+                  onLineAdd={onLineAdd}
+                  onLineOpen={onLineOpen}
+                  onConfirmChange={(row, isConfirmed) => void toggle(row, isConfirmed)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          {/* 뜬 줄·묶음은 버튼·체크 없는 표시라 보조기기에서 뺀다(이름·체크가 겹치지 않게) */}
           <DragOverlay>
             {activeLine !== null && (
               <div className={styles.liftedRow} aria-hidden="true">
                 <LineSummary row={activeLine.row} />
+              </div>
+            )}
+            {activeGroup !== null && (
+              <div className={styles.liftedGroup} aria-hidden="true">
+                <p className={styles.groupTitle}>{activeGroup.group.trade}</p>
+                <ul className={styles.rows}>
+                  {activeGroup.group.rows.map((row) => (
+                    <li key={row.key} className={styles.liftedGroupRow}>
+                      <LineSummary row={row} />
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </DragOverlay>
