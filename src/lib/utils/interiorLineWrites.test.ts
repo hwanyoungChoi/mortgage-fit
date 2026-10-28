@@ -616,13 +616,23 @@ describe("2단계 업체 비우기 (ADR-036 조건 9, U2)", () => {
 describe("2단계 업체 비우기: 기존 줄 경계 (ADR-036 조건 9, U2)", () => {
   it("견적 없는 줄(L의 Y)에서 비고만 고쳐 저장 → quotes 키 없음, 업체만 채우면 견적 1개(금액 없음)", () => {
     const y = legacyY();
-    const memoOnly = editLineInput(y, null, { trade: y.trade, note: "메모" }, fixedId);
+    const memoOnly = editLineInput(
+      y,
+      null,
+      { trade: y.trade, note: "메모", isConfirmed: false },
+      fixedId,
+    );
     expect(Object.hasOwn(memoOnly, "quotes")).toBe(false);
     expect(Object.hasOwn(memoOnly, "confirmedQuoteId")).toBe(false);
     expect(memoOnly.memo).toBe("메모");
     expect(validateInteriorItemFields(memoOnly)).toStrictEqual(memoOnly);
 
-    const vendorOnly = editLineInput(y, null, { trade: y.trade, vendor: "육문수" }, fixedId);
+    const vendorOnly = editLineInput(
+      y,
+      null,
+      { trade: y.trade, vendor: "육문수", isConfirmed: false },
+      fixedId,
+    );
     expect(vendorOnly.quotes).toStrictEqual([{ id: "new-quote", vendor: "육문수" }]);
   });
 
