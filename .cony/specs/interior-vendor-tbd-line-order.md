@@ -285,7 +285,7 @@
   - 스크린리더 안내·알림이 "화면 — 줄 끌어 옮기기"의 문장 그대로다(묶음 안 위치 "n개 중 k번째").
   - 줄이 하나인 묶음([철거: R9])의 여는 버튼에는 `aria-roledescription`이 없고 스페이스는 들지 않는다.
   - 표 보기에는 끌기 속성·`DragOverlay`가 없다. 시트가 열린 동안 목록은 inert라 들 수 없다.
-  - **공용화 범위**: 꾹 누르기 값(`LONG_PRESS`)·키보드 키(`KEYBOARD_CODES`)·안내 문장(`SCREEN_READER_INSTRUCTIONS`)·센서 설정은 한 곳에서 가져온다(`CompactListingList`와 `PlanLines`가 같은 export를 import, 복사 0, 값은 단위 테스트로 단언). 알림 문장은 각자 둔다. **저장 목록 끌기에는 자동 테스트가 없다**(검색 0건, 검증은 브라우저 터치 에뮬레이션이었다). 그래서 "기존 끌기 테스트 diff 0" 기준은 두지 않고, 공용 export로 옮긴 뒤 **리드가 브라우저에서 저장 목록 끌기를 다시 확인한 결과**를 qa 기록에 남긴다(ADR-036 조건 6).
+  - **공용화 범위**: 꾹 누르기 값(`LONG_PRESS`)·키보드 키(`KEYBOARD_CODES`)·안내 문장(`SCREEN_READER_INSTRUCTIONS`)·센서 설정은 한 곳에서 가져온다(`CompactListingList`와 `PlanLines`가 같은 export를 import, 복사 0, 값은 단위 테스트로 단언). 알림 문장은 각자 둔다. 태스크 1-0이 저장 목록 끌기 특성 테스트(`CompactListingList.test.tsx`, 키보드·꾹 누르기 14개)를 더했으므로 공용 export로 옮긴 뒤 **그 파일 diff 0으로 통과**해야 하고, 리드가 브라우저에서 저장 목록 끌기를 다시 확인한 결과도 qa 기록에 남긴다(ADR-036 조건 6).
   - 수동 확인: iOS Safari·Android Chrome에서 꾹 눌러 끌기, 끄는 중 화면 끝 자동 스크롤, 360px에서 든 줄 모양, 끄는 중 텍스트 선택·확대경이 뜨지 않는지.
 - [ ] **AC-5 시트에서 업체 비우기**(태스크 2)
   - [+]에서 구분 "조명", 세부내용 "거실 간접등", 견적 300,000, 업체 빈칸, 확정 켜고 저장 → `addItem` 입력이 `{ spaceId: "sp-whole", trade: "조명", quotes: [{ id, memo: "거실 간접등", amountWon: 300000 }], confirmedQuoteId: id, status: "planned" }`와 `toStrictEqual`(`vendor` 키 없음).
