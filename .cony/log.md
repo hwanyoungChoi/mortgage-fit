@@ -690,3 +690,12 @@
 - AI(리드) 1단계 화면 확인(dev 5199, 390×844, 로그아웃, 업체 없는 견적 시드): 목록 "업체 미정" 흐린 둘째 줄·금액 미정 "미정", 표 업체 칸 "미정"·견적 없는 칸 빈칸, 요약 "금액 미정 1건 제외". 꾹 눌러(마우스 400ms) 같은 묶음 안 옮김 → `lineOrder` 저장·새로고침 뒤 유지·표 순서 같음, 다른 묶음 위에 놓기 → 그대로, [확정] 체크 꾹 눌러도 안 들림, 뜬 줄 `--color-accent-soft`·그림자 없음·aria-hidden, 짧게 누르면 시트 열림. 저장 목록 간단히 보기 끌기 재확인(공용 상수 뒤) → `listing-order` 저장 정상. 못 본 것: 실기기 터치·놓은 뒤 실제 click 억제(합성 이벤트라 click 없음), 스크린리더, 로그인·가구 출처(테스트로)
 - AI(qa) 1-4(경량): 통과. 66446d2(저장 실패 되돌리기·`lineOrder` 계획 읽기만으로 쓰기 0, 테스트 2개). 옛 파서 재현: f5ad2b0에서 V → corrupt, P+lineOrder → ok(키만 버림), 옛 store addItem 뒤 lineOrder 소실(예상). 변이·AC-2/4 세부 미검증(사용자 지시) ([기록](reviews/20261028-1000-qa-task-1.md))
 - AI(리드): code-review-fe 정식 실행 생략(테스트 경량화 지시) — containers 직접 fetch/axios grep 0, 새 파일 이름 규칙(PascalCase 컴포넌트·use 훅·camelCase 모듈) 확인
+
+## 1단계 PR·배포
+
+- AI(리드): PR #44 CI(verify·Workers Builds) 통과 후 squash 머지(d5cdbde). 운영 반영 2026-10-28 09:48(번들 index-hLBRjjVC.js, "업체 미정" 포함). **새 롤백 하한: d5cdbde**
+- AI(리드): 2단계(시트 업체 비우기) 구현은 브랜치 `cony/interior-vendor-tbd-2`에서 먼저 하고, 머지는 사용자 게이트 확인 뒤
+- 요청(사용자, 2026-10-28 2단계 게이트): "네, 없음" — 두 분 기기의 우리 집 탭 새로고침 완료, 계정으로 옮기지 않은 로컬 전용 계획 없음. fe 2-1 끝나면 검증 뒤 바로 머지
+- AI(fe) 2-1: 000be5c(업체 선택 칸 "업체(비우면 미정)", `editedQuote` vendor 구조 분해, U2 `createsQuote` 한 곳, U3 체크 설명). 2842 → 2847, 공용 검증·타입·server diff 0. 반전: 업체 필수 단언 6곳(의도), 라벨 바뀐 선택자 기계적 수정
+- AI(리드) 2단계 화면 확인(dev, 390px): 한빛철거 줄 업체 지우고 저장 → 저장 원문 견적 `{id, amountWon}`(vendor 키 없음), 줄은 같은 자리(`lineOrder` 그대로)에 "업체 미정 · 1,200,000원"
+- AI(qa) 2-2(경량): 통과. 게이트 증거 4종(d5cdbde `--is-ancestor` 0, 운영 번들 index-hLBRjjVC.js "업체 미정", 사용자 "네, 없음", 공용 검증·타입·server diff 0). df62800(기존 줄 경계 테스트 2개) ([기록](reviews/20261028-1010-qa-task-2.md))

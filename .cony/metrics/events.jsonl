@@ -290,3 +290,6 @@
 {"ts":"2026-10-28T00:37:01.461Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorLineOrder.test.ts"}
 {"ts":"2026-10-28T00:39:19.861Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-28T00:43:28.091Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-28T00:48:38.638Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-28T00:56:06.798Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-10-28T00:57:15.475Z","type":"task","task":2,"from":"review","to":"done","owner":null}
