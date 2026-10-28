@@ -672,3 +672,21 @@
 - AI(리드) 화면 비평(390px): 우리 집·계산은 방향대로(남은 예산 코발트 30px, 채운 입력칸, 옅은 파랑 선택). 홈 기능 카드가 글자만 든 상자라 위계·누름 신호가 없음 → fe에 chevron·현황 숫자 두 줄·대출 계산 카드 위계 한 번 더
 - AI(fe): 1d8b4d3(홈 카드 chevron·현황 두 줄 `HubSummaryPair`·대출 계산 카드 위계). 테스트 선택자 2줄(정확 일치 단언 유지)
 - AI(리드) 화면 확인(390·360): 홈 카드 위계·chevron, 저장 목록 펼침(자기자금 큰 숫자, 옅은 배지), 계산 하단 요약(예상 한도 코발트·[저장] 파랑) 확인. 검증: 기존 테스트 변경은 위 2줄뿐, lint·format·test 2628·build 통과. 행동 무변경 화면 개편이라 qa 에이전트 대신 리드가 테스트 diff 감사(단언 약화 0)
+- AI(리드): PR #43 CI 통과 후 squash 머지(f5ad2b0), 운영 반영 2026-10-28 00:53(번들 index-0aAuc-Ng.js), 운영 홈 390px 새 스타일 확인
+
+# 업체 미정 · 우리 집 줄 끌어 옮기기
+
+- 요청: "업체도 비우고입력 시 미정으로 해줘" / "집 목록처럼 눌러서 드래그로 위치바꿀 수 있게해줘" / "+ - 그리고 000, 00 키보드에 나오게하려면 커스텀키보드라 오래걸리지? 오래걸리면 이건 보류"
+- AI(리드): 키패드는 보류(웹은 기본 키보드에 키를 더할 수 없어 직접 그린 키패드가 필요 — 범위 큼). 다음 단계 후보, 가벼운 대안은 빠른 더하기 칩
+- AI(리드): 업체 미정은 `vendor` 필수 → 선택 완화라 ADR-033 조건 2대로 2단계 배포(시간 대기 없음, 사용자 확인만). 줄 순서는 모르는 키를 버리는 공용 검증이라 옛 번들에 안전 → 1단계에 함께. 브랜치 `cony/interior-vendor-tbd-line-order`, pm 스펙 작성 중
+- 토론: 스펙 검토 be·fe·qa 모두 조건부 찬성, 반대 없음 → [ADR-036](decisions/036-vendor-tbd-line-order.md) D1 A(플랜 필드 `lineOrder`) · D2 A(PATCH만 128KB). 빈 배열은 로컬·서버 모두 키 삭제로 통일(400 경로 없음), 계획 POST는 `lineOrder` 버림
+- AI(리드): pm 스펙 반영 완료(1-0 골든·스파이크 선행 추가, A9 마지막 견적 지운 항목은 위치 없음 → 맨 끝 고정). 1-0 qa 시작
+- AI(qa) 1-0: da89318(골든 f5ad2b0 — 순수 함수 43·화면 21·서버 7, 저장 목록 끌기 특성 테스트 14 `CompactListingList.test.tsx`, 헬퍼 `src/test/dndKitJsdom.ts`). jsdom 키보드·꾹 누르기 자동 가능, 버그 되살리기 17개 모두 잡힘 ([기록](reviews/20261028-0915-qa-task-1-0.md))
+- AI(리드): qa 제안 채택 — AC-4 "공용화 뒤 `CompactListingList.test.tsx` diff 0 통과"로 스펙 수정. 1-1 be 시작
+- AI(be) 1-1: 896a173(`vendor?`·`lineOrder` 타입, `parseLineOrder`(ID_PATTERN에서 정규식), 서버 PATCH `[]`/null 키 삭제·128KB, 계획 POST `lineOrder` 버림, 로컬 `applyPlanPatch`). 2713 → 2792 + 1 todo, 기존 server 테스트·골든 diff 0, 반전 expect 1줄, 버그 14개 모두 잡힘. flaky `handleHousehold.d1` "leave 204" 1회(알려진 백로그)
+- AI(리드): 로컬 `createPlan`도 `lineOrder`를 버려 서버 POST와 맞춘다(fe 1-3에 포함). 계획 POST는 틀린 `lineOrder`도 400 없이 버림 — ADR-029 조건 2와 같아 승인
+- 되돌림(사용자): "테스트 줄여. fe 변이 실험 빼고, qa는 핵심 AC와 화면 확인 위주로" — 60분 중 약 절반이 테스트(1-0 qa 16.5분 전부, 1-1 be 절반 이상 추정, 테스트 +164개)였다는 보고 뒤. fe에 변이 실험 중단·핵심 테스트만 전달, qa 1-4는 핵심 AC(데이터 보존·업체 미정 표시·끌어서 저장)와 화면 확인 위주로
+- AI(fe) 1-2·1-3: 07c447d(업체 미정 표시 — `vendorOf`, 표 업체 칸 판별 유니온 + `tableVendorText`, "업체 미정" 흐린 글자 6.1:1) · 0f765c4(`lineOrder` 읽기·`lineOrderAfterMove`, 묶음별 끌기, 공용 `dragReorder` 상수·`useLongPressSensors`, PlanScreen pending `{planId, lineOrder}`, 안내 줄 하나, 로컬 `createPlan` `lineOrder` 버림). 2792 → 2840 + 1 todo, 골든·`CompactListingList.test.tsx`·server diff 0. 기존 테스트 수정: 표 업체 칸 유니온 2파일, dnd-kit 알림 영역 때문에 status 선택자 `within(main)` 3줄(기대 글자 그대로). 변이 실험 생략(사용자 지시)
+- AI(리드) 1단계 화면 확인(dev 5199, 390×844, 로그아웃, 업체 없는 견적 시드): 목록 "업체 미정" 흐린 둘째 줄·금액 미정 "미정", 표 업체 칸 "미정"·견적 없는 칸 빈칸, 요약 "금액 미정 1건 제외". 꾹 눌러(마우스 400ms) 같은 묶음 안 옮김 → `lineOrder` 저장·새로고침 뒤 유지·표 순서 같음, 다른 묶음 위에 놓기 → 그대로, [확정] 체크 꾹 눌러도 안 들림, 뜬 줄 `--color-accent-soft`·그림자 없음·aria-hidden, 짧게 누르면 시트 열림. 저장 목록 간단히 보기 끌기 재확인(공용 상수 뒤) → `listing-order` 저장 정상. 못 본 것: 실기기 터치·놓은 뒤 실제 click 억제(합성 이벤트라 click 없음), 스크린리더, 로그인·가구 출처(테스트로)
+- AI(qa) 1-4(경량): 통과. 66446d2(저장 실패 되돌리기·`lineOrder` 계획 읽기만으로 쓰기 0, 테스트 2개). 옛 파서 재현: f5ad2b0에서 V → corrupt, P+lineOrder → ok(키만 버림), 옛 store addItem 뒤 lineOrder 소실(예상). 변이·AC-2/4 세부 미검증(사용자 지시) ([기록](reviews/20261028-1000-qa-task-1.md))
+- AI(리드): code-review-fe 정식 실행 생략(테스트 경량화 지시) — containers 직접 fetch/axios grep 0, 새 파일 이름 규칙(PascalCase 컴포넌트·use 훅·camelCase 모듈) 확인

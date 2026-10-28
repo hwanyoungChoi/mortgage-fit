@@ -4,7 +4,7 @@ import {
   INTERIOR_PLAN_TABLE_TOTAL_LABEL,
 } from "@/lib/constants/interiorPlanTable";
 import { formatThousands } from "@/lib/utils/amount";
-import { tableAmountText } from "@/lib/utils/buildInteriorPlanTable";
+import { tableAmountText, tableVendorText } from "@/lib/utils/buildInteriorPlanTable";
 
 import styles from "./PlanTable.module.css";
 
@@ -45,7 +45,7 @@ function PlanTableRow({ row, trade }: PlanTableRowProps) {
           {trade.name}
         </th>
       )}
-      <td className={styles.vendorCell}>{row.vendor}</td>
+      <td className={styles.vendorCell}>{tableVendorText(row.vendor)}</td>
       <td className={styles.detailCell}>{row.detail}</td>
       <AmountCell won={row.quoteWon} />
       <AmountCell won={row.confirmedWon} />

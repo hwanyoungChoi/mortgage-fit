@@ -291,3 +291,39 @@ export const PLAN_M_CSV_LINES = [
   "조명,한빛전기,,미정,미정,",
   "계,,,,10469500,금액 미정 1건 제외",
 ];
+
+// 스펙 interior-vendor-tbd-line-order "수용 기준"의 예시 V: P⁺(R1~R7) 뒤에 업체 미정 줄 R8·R9를 이 순서로 더한다(총 예산 1,000).
+// 위 헬퍼는 `vendor: string` 인자라 업체 키 없는 견적을 만들 수 없어 새 헬퍼를 둔다(기존 헬퍼는 그대로).
+
+/** 업체 미정 줄 = 견적 1개 항목, 견적에 `vendor` 키가 없다(ADR-036). 견적의 다른 키는 받은 그대로 */
+function vendorTbdRow(
+  index: number,
+  trade: string,
+  quoteKeys: Omit<InteriorQuote, "id" | "vendor">,
+  isConfirmed: boolean,
+): InteriorItem {
+  const quoteId = `rq${index}`;
+  return {
+    id: `r${index}`,
+    spaceId: "sp-whole",
+    trade,
+    quotes: [{ id: quoteId, ...quoteKeys }],
+    ...(isConfirmed && { confirmedQuoteId: quoteId }),
+    status: "planned",
+    createdAt: simpleTime(index),
+    updatedAt: simpleTime(index),
+  };
+}
+
+/** R8 조명·업체 키 없음·거실 간접등·300,000원(`amountWon`) ✓ */
+export const r8 = () => vendorTbdRow(8, "조명", { memo: "거실 간접등", amountWon: 300_000 }, true);
+/** R9 철거·견적 `{ id: "rq9" }`(업체·금액·세부내용 없음)·미확정 */
+export const r9 = () => vendorTbdRow(9, "철거", {}, false);
+
+/** 계획 V = P⁺ + R8·R9. 부를 때마다 새 객체다 */
+export function makePlanV(overrides: Partial<InteriorPlanWithItems> = {}): InteriorPlanWithItems {
+  return makeSimplePlanP({
+    items: [r1(), r2(), r3(), r4(), r5(), r6(), r7(), r8(), r9()],
+    ...overrides,
+  });
+}

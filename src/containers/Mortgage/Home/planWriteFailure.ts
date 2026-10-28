@@ -34,6 +34,30 @@ export const OTHER_CONFIRM_RELEASED_MESSAGE = "같은 항목의 다른 견적 �
 export const PLAN_LIMIT_MESSAGE = `계획은 ${INTERIOR_PLAN_MAX_COUNT}개까지 만들 수 있습니다`;
 export const ITEM_LIMIT_MESSAGE = `항목은 계획마다 ${INTERIOR_ITEM_MAX_COUNT}개까지 적을 수 있습니다`;
 
+/** 줄 순서 저장 실패 문구의 앞머리(저장 목록 순서 실패와 같은 말) */
+const LINE_ORDER_FAILURE = "순서를 저장하지 못해 원래 순서로 되돌렸습니다";
+
+/**
+ * 줄 순서 저장(`updatePlan`) 실패 → 목록 위 한 줄. null이면 두지 않는다(401은 홈의 세션 만료 안내가 알린다, ADR-035 조건 5).
+ * `conflict`는 `updatePlan`에서 나오지 않는다. 사유가 늘면 타입 검사가 걸린다.
+ */
+const LINE_ORDER_FAILURE_MESSAGES: Record<Exclude<FailureReason, "conflict">, string | null> = {
+  network: `${LINE_ORDER_FAILURE}. 연결을 확인하고 다시 시도해 주세요`,
+  unauthorized: null,
+  invalid: LINE_ORDER_FAILURE,
+  limit: LINE_ORDER_FAILURE,
+  unavailable: `${LINE_ORDER_FAILURE}. ${WRITE_FAILURE_MESSAGES.unavailable}`,
+  corrupt: `${LINE_ORDER_FAILURE}. ${WRITE_FAILURE_MESSAGES.corrupt}`,
+  notFound: `${LINE_ORDER_FAILURE}. ${WRITE_FAILURE_MESSAGES.notFound}`,
+  deletedInHousehold: `${LINE_ORDER_FAILURE}. ${WRITE_FAILURE_MESSAGES.deletedInHousehold}`,
+  notReady: `${LINE_ORDER_FAILURE}. ${WRITE_FAILURE_MESSAGES.notReady}`,
+};
+
+export function lineOrderFailureMessage(reason: FailureReason): string | null {
+  // 출처 쓰기 결과 타입이 conflict를 함께 가질 뿐 계획 PATCH에는 조건부 쓰기가 없다
+  return reason === "conflict" ? LINE_ORDER_FAILURE : LINE_ORDER_FAILURE_MESSAGES[reason];
+}
+
 /** 플랜 만들기는 플랜 상한, 항목 추가는 항목 상한, 그 밖의 쓰기에서는 상한이 생기지 않는다 */
 export function planWriteFailureMessage(reason: FailureReason, limitMessage = ""): string {
   return reason === "limit" ? limitMessage : WRITE_FAILURE_MESSAGES[reason];

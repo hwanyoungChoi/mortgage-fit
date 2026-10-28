@@ -7,7 +7,7 @@ import { makePlanQ, qAircon } from "@/test/interiorPlanTableFixture";
 import { makePlanL, makeSimplePlanP } from "@/test/interiorSimpleFixture";
 
 import { formatThousands } from "./amount";
-import { buildInteriorPlanTable } from "./buildInteriorPlanTable";
+import { buildInteriorPlanTable, tableVendorText } from "./buildInteriorPlanTable";
 import { buildInteriorPlanRows, summarizeInteriorPlan } from "./interiorPlanRows";
 
 import type { InteriorPlanTable, InteriorPlanTableRow } from "./buildInteriorPlanTable";
@@ -21,7 +21,7 @@ const flat = (table: InteriorPlanTable) =>
   table.groups.flatMap((group) =>
     group.rows.map((row) => [
       group.trade,
-      row.vendor,
+      tableVendorText(row.vendor),
       row.detail,
       row.quoteWon,
       row.confirmedWon,
@@ -155,7 +155,7 @@ describe("buildInteriorPlanTable — 비고 (항목 메모 · 빈 줄의 예산)
 
   it("비고가 빈 줄: 견적 0개·예산 없음·항목 메모 없음 → 업체·세부내용·견적·확정·비고 빈칸", () => {
     expect(onlyRow(item())).toEqual({
-      vendor: "",
+      vendor: { kind: "none" },
       detail: "",
       quoteWon: undefined,
       confirmedWon: undefined,

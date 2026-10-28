@@ -94,7 +94,7 @@ describe("줄 수정 행렬: 고친 견적만 amountWon(비우면 두 키 없음
     const original = item.quotes!.find((quote) => quote.id === quoteId)!;
     const values: InteriorLineValues = {
       trade: item.trade,
-      vendor: original.vendor,
+      vendor: original.vendor!,
       ...(won !== undefined && { amountWon: won }),
       ...(original.memo !== undefined && { detail: original.memo }),
       ...(item.memo !== undefined && { note: item.memo }),

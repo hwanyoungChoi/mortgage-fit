@@ -1,16 +1,23 @@
 import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
 
-import { rowNoteOf, tbdExclusionNote } from "./interiorPlanRows";
+import { rowNoteOf, tbdExclusionNote, vendorOf } from "./interiorPlanRows";
 
 import type { InteriorPlanRow, InteriorPlanRows } from "./interiorPlanRows";
 
 /** 금액 칸 값: 원 단위 금액 / "tbd" 금액 미정(견적은 있고 금액 키가 없음, ADR-033) / undefined 빈칸 */
 export type InteriorPlanTableAmount = number | "tbd" | undefined;
 
+/**
+ * 업체 칸 값: 견적 없음(빈칸) / 업체 미정(견적은 있고 업체 키가 없음, ADR-036) / 업체 이름.
+ * 업체 이름이 글자 그대로 "미정"·"tbd"일 수 있어 센티넬 문자열 하나에 두 뜻을 싣지 않는다(ADR-036 조건 8)
+ */
+export type InteriorPlanTableVendor =
+  { kind: "none" } | { kind: "tbd" } | { kind: "named"; name: string };
+
 /** 표의 한 줄 = 목록의 한 줄(항목, 견적 한 쌍). 금액은 원 단위(`InteriorPlanRow.quoteWon`) */
 export type InteriorPlanTableRow = {
-  /** 견적의 업체. 견적 없는 줄은 "" */
-  vendor: string;
+  /** 업체 칸. 글자는 `tableVendorText`로만 만든다 */
+  vendor: InteriorPlanTableVendor;
   /** 세부내용 = 견적 메모. 없으면 "" */
   detail: string;
   /** 견적 금액(원). 금액 미정이면 "tbd", 견적 없는 줄은 undefined */
@@ -36,11 +43,18 @@ function amountOf(row: InteriorPlanRow): InteriorPlanTableAmount {
   return row.quoteWon ?? "tbd";
 }
 
+/** 줄 → 업체 칸. 견적 없음 / 업체 미정 / 이름을 여기서만 나눈다 */
+function vendorCellOf({ quote }: InteriorPlanRow): InteriorPlanTableVendor {
+  if (quote === null) return { kind: "none" };
+  const name = vendorOf(quote);
+  return name === null ? { kind: "tbd" } : { kind: "named", name };
+}
+
 function toRow(row: InteriorPlanRow): InteriorPlanTableRow {
   const { quote } = row;
   const quoteWon = amountOf(row);
   return {
-    vendor: quote?.vendor ?? "",
+    vendor: vendorCellOf(row),
     detail: quote?.memo ?? "",
     quoteWon,
     confirmedWon: row.isConfirmed ? quoteWon : undefined,
@@ -55,6 +69,17 @@ export function tableAmountText(
 ): string {
   if (amount === undefined) return "";
   return amount === "tbd" ? INTERIOR_PLAN_TBD_LABEL : formatAmount(amount);
+}
+
+/** 이름이 없는 업체 칸의 글자. 업체 미정은 금액 미정과 같은 "미정"이다(열 제목 "업체" 아래, U1) */
+const UNNAMED_VENDOR_TEXT: Record<Exclude<InteriorPlanTableVendor["kind"], "named">, string> = {
+  none: "",
+  tbd: INTERIOR_PLAN_TBD_LABEL,
+};
+
+/** 업체 칸의 글자(화면·인쇄·CSV 공통). 견적 없음은 "", 업체 미정은 "미정", 그 밖은 업체 이름 */
+export function tableVendorText(vendor: InteriorPlanTableVendor): string {
+  return vendor.kind === "named" ? vendor.name : UNNAMED_VENDOR_TEXT[vendor.kind];
 }
 
 /**

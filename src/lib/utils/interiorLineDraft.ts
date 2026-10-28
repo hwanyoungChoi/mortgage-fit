@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants/interiorPlan";
 
 import { validateWonAmount } from "./amount";
+import { vendorOf } from "./interiorPlanRows";
 import { optionalTextError, requiredTextError } from "./interiorTextErrors";
 
 import type { InteriorPlanRow } from "./interiorPlanRows";
@@ -37,7 +38,8 @@ export function toInteriorLineDraft({
 }: InteriorPlanRow): InteriorLineDraft {
   return {
     trade: item.trade,
-    vendor: quote?.vendor ?? "",
+    // 업체 미정(키 없음)은 빈칸이다
+    vendor: quote === null ? "" : (vendorOf(quote) ?? ""),
     // 원 글자로 채운다(옛 만원 `amount`도 `quoteWonOf`가 원으로 읽은 값). 0원은 "0"이다.
     // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게)
     amount: quoteWon === undefined ? "" : String(quoteWon),

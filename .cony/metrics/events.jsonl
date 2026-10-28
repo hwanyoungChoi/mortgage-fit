@@ -274,3 +274,19 @@
 {"ts":"2026-10-27T14:52:53.853Z","type":"status","status":"완료"}
 {"ts":"2026-10-27T15:17:06.561Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-27T15:38:17.312Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-27T15:48:21.229Z","type":"hook","hook":"guard-bash","decision":"deny","command":"gh pr checks 43 --watch --interval 15 2>&1 | tail -2 && gh pr merge 43 --squash --delete-branch >/dev/null 2>&1; gh pr view 43 --json state,mergeCommit -q '.state+\" \"+.mergeCommit.oid'; old=assets/ind"}
+{"ts":"2026-10-27T15:54:39.008Z","type":"status","status":"완료"}
+{"ts":"2026-10-27T23:43:38.196Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-27T23:53:48.317Z","type":"task","task":1,"from":"todo","to":"progress","owner":"qa"}
+{"ts":"2026-10-27T23:57:13.679Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"r.key"}
+{"ts":"2026-10-27T23:59:02.238Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorPlanGolden.test.ts"}
+{"ts":"2026-10-27T23:59:10.703Z","type":"hook","hook":"guard-bash","decision":"ask","command":"rm -rf src/__goldengen && pnpm prettier --write src/test/interiorPlanGolden.f5ad2b0.json src/test/interiorPlanScreenGolden.f5ad2b0.json src/test/interiorPlanGolden.ts src/test/interiorPlanScreenGolden"}
+{"ts":"2026-10-28T00:05:44.481Z","type":"hook","hook":"guard-bash","decision":"ask","command":"rm -rf src/__spike && pnpm prettier --write src/test/dndKitJsdom.ts src/containers/Mortgage/Listings/components/CompactListingList.test.tsx >/dev/null && pnpm lint 2>&1 | tail -5 && pnpm format:check "}
+{"ts":"2026-10-28T00:07:03.486Z","type":"hook","hook":"guard-bash","decision":"ask","command":"cat >> src/__spike/mouse.test.tsx <<'EOF'\nit(\"mouse: 250ms 전 6px 움직이면 안 든다 / 4px은 든다\", async () => {\n  r();\n  const b = btn(\"래미안\");\n  fireEvent.mouseDown(b, { clientX: 10, clientY: 130, button: 0 });\n"}
+{"ts":"2026-10-28T00:28:21.119Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorVendorTbd.test.ts"}
+{"ts":"2026-10-28T00:31:55.070Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"row.key"}
+{"ts":"2026-10-28T00:34:19.782Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Home/components/PlanLines.tsx"}
+{"ts":"2026-10-28T00:34:26.102Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Home/components/PlanLines.tsx"}
+{"ts":"2026-10-28T00:37:01.461Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorLineOrder.test.ts"}
+{"ts":"2026-10-28T00:39:19.861Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-28T00:43:28.091Z","type":"task","task":1,"from":"review","to":"done","owner":null}

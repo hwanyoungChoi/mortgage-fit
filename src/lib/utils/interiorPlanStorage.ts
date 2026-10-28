@@ -86,7 +86,8 @@ const mergeValue = <T>(current: T | undefined, next: T | null | undefined): T | 
 
 /**
  * 플랜 필드에 PATCH(키 없음 = 그대로, null = 지움)를 얹는다. 총 예산 두 키는 서버와 같은 `budgetMergePatch`로 정하고,
- * 둘 다 숫자면 null(거부)이다. 값 검증은 부르는 쪽이 한다.
+ * 둘 다 숫자면 null(거부)이다. 값 검증은 부르는 쪽이 한다. `lineOrder: []`는 그대로 넘기고 검증
+ * (`validateInteriorPlanFields`: 빈 배열 = 키 없음)이 지운다. 그래서 null과 `[]`가 같은 키 삭제다(ADR-036 조건 2).
  */
 function applyPlanPatch(
   plan: InteriorPlanWithItems,
@@ -97,12 +98,14 @@ function applyPlanPatch(
   const budget = mergeValue(plan.budget, budgets.budget);
   const budgetWon = mergeValue(plan.budgetWon, budgets.budgetWon);
   const listingId = mergeValue(plan.listingId, patch.listingId);
+  const lineOrder = mergeValue(plan.lineOrder, patch.lineOrder);
   return {
     name: patch.name ?? plan.name,
     ...(budget !== undefined && { budget }),
     ...(budgetWon !== undefined && { budgetWon }),
     ...(listingId !== undefined && { listingId }),
     spaces: patch.spaces ?? plan.spaces,
+    ...(lineOrder !== undefined && { lineOrder }),
   };
 }
 
@@ -200,7 +203,9 @@ export function createInteriorPlanStore({
       const current = readWritablePlans();
       if (!current.ok) return current;
       if (current.plans.length >= INTERIOR_PLAN_MAX_COUNT) return { ok: false, reason: "limit" };
-      const fields = validateInteriorPlanFields(planInput);
+      // `lineOrder`는 값과 상관없이 버린다(서버 계획 POST와 같다, ADR-036 조건 3): 항목 id를 여기서 새로 만들어
+      // 보낸 줄 key(`item.id:quote.id`)가 맞을 수 없다
+      const fields = validateInteriorPlanFields({ ...planInput, lineOrder: undefined });
       if (fields === null || itemInputs.length > INTERIOR_PLAN_CREATE_MAX_ITEMS) {
         return { ok: false, reason: "invalid" };
       }

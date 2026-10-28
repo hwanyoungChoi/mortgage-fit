@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { INTERIOR_ITEM_MAX_COUNT } from "@/lib/constants/interiorPlan";
 import { buildInteriorPlanRows, summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
@@ -31,7 +33,12 @@ type PlanScreenProps = {
     quoteId: string,
     isConfirmed: boolean,
   ) => Promise<InteriorPlanSourceWriteResult>;
+  /** 이 계획의 줄 순서(`lineOrder`)를 저장한다(플랜 PATCH 한 번, 출처는 모른다) */
+  onLineOrderWrite: (lineOrder: string[]) => Promise<InteriorPlanSourceWriteResult>;
 };
+
+/** 저장 중인 줄 순서. 계획 id와 묶는다(이 화면은 계획이 바뀌어도 같은 인스턴스라 다른 계획에 새지 않게) */
+type PendingLineOrder = { planId: string; lineOrder: string[] };
 
 const VIEW_OPTIONS: { value: HomeView; label: string }[] = [
   { value: "list", label: "목록" },
@@ -52,6 +59,8 @@ function LinkedListingLine({ linkedListing }: { linkedListing: LinkedListing }) 
 /**
  * 플랜 화면: 머리글(이름과 같은 줄 오른쪽 [⋯], 아래 연결 매물) → 요약 → [목록|표] → (목록) 공정별 목록 + 떠 있는 [+](줄 추가) / (표) 표 보기.
  * 체크와 요약은 같은 계획 값에서 매번 계산한다(ADR-007). `now`는 렌더마다 하나만 만들어 표 머리·파일 이름이 같이 쓴다.
+ * 끌어 놓은 줄 순서는 저장이 끝날 때까지 이 화면이 들고 있어 목록·표가 같은 순서를 보인다(저장 중 [표]로 바꿔도 같다).
+ * 저장이 끝나면(성공이면 캐시·로컬 스냅샷에 새 순서가 들어간 뒤) 풀고, 실패면 원래 순서로 돌아온다.
  */
 function PlanScreen({
   plan,
@@ -62,11 +71,25 @@ function PlanScreen({
   onLineOpen,
   onLineAdd,
   onConfirmWrite,
+  onLineOrderWrite,
 }: PlanScreenProps) {
+  const [pending, setPending] = useState<PendingLineOrder | null>(null);
+  const pendingLineOrder = pending?.planId === plan.id ? pending.lineOrder : null;
   const now = new Date();
   const summary = summarizeInteriorPlan(plan);
-  const rows = buildInteriorPlanRows(plan);
+  const rows = buildInteriorPlanRows({
+    items: plan.items,
+    lineOrder: pendingLineOrder ?? plan.lineOrder,
+  });
   const canAddLine = plan.items.length < INTERIOR_ITEM_MAX_COUNT;
+
+  const handleReorder = async (lineOrder: string[]) => {
+    const saving = { planId: plan.id, lineOrder };
+    setPending(saving);
+    const result = await onLineOrderWrite(lineOrder);
+    setPending((current) => (current === saving ? null : current));
+    return result;
+  };
 
   return (
     <>
@@ -103,9 +126,13 @@ function PlanScreen({
           today={toLocalDateString(now)}
         />
       ) : (
+        // 계획을 바꾸면 안내 줄·든 줄을 새로 시작한다
         <PlanLines
+          key={plan.id}
           groups={rows.groups}
           canAddLine={canAddLine}
+          canReorder={pendingLineOrder === null}
+          onReorder={handleReorder}
           onLineAdd={onLineAdd}
           onLineOpen={onLineOpen}
           onConfirmWrite={onConfirmWrite}
