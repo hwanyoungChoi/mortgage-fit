@@ -250,7 +250,7 @@ function ItemSheet({
         />
         <TextField
           {...textFieldProps("vendor")}
-          label="업체"
+          label="업체(비우면 미정)"
           maxLength={INTERIOR_VENDOR_MAX_LENGTH}
         />
         <AmountInput

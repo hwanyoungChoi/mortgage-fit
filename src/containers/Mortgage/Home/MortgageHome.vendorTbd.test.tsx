@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 스펙 interior-vendor-tbd-line-order 태스크 1-2 화면(AC-1): 예시 V(업체 미정 R8·R9)의 목록 글자·흐린 글자 클래스·접근 가능한 이름·
-// 요약·표 칸·1단계 시트(업체 칸 빈칸, 업체 없이 저장하면 필수 오류·쓰기 0회, 업체를 채우면 그 키만 더해짐)·허브.
+// 요약·표 칸·시트(업체 칸 빈칸, 2단계: 업체를 비운 채 저장하면 vendor 키 없음, 업체를 채우면 그 키만 더해짐)·허브.
 // 로그아웃(로컬)과 로그인(서버 응답 파서가 업체 없는 견적을 받는다) 두 출처로 목록을 본다.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -199,27 +199,51 @@ describe("표 보기 (AC-1)", () => {
   });
 });
 
-describe("1단계 줄 시트 (AC-1)", () => {
-  it("R9를 열면 업체 칸 빈칸, 업체 없이 저장하면 '업체 이름을 입력하세요'·쓰기 0회", async () => {
+describe("줄 시트 (AC-1, 2단계 AC-5)", () => {
+  it("[줄 추가] 조명·거실 간접등·300,000원·업체 빈칸·확정 → 저장 원문 견적에 vendor 키가 없다", async () => {
+    const user = userEvent.setup();
+    const storage = storageWith([makeSimplePlanP()]);
+    await renderLoggedOut(storage);
+    await user.click(screen.getByRole("button", { name: "줄 추가" }));
+    const dialog = screen.getByRole("dialog", { name: "줄 추가" });
+    await user.type(within(dialog).getByLabelText("구분"), "조명");
+    await user.type(within(dialog).getByLabelText("세부내용(선택)"), "거실 간접등");
+    await user.type(within(dialog).getByLabelText("견적(비우면 미정)"), "300000");
+    await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const plans = (
+      JSON.parse(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)!) as {
+        plans: InteriorPlanWithItems[];
+      }
+    ).plans;
+    const added = plans[0].items.find((item) => item.trade === "조명")!;
+    const { id, createdAt, updatedAt, ...input } = added;
+    void [id, createdAt, updatedAt];
+    const quoteId = added.quotes?.[0].id;
+    expect(input).toStrictEqual({
+      spaceId: "sp-whole",
+      trade: "조명",
+      quotes: [{ id: quoteId, memo: "거실 간접등", amountWon: 300000 }],
+      confirmedQuoteId: quoteId,
+      status: "planned",
+    });
+  });
+
+  it("R9를 열면 업체 칸 빈칸, 업체 없이 비고만 고쳐 저장하면 견적이 { id: 'rq9' } 그대로(vendor 키 없음, 2단계)", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanV()]);
     await renderLoggedOut(storage);
-    const before = storage.getItem(INTERIOR_PLANS_STORAGE_KEY);
-    const setItem = vi.spyOn(storage, "setItem");
     await user.click(openButton(R9_NAME));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    const vendor = within(dialog).getByLabelText("업체");
+    const vendor = within(dialog).getByLabelText("업체(비우면 미정)");
     expect(vendor).toHaveValue("");
     // 고친 것이 없으면 [저장]이 비활성이라 비고를 고친 뒤 업체 없이 저장한다
     await user.type(within(dialog).getByLabelText("비고(선택)"), "메모");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
-    expect(vendor).toHaveAccessibleDescription(expect.stringContaining("업체 이름을 입력하세요"));
-    // 오류 문구는 업체 칸 바로 뒤(같은 칸 묶음 안)에 있다
-    const error = document.getElementById(`${vendor.id}-error`) as HTMLElement;
-    expect(error).toHaveTextContent("업체 이름을 입력하세요");
-    expect(error.parentElement).toContainElement(vendor);
-    expect(setItem).not.toHaveBeenCalled();
-    expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(before);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(storedItem(storage, "r9")?.quotes).toStrictEqual([{ id: "rq9" }]);
+    expect(storedItem(storage, "r9")?.memo).toBe("메모");
   });
 
   it("R9에 업체 '철거왕'을 넣어 저장하면 견적이 { id: 'rq9', vendor: '철거왕' }이고 줄 자리는 그대로", async () => {
@@ -228,7 +252,7 @@ describe("1단계 줄 시트 (AC-1)", () => {
     await renderLoggedOut(storage);
     await user.click(openButton(R9_NAME));
     const dialog = screen.getByRole("dialog", { name: "줄" });
-    await user.type(within(dialog).getByLabelText("업체"), "철거왕");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "철거왕");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(storedItem(storage, "r9")?.quotes).toStrictEqual([{ id: "rq9", vendor: "철거왕" }]);

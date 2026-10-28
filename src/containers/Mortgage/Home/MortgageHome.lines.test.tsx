@@ -438,7 +438,7 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
     const blank = check("도배 확정");
     expect(blank).toBeDisabled();
     expect(blank).toHaveAccessibleDescription(
-      "견적이 없어 확정할 수 없습니다. 줄을 열어 업체를 적으세요",
+      "견적이 없어 확정할 수 없습니다. 줄을 열어 [확정]을 켜세요",
     );
     const setItem = vi.spyOn(storage, "setItem");
     fireEvent.click(blank);

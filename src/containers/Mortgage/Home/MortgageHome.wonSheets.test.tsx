@@ -106,7 +106,7 @@ describe("줄 시트 2단계 — 원 단위 견적 채우기 (예시 M, 로그�
     const storage = storageWith([makePlanM()]);
     await renderLoggedOut(storage);
     const { user, dialog } = await openLineSheet("욕실 하루바스");
-    const vendor = within(dialog).getByLabelText("업체");
+    const vendor = within(dialog).getByLabelText("업체(비우면 미정)");
     await user.clear(vendor);
     await user.type(vendor, "하루바스2");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
@@ -124,7 +124,7 @@ describe("줄 시트 2단계 — 원 단위 견적 채우기 (예시 M, 로그�
     const storage = storageWith([makePlanM()]);
     await renderLoggedOut(storage);
     const { user, dialog } = await openLineSheet("도배 육문수");
-    await user.type(within(dialog).getByLabelText("업체"), "2");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "2");
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     const [quote] = storedPlan(storage).items[0].quotes ?? [];

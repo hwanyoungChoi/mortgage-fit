@@ -175,11 +175,9 @@ describe("1단계 시트 채우기 (AC-1)", () => {
     });
   });
 
-  it("1단계: 업체 없이 저장하면 '업체 이름을 입력하세요'(업체 칸)", () => {
+  it("2단계: 업체 없이 그대로 열어도 오류가 없다(업체 미정 그대로 저장 가능)", () => {
     const draft = toInteriorLineDraft(rowOf(makePlanV(), "r9:rq9"));
-    expect(interiorLineDraftErrors(draft)).toStrictEqual([
-      { field: "vendor", message: "업체 이름을 입력하세요" },
-    ]);
+    expect(interiorLineDraftErrors(draft)).toStrictEqual([]);
   });
 });
 

@@ -188,7 +188,7 @@ describe("줄 시트 2단계 (P⁺, AC-2 2단계)", () => {
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     await user.type(within(dialog).getByLabelText("구분"), "조명");
     await user.type(within(dialog).getByLabelText("세부내용(선택)"), "거실 매입등");
-    await user.type(within(dialog).getByLabelText("업체"), "빛나라조명");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "빛나라조명");
     await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
     await user.click(within(dialog).getByRole("button", { name: "저장" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());

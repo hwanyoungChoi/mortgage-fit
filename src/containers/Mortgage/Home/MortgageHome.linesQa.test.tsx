@@ -70,7 +70,7 @@ describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 �
     await user.click(screen.getByRole("button", { name: "도배에 줄 추가" }));
     const dialog = screen.getByRole("dialog", { name: "줄 추가" });
     expect(within(dialog).getByLabelText("구분")).toHaveValue("도배");
-    await user.type(within(dialog).getByLabelText("업체"), "육문수");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "육문수");
     await user.type(within(dialog).getByLabelText("견적(비우면 미정)"), "1800000");
     await user.click(within(dialog).getByRole("checkbox", { name: "확정" }));
     await user.click(within(dialog).getByRole("button", { name: "저장" }));

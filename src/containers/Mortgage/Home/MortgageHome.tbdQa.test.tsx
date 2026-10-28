@@ -209,7 +209,13 @@ describe("시트 첫 포커스와 칸 순서", () => {
   it("떠 있는 [+]·미정 줄 R6·[+ 조명에 줄 추가] 모두 칸 순서 구분 → 세부내용 → 업체 → 견적 → 비고, 포커스는 시트 안(묶음 끝 [+]는 세부내용)", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makeSimplePlanPPlus()]));
-    const order = ["구분", "세부내용(선택)", "업체", "견적(비우면 미정)", "비고(선택)"];
+    const order = [
+      "구분",
+      "세부내용(선택)",
+      "업체(비우면 미정)",
+      "견적(비우면 미정)",
+      "비고(선택)",
+    ];
     const textLabels = (dialog: HTMLElement) =>
       Array.from(
         dialog.querySelectorAll("input:not([type=checkbox]), textarea"),
