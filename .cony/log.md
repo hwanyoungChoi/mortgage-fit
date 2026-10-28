@@ -699,3 +699,4 @@
 - AI(fe) 2-1: 000be5c(업체 선택 칸 "업체(비우면 미정)", `editedQuote` vendor 구조 분해, U2 `createsQuote` 한 곳, U3 체크 설명). 2842 → 2847, 공용 검증·타입·server diff 0. 반전: 업체 필수 단언 6곳(의도), 라벨 바뀐 선택자 기계적 수정
 - AI(리드) 2단계 화면 확인(dev, 390px): 한빛철거 줄 업체 지우고 저장 → 저장 원문 견적 `{id, amountWon}`(vendor 키 없음), 줄은 같은 자리(`lineOrder` 그대로)에 "업체 미정 · 1,200,000원"
 - AI(qa) 2-2(경량): 통과. 게이트 증거 4종(d5cdbde `--is-ancestor` 0, 운영 번들 index-hLBRjjVC.js "업체 미정", 사용자 "네, 없음", 공용 검증·타입·server diff 0). df62800(기존 줄 경계 테스트 2개) ([기록](reviews/20261028-1010-qa-task-2.md))
+- 놓침(qa): df62800 테스트 두 줄이 `InteriorLineValues` 필수 `isConfirmed`를 빠뜨려 CI build(tsc) 실패 — vitest는 타입을 안 봐서 통과로 보고됨. 리드가 수정
