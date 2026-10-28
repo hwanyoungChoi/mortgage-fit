@@ -177,8 +177,8 @@ describe("[가가]는 모든 화면에서 전역 머리 줄에 하나 (AC-4)", (
 
     // 고르면 text-size 키에만 쓴다
     setItem.mockClear();
-    await user.click(within(dialog).getByRole("button", { name: "작게" }));
-    expect(setItem.mock.calls).toEqual([[TEXT_SIZE_STORAGE_KEY, "small"]]);
+    await user.click(within(dialog).getByRole("button", { name: "더 작게" }));
+    expect(setItem.mock.calls).toEqual([[TEXT_SIZE_STORAGE_KEY, "smallest"]]);
 
     await user.click(within(dialog).getByRole("button", { name: "닫기" }));
     expect(screen.queryByRole("dialog", { name: "글자 크기" })).not.toBeInTheDocument();

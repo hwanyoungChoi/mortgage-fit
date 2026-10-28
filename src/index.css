@@ -105,26 +105,10 @@
 }
 
 /*
- * 글자 크기 설정(이 기기, `<html data-text-size>`). 글자를 한두 단계, 여백·간격을 조금 줄여 한 화면에 더 많이 보이게 한다.
- * 기본 크기와의 비율은 개편 전과 같다(작게 약 0.9, 더 작게 약 0.8). 버튼·입력 높이와 입력칸 글자(--fs-input)는 그대로다.
+ * 글자 크기 설정(이 기기, `<html data-text-size>`). :root 값은 원래 크기("크게", `default`)이고, 기본은 한 단계 작은
+ * `smaller`(약 0.8)다. `smallest`("더 작게", 약 0.7)는 글자와 여백·간격을 더 줄여 한 화면에 더 많이 보이게 한다.
+ * 버튼·입력 높이와 입력칸 글자(--fs-input)는 그대로이고, 줄 높이는 누르는 자리라 44px 아래로 줄이지 않는다.
  */
-:root[data-text-size="small"] {
-  --fs-title: 22px;
-  --fs-answer: 27px;
-  --fs-figure: 18px;
-  --fs-section: 17px;
-  --fs-body: 14px;
-  --fs-small: 12px;
-  --fs-tiny: 11px;
-  --fs-base: 15px;
-
-  --space-3: 10px;
-  --space-4: 14px;
-  --space-5: 20px;
-
-  --row-min-height: 48px;
-}
-
 :root[data-text-size="smaller"] {
   --fs-title: 20px;
   --fs-answer: 24px;
@@ -138,6 +122,24 @@
   --space-3: 10px;
   --space-4: 12px;
   --space-5: 16px;
+
+  --row-min-height: 44px;
+}
+
+:root[data-text-size="smallest"] {
+  --fs-title: 18px;
+  --fs-answer: 21px;
+  --fs-figure: 15px;
+  --fs-section: 14px;
+  --fs-body: 12px;
+  --fs-small: 10px;
+  --fs-tiny: 10px;
+  --fs-base: 12px;
+
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 14px;
 
   --row-min-height: 44px;
 }

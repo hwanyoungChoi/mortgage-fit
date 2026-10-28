@@ -111,7 +111,7 @@ function seed14(
       },
     ]),
     [SESSION_HINT_STORAGE_KEY]: "1",
-    [TEXT_SIZE_STORAGE_KEY]: "small",
+    [TEXT_SIZE_STORAGE_KEY]: "smallest",
     [TRADE_LOOKUP_STORAGE_KEY]: json({ lawdCd: "11680" }),
   };
 }

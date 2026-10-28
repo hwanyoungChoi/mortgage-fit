@@ -700,3 +700,13 @@
 - AI(리드) 2단계 화면 확인(dev, 390px): 한빛철거 줄 업체 지우고 저장 → 저장 원문 견적 `{id, amountWon}`(vendor 키 없음), 줄은 같은 자리(`lineOrder` 그대로)에 "업체 미정 · 1,200,000원"
 - AI(qa) 2-2(경량): 통과. 게이트 증거 4종(d5cdbde `--is-ancestor` 0, 운영 번들 index-hLBRjjVC.js "업체 미정", 사용자 "네, 없음", 공용 검증·타입·server diff 0). df62800(기존 줄 경계 테스트 2개) ([기록](reviews/20261028-1010-qa-task-2.md))
 - 놓침(qa): df62800 테스트 두 줄이 `InteriorLineValues` 필수 `isConfirmed`를 빠뜨려 CI build(tsc) 실패 — vitest는 타입을 안 봐서 통과로 보고됨. 리드가 수정
+
+## 2단계 PR·배포
+
+- AI(리드): PR #45 첫 CI build 실패(qa 테스트 타입 오류) → 수정 push 뒤 verify·Workers Builds 통과, squash 머지(2c3d16f). 운영 반영 2026-10-28 10:05(번들 index-DFG7lzn9.js, "업체(비우면 미정)" 포함). 롤백 하한 d5cdbde 그대로
+
+# 글자 크기 단계 재배치
+
+- 요청: "더작게 사이즈를 기본으로 해주고, 기본을 크게로 그리고 더욱 줄인 사이즈를 더작게로 만들어줘"
+- AI(리드): 작은 화면 설정 변경이라 팀 토론 없이 리드가 직접. 단계 = 크게(`default`, 원래 크기) · 기본(`smaller`, 약 0.8, 새 기본값) · 더 작게(`smallest`, 새, 약 0.7). 저장값 이름을 그대로 써서 이전 없이 고른 크기가 같은 크기로 유지된다(`default`·`smaller`). 예전 "작게"(`small`, 0.9)는 사라지고 저장돼 있으면 새 기본으로 읽는다. 입력칸 16px·버튼 높이·줄 최소 44px 유지
+- AI(리드) 화면 확인(dev 360×780): 키 없음 → `smaller`, `smallest`로 계산·우리 집 깨짐 없음, 시트 "크게·기본·더 작게". 검증 lint·format·test 2854·build 통과
