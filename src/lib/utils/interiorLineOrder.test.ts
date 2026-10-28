@@ -15,7 +15,7 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 import { buildInteriorPlanRows } from "./interiorPlanRows";
 import { createInteriorPlanStore, INTERIOR_PLANS_STORAGE_KEY } from "./interiorPlanStorage";
-import { lineOrderAfterMove } from "./lineOrderAfterMove";
+import { lineOrderAfterGroupMove, lineOrderAfterMove } from "./lineOrderAfterMove";
 import { parseLineOrder } from "./validateInteriorPlan";
 
 import type { InteriorPlanRowGroup } from "./interiorPlanRows";
@@ -254,5 +254,40 @@ describe("로컬 계획 만들기는 lineOrder를 버린다(서버 계획 POST�
     };
     expect(stored.plans).toHaveLength(1);
     expect(Object.hasOwn(stored.plans[0], "lineOrder")).toBe(false);
+  });
+});
+
+describe("lineOrderAfterGroupMove — 묶음 통째로 옮기기", () => {
+  it("P에서 욕실을 도배 위로 → 욕실 줄 다음 도배 줄(묶음 안 순서 그대로), 읽으면 [욕실] → [도배]", () => {
+    const items = P_ITEMS();
+    const groups = groupsOf({ items });
+    const lineOrder = lineOrderAfterGroupMove(groups, groups, "욕실", "도배");
+    expect(lineOrder).toStrictEqual(["r3:rq3", "r4:rq4", "r5:rq5", "r1:rq1", "r2:rq2"]);
+    expect(orderOf({ items, lineOrder: lineOrder ?? undefined })).toStrictEqual([
+      ["욕실", ["r3:rq3", "r4:rq4", "r5:rq5"]],
+      ["도배", ["r1:rq1", "r2:rq2"]],
+    ]);
+  });
+
+  it("끄는 동안 줄이 생기거나 지워지면 놓는 순간의 줄로 잇고 결과는 parseLineOrder를 통과한다", () => {
+    const snapshot = groupsOf({ items: P_ITEMS() });
+    const current = groupsOf({
+      items: [
+        ...P_ITEMS().filter(({ id }) => id !== "r4"),
+        wallpaperRow(6),
+        wallpaperRow(7, "조명"),
+      ],
+    });
+    const lineOrder = lineOrderAfterGroupMove(snapshot, current, "욕실", "도배");
+    expect(lineOrder).toStrictEqual(["r3:rq3", "r5:rq5", "r1:rq1", "r2:rq2", "r6:rq6", "r7:rq7"]);
+    expect(parseLineOrder(lineOrder)).toStrictEqual(lineOrder);
+  });
+
+  it("제자리·없는 구분·든 묶음이 지워짐 → null(쓰지 않음)", () => {
+    const groups = groupsOf({ items: P_ITEMS() });
+    const withoutBath = groupsOf({ items: P_ITEMS().filter(({ trade }) => trade !== "욕실") });
+    expect(lineOrderAfterGroupMove(groups, groups, "도배", "도배")).toBeNull();
+    expect(lineOrderAfterGroupMove(groups, groups, "조명", "도배")).toBeNull();
+    expect(lineOrderAfterGroupMove(groups, withoutBath, "욕실", "도배")).toBeNull();
   });
 });

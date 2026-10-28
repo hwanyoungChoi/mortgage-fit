@@ -34,3 +34,33 @@ export function lineOrderAfterMove(
   const moved = [...kept, ...currentKeys.filter((key) => !keptSet.has(key))];
   return currentGroups.flatMap((group) => (group.trade === trade ? moved : keysOf(group)));
 }
+
+/**
+ * 묶음(구분)을 통째로 끌어 옮기기 한 번 → 저장할 줄 순서. 묶음 순서는 그 묶음 줄의 가장 이른 자리라
+ * 묶음마다 줄 key를 새 묶음 순서로 이어 붙이면 된다(저장 형식 그대로, ADR-036).
+ * - 묶음 순서 = 스냅샷 묶음 순서에서 `arrayMove(active → over)`한 결과 중 현재 남은 묶음 + 현재 새로 생긴 묶음(현재 순서)
+ * - 각 묶음의 줄은 놓는 순간의 현재 값이다(끄는 동안 바뀐 줄도 그대로 담긴다).
+ * - null: 제자리, 없는 구분, 든 묶음이 현재 없음(줄이 모두 지워졌거나 구분이 바뀜)
+ */
+export function lineOrderAfterGroupMove(
+  snapshotGroups: readonly InteriorPlanRowGroup[],
+  currentGroups: readonly InteriorPlanRowGroup[],
+  activeTrade: string,
+  overTrade: string,
+): string[] | null {
+  const snapshotTrades = snapshotGroups.map(({ trade }) => trade);
+  const from = snapshotTrades.indexOf(activeTrade);
+  const to = snapshotTrades.indexOf(overTrade);
+  const currentByTrade = new Map(currentGroups.map((group) => [group.trade, group]));
+  if (from === -1 || to === -1 || from === to || !currentByTrade.has(activeTrade)) return null;
+  const kept = arrayMove(snapshotTrades, from, to).filter((trade) => currentByTrade.has(trade));
+  const keptSet = new Set(kept);
+  const trades = [
+    ...kept,
+    ...currentGroups.map(({ trade }) => trade).filter((trade) => !keptSet.has(trade)),
+  ];
+  return trades.flatMap((trade) => {
+    const group = currentByTrade.get(trade);
+    return group === undefined ? [] : keysOf(group);
+  });
+}
