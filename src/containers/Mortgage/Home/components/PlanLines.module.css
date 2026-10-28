@@ -128,6 +128,12 @@
   overflow-wrap: anywhere;
 }
 
+/* 업체 미정(세부내용 없는 줄의 첫 줄). 첫 줄과 같은 크기·굵기에 흐린 글자만 얹는다(새 토큰 없음, 흰 면 위 6.1:1). */
+.tbdText {
+  composes: primaryText;
+  color: var(--color-text-muted);
+}
+
 .noQuote {
   color: var(--color-text-muted);
 }

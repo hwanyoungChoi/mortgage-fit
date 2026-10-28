@@ -19,6 +19,14 @@ export function quoteWonOf(quote: Pick<InteriorQuote, "amount" | "amountWon">): 
   return quote.amount === undefined ? undefined : quote.amount * WON_PER_MANWON;
 }
 
+/**
+ * 견적의 업체 이름. 키가 없으면 업체 미정(null, ADR-036). "업체 있음/없음"은 이 함수 하나로 판단한다
+ * (목록 줄·접근 가능한 이름·표 모델·시트 채우기가 모두 부른다, ADR-036 조건 8)
+ */
+export function vendorOf(quote: Pick<InteriorQuote, "vendor">): string | null {
+  return quote.vendor ?? null;
+}
+
 /** 총 예산(원). `budgetWon`이 있으면 그 값, 옛 `budget`(만원)면 × 10,000, 둘 다 없으면 없음(undefined) */
 export function planBudgetWonOf(
   plan: Pick<InteriorPlan, "budget" | "budgetWon">,

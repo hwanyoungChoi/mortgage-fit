@@ -13,7 +13,7 @@ import {
   toCsvFile,
 } from "@/test/interiorSimpleFixture";
 
-import { buildInteriorPlanTable, tableAmountText } from "./buildInteriorPlanTable";
+import { buildInteriorPlanTable, tableAmountText, tableVendorText } from "./buildInteriorPlanTable";
 import { toInteriorLineDraft } from "./interiorLineDraft";
 import { toggleLineConfirmInput } from "./interiorLineWrites";
 import { interiorPlanTableHeading } from "./interiorPlanExportText";
@@ -29,7 +29,12 @@ const tableOf = (plan: Pick<InteriorPlanWithItems, "items">) =>
 /** 줄마다 [구분, 업체, 견적 칸, 확정 칸] */
 const amountsOf = (plan: Pick<InteriorPlanWithItems, "items">) =>
   tableOf(plan).groups.flatMap((group) =>
-    group.rows.map((row) => [group.trade, row.vendor, row.quoteWon, row.confirmedWon]),
+    group.rows.map((row) => [
+      group.trade,
+      tableVendorText(row.vendor),
+      row.quoteWon,
+      row.confirmedWon,
+    ]),
   );
 
 /** R6과 같은 줄에 금액 0 */

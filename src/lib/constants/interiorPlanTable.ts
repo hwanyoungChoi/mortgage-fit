@@ -24,8 +24,11 @@ export const INTERIOR_PLAN_TABLE_COLUMN_LABELS: Record<InteriorPlanTableColumn, 
   note: "비고",
 };
 
-/** 금액 키가 없는 견적(ADR-033)의 표시 글자. 목록·표·CSV·인쇄·홈이 같이 쓴다(U4) */
+/** 금액 키가 없는 견적(ADR-033)의 표시 글자. 목록·표·CSV·인쇄·홈이 같이 쓴다(U4). 표·CSV·인쇄의 업체 미정 칸도 이 글자다 */
 export const INTERIOR_PLAN_TBD_LABEL = "미정";
+
+/** 업체 키가 없는 견적(ADR-036)의 목록 글자. 목록에는 열 제목이 없어 "업체"를 붙인다(U1) */
+export const INTERIOR_VENDOR_TBD_LABEL = "업체 미정";
 
 /** 맨 아래 합계 줄의 첫 칸 */
 export const INTERIOR_PLAN_TABLE_TOTAL_LABEL = "계";
