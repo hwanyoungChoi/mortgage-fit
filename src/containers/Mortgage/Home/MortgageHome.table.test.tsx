@@ -508,7 +508,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
     const SEED = {
       [LISTINGS_STORAGE_KEY]: JSON.stringify([makeListing()], null, 2),
       [PRIVACY_MODE_STORAGE_KEY]: "false",
-      [TEXT_SIZE_STORAGE_KEY]: "small",
+      [TEXT_SIZE_STORAGE_KEY]: "smallest",
     };
 
     it("표 보기 진입·보기 전환 왕복·내려받기·인쇄 동안 setItem·removeItem·clear 0회, 원문 그대로", async () => {

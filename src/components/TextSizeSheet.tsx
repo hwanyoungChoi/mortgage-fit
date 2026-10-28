@@ -11,7 +11,7 @@ type TextSizeSheetProps = {
   onClose: () => void;
 };
 
-/** 기본·작게·더 작게 고르기. 고르면 바로 적용하고 시트는 열어 둔다(바뀐 크기를 보며 다시 고를 수 있게). */
+/** 크게·기본·더 작게 고르기. 고르면 바로 적용하고 시트는 열어 둔다(바뀐 크기를 보며 다시 고를 수 있게). */
 function TextSizeSheet({ value, onSelect, onClose }: TextSizeSheetProps) {
   return (
     <Sheet title="글자 크기" onClose={onClose}>
