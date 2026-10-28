@@ -289,3 +289,4 @@
 {"ts":"2026-10-28T00:34:26.102Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Home/components/PlanLines.tsx"}
 {"ts":"2026-10-28T00:37:01.461Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorLineOrder.test.ts"}
 {"ts":"2026-10-28T00:39:19.861Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-28T00:43:28.091Z","type":"task","task":1,"from":"review","to":"done","owner":null}
