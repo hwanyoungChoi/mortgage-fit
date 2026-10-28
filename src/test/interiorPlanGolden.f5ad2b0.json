@@ -1,0 +1,1865 @@
+{
+  "baseCommit": "f5ad2b0",
+  "plans": {
+    "P": {
+      "input": {
+        "id": "plan-simple",
+        "name": "우리 집",
+        "budget": 1000,
+        "spaces": [
+          {
+            "id": "sp-whole",
+            "name": "전체"
+          }
+        ],
+        "createdAt": "2026-10-27T00:00:00.000Z",
+        "updatedAt": "2026-10-27T00:00:00.000Z",
+        "items": [
+          {
+            "id": "r1",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "rq1",
+                "vendor": "육문수",
+                "amount": 180,
+                "memo": "실크 전체"
+              }
+            ],
+            "confirmedQuoteId": "rq1",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:01:00.000Z",
+            "updatedAt": "2026-10-27T00:01:00.000Z"
+          },
+          {
+            "id": "r2",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "rq2",
+                "vendor": "동네도배",
+                "amount": 150,
+                "memo": "합지"
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:02:00.000Z",
+            "updatedAt": "2026-10-27T00:02:00.000Z"
+          },
+          {
+            "id": "r3",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq3",
+                "vendor": "하루바스",
+                "amount": 370,
+                "memo": "철거·방수 (1)"
+              }
+            ],
+            "confirmedQuoteId": "rq3",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:03:00.000Z",
+            "updatedAt": "2026-10-27T00:03:00.000Z"
+          },
+          {
+            "id": "r4",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq4",
+                "vendor": "욕실나라",
+                "amount": 400,
+                "memo": "철거·방수 (1)"
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:04:00.000Z",
+            "updatedAt": "2026-10-27T00:04:00.000Z"
+          },
+          {
+            "id": "r5",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq5",
+                "vendor": "하루바스",
+                "amount": 250,
+                "memo": "타일 덧방 (2)"
+              }
+            ],
+            "confirmedQuoteId": "rq5",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:05:00.000Z",
+            "updatedAt": "2026-10-27T00:05:00.000Z"
+          }
+        ]
+      },
+      "parsed": {
+        "status": "ok",
+        "plans": [
+          {
+            "id": "plan-simple",
+            "name": "우리 집",
+            "budget": 1000,
+            "spaces": [
+              {
+                "id": "sp-whole",
+                "name": "전체"
+              }
+            ],
+            "createdAt": "2026-10-27T00:00:00.000Z",
+            "updatedAt": "2026-10-27T00:00:00.000Z",
+            "items": [
+              {
+                "id": "r1",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "rq1",
+                    "vendor": "육문수",
+                    "amount": 180,
+                    "memo": "실크 전체"
+                  }
+                ],
+                "confirmedQuoteId": "rq1",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:01:00.000Z",
+                "updatedAt": "2026-10-27T00:01:00.000Z"
+              },
+              {
+                "id": "r2",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "rq2",
+                    "vendor": "동네도배",
+                    "amount": 150,
+                    "memo": "합지"
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:02:00.000Z",
+                "updatedAt": "2026-10-27T00:02:00.000Z"
+              },
+              {
+                "id": "r3",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq3",
+                    "vendor": "하루바스",
+                    "amount": 370,
+                    "memo": "철거·방수 (1)"
+                  }
+                ],
+                "confirmedQuoteId": "rq3",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:03:00.000Z",
+                "updatedAt": "2026-10-27T00:03:00.000Z"
+              },
+              {
+                "id": "r4",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq4",
+                    "vendor": "욕실나라",
+                    "amount": 400,
+                    "memo": "철거·방수 (1)"
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:04:00.000Z",
+                "updatedAt": "2026-10-27T00:04:00.000Z"
+              },
+              {
+                "id": "r5",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq5",
+                    "vendor": "하루바스",
+                    "amount": 250,
+                    "memo": "타일 덧방 (2)"
+                  }
+                ],
+                "confirmedQuoteId": "rq5",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:05:00.000Z",
+                "updatedAt": "2026-10-27T00:05:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "rows": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "key": "r1:rq1",
+                "itemId": "r1",
+                "quoteId": "rq1",
+                "quoteWon": 1800000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r2:rq2",
+                "itemId": "r2",
+                "quoteId": "rq2",
+                "quoteWon": 1500000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "key": "r3:rq3",
+                "itemId": "r3",
+                "quoteId": "rq3",
+                "quoteWon": 3700000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r4:rq4",
+                "itemId": "r4",
+                "quoteId": "rq4",
+                "quoteWon": 4000000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r5:rq5",
+                "itemId": "r5",
+                "quoteId": "rq5",
+                "quoteWon": 2500000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          }
+        ],
+        "plannedTotalWon": 8000000,
+        "tbdCount": 0
+      },
+      "tableWithoutVendor": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "detail": "실크 전체",
+                "quoteWon": 1800000,
+                "confirmedWon": 1800000,
+                "note": ""
+              },
+              {
+                "detail": "합지",
+                "quoteWon": 1500000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "detail": "철거·방수 (1)",
+                "quoteWon": 3700000,
+                "confirmedWon": 3700000,
+                "note": ""
+              },
+              {
+                "detail": "철거·방수 (1)",
+                "quoteWon": 4000000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              },
+              {
+                "detail": "타일 덧방 (2)",
+                "quoteWon": 2500000,
+                "confirmedWon": 2500000,
+                "note": ""
+              }
+            ]
+          }
+        ],
+        "confirmedTotal": 8000000,
+        "totalNote": ""
+      },
+      "csvRows": [
+        ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
+        ["도배", "육문수", "실크 전체", "1800000", "1800000", ""],
+        ["도배", "동네도배", "합지", "1500000", "", ""],
+        ["욕실", "하루바스", "철거·방수 (1)", "3700000", "3700000", ""],
+        ["욕실", "욕실나라", "철거·방수 (1)", "4000000", "", ""],
+        ["욕실", "하루바스", "타일 덧방 (2)", "2500000", "2500000", ""],
+        ["계", "", "", "", "8000000", ""]
+      ],
+      "summary": {
+        "budgetWon": 10000000,
+        "plannedTotalWon": 8000000,
+        "tbdCount": 0,
+        "remainingWon": 2000000
+      },
+      "tableHeading": {
+        "title": "우리 집 인테리어 계획",
+        "line": "2026-10-28 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원 · 남은 예산 2,000,000원"
+      }
+    },
+    "L": {
+      "input": {
+        "id": "plan-l",
+        "name": "옛 계획",
+        "budget": 3000,
+        "spaces": [
+          {
+            "id": "s0",
+            "name": "전체"
+          },
+          {
+            "id": "s1",
+            "name": "욕실1"
+          },
+          {
+            "id": "s2",
+            "name": "욕실2"
+          }
+        ],
+        "createdAt": "2026-10-27T00:00:00.000Z",
+        "updatedAt": "2026-10-27T00:00:00.000Z",
+        "items": [
+          {
+            "id": "item-x",
+            "spaceId": "s1",
+            "trade": "욕실",
+            "budget": 350,
+            "quotes": [
+              {
+                "id": "q1",
+                "vendor": "하루바스",
+                "contact": "010-1234-5678",
+                "amount": 370,
+                "memo": "철거·방수"
+              },
+              {
+                "id": "q2",
+                "vendor": "욕실나라",
+                "amount": 400
+              }
+            ],
+            "confirmedQuoteId": "q1",
+            "payments": [
+              {
+                "id": "pay-x1",
+                "label": "계약금",
+                "amount": 100,
+                "dueDate": "2026-11-01",
+                "isPaid": true
+              }
+            ],
+            "status": "inProgress",
+            "startDate": "2026-11-03",
+            "endDate": "2026-11-07",
+            "memo": "폐기물 포함",
+            "createdAt": "2026-10-27T00:01:00.000Z",
+            "updatedAt": "2026-10-27T00:01:00.000Z"
+          },
+          {
+            "id": "item-y",
+            "spaceId": "s0",
+            "trade": "도배",
+            "budget": 200,
+            "status": "planned",
+            "createdAt": "2026-10-27T00:02:00.000Z",
+            "updatedAt": "2026-10-27T00:02:00.000Z"
+          },
+          {
+            "id": "item-z",
+            "spaceId": "s2",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "q3",
+                "vendor": "하루바스",
+                "amount": 250,
+                "memo": "타일 덧방"
+              }
+            ],
+            "status": "quoting",
+            "createdAt": "2026-10-27T00:03:00.000Z",
+            "updatedAt": "2026-10-27T00:03:00.000Z"
+          }
+        ]
+      },
+      "parsed": {
+        "status": "ok",
+        "plans": [
+          {
+            "id": "plan-l",
+            "name": "옛 계획",
+            "budget": 3000,
+            "spaces": [
+              {
+                "id": "s0",
+                "name": "전체"
+              },
+              {
+                "id": "s1",
+                "name": "욕실1"
+              },
+              {
+                "id": "s2",
+                "name": "욕실2"
+              }
+            ],
+            "createdAt": "2026-10-27T00:00:00.000Z",
+            "updatedAt": "2026-10-27T00:00:00.000Z",
+            "items": [
+              {
+                "id": "item-x",
+                "spaceId": "s1",
+                "trade": "욕실",
+                "budget": 350,
+                "quotes": [
+                  {
+                    "id": "q1",
+                    "vendor": "하루바스",
+                    "contact": "010-1234-5678",
+                    "amount": 370,
+                    "memo": "철거·방수"
+                  },
+                  {
+                    "id": "q2",
+                    "vendor": "욕실나라",
+                    "amount": 400
+                  }
+                ],
+                "confirmedQuoteId": "q1",
+                "payments": [
+                  {
+                    "id": "pay-x1",
+                    "label": "계약금",
+                    "amount": 100,
+                    "dueDate": "2026-11-01",
+                    "isPaid": true
+                  }
+                ],
+                "status": "inProgress",
+                "startDate": "2026-11-03",
+                "endDate": "2026-11-07",
+                "memo": "폐기물 포함",
+                "createdAt": "2026-10-27T00:01:00.000Z",
+                "updatedAt": "2026-10-27T00:01:00.000Z"
+              },
+              {
+                "id": "item-y",
+                "spaceId": "s0",
+                "trade": "도배",
+                "budget": 200,
+                "status": "planned",
+                "createdAt": "2026-10-27T00:02:00.000Z",
+                "updatedAt": "2026-10-27T00:02:00.000Z"
+              },
+              {
+                "id": "item-z",
+                "spaceId": "s2",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "q3",
+                    "vendor": "하루바스",
+                    "amount": 250,
+                    "memo": "타일 덧방"
+                  }
+                ],
+                "status": "quoting",
+                "createdAt": "2026-10-27T00:03:00.000Z",
+                "updatedAt": "2026-10-27T00:03:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "rows": {
+        "groups": [
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "key": "item-x:q1",
+                "itemId": "item-x",
+                "quoteId": "q1",
+                "quoteWon": 3700000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "item-x:q2",
+                "itemId": "item-x",
+                "quoteId": "q2",
+                "quoteWon": 4000000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "item-z:q3",
+                "itemId": "item-z",
+                "quoteId": "q3",
+                "quoteWon": 2500000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "key": "item-y:",
+                "itemId": "item-y",
+                "quoteId": null,
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "isConfirmed": false,
+                "budgetNoteWon": 2000000
+              }
+            ]
+          }
+        ],
+        "plannedTotalWon": 3700000,
+        "tbdCount": 0
+      },
+      "tableWithoutVendor": {
+        "groups": [
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "detail": "철거·방수",
+                "quoteWon": 3700000,
+                "confirmedWon": 3700000,
+                "note": "폐기물 포함"
+              },
+              {
+                "detail": "",
+                "quoteWon": 4000000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": "폐기물 포함"
+              },
+              {
+                "detail": "타일 덧방",
+                "quoteWon": 2500000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": "예산 2,000,000원"
+              }
+            ]
+          }
+        ],
+        "confirmedTotal": 3700000,
+        "totalNote": ""
+      },
+      "csvRows": [
+        ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
+        ["욕실", "하루바스", "철거·방수", "3700000", "3700000", "폐기물 포함"],
+        ["욕실", "욕실나라", "", "4000000", "", "폐기물 포함"],
+        ["욕실", "하루바스", "타일 덧방", "2500000", "", ""],
+        ["도배", "", "", "", "", "예산 2,000,000원"],
+        ["계", "", "", "", "3700000", ""]
+      ],
+      "summary": {
+        "budgetWon": 30000000,
+        "plannedTotalWon": 3700000,
+        "tbdCount": 0,
+        "remainingWon": 26300000
+      },
+      "tableHeading": {
+        "title": "옛 계획 인테리어 계획",
+        "line": "2026-10-28 기준 · 총 예산 30,000,000원 · 지출 예정 3,700,000원 · 남은 예산 26,300,000원"
+      }
+    },
+    "oldP": {
+      "input": {
+        "id": "plan-p",
+        "name": "우리 집",
+        "budget": 3000,
+        "spaces": [
+          {
+            "id": "sp-all",
+            "name": "전체"
+          },
+          {
+            "id": "sp-entry",
+            "name": "현관"
+          },
+          {
+            "id": "sp-living",
+            "name": "거실"
+          },
+          {
+            "id": "sp-kitchen",
+            "name": "주방"
+          },
+          {
+            "id": "sp-bath1",
+            "name": "욕실1"
+          },
+          {
+            "id": "sp-bath2",
+            "name": "욕실2"
+          },
+          {
+            "id": "sp-room1",
+            "name": "방1"
+          },
+          {
+            "id": "sp-room2",
+            "name": "방2"
+          },
+          {
+            "id": "sp-room3",
+            "name": "방3"
+          },
+          {
+            "id": "sp-veranda",
+            "name": "베란다"
+          }
+        ],
+        "createdAt": "2026-10-26T00:00:00.000Z",
+        "updatedAt": "2026-10-26T00:00:00.000Z",
+        "items": [
+          {
+            "id": "item-wallpaper",
+            "spaceId": "sp-living",
+            "trade": "도배",
+            "budget": 300,
+            "quotes": [
+              {
+                "id": "q-a",
+                "vendor": "A도배",
+                "amount": 280
+              },
+              {
+                "id": "q-b",
+                "vendor": "B도배",
+                "amount": 320
+              }
+            ],
+            "confirmedQuoteId": "q-a",
+            "payments": [
+              {
+                "id": "pay-wallpaper-deposit",
+                "label": "계약금",
+                "amount": 30,
+                "dueDate": "2026-11-01",
+                "isPaid": true
+              },
+              {
+                "id": "pay-wallpaper-balance",
+                "label": "잔금",
+                "amount": 250,
+                "dueDate": "2026-11-20",
+                "isPaid": false
+              }
+            ],
+            "status": "confirmed",
+            "createdAt": "2026-10-26T00:01:00.000Z",
+            "updatedAt": "2026-10-26T00:01:00.000Z"
+          },
+          {
+            "id": "item-tile",
+            "spaceId": "sp-bath1",
+            "trade": "타일",
+            "budget": 600,
+            "quotes": [
+              {
+                "id": "q-c",
+                "vendor": "C타일",
+                "amount": 650
+              }
+            ],
+            "status": "quoting",
+            "createdAt": "2026-10-26T00:02:00.000Z",
+            "updatedAt": "2026-10-26T00:02:00.000Z"
+          },
+          {
+            "id": "item-sash",
+            "spaceId": "sp-all",
+            "trade": "샷시",
+            "budget": 1200,
+            "quotes": [
+              {
+                "id": "q-d",
+                "vendor": "D샷시",
+                "amount": 1150
+              },
+              {
+                "id": "q-e",
+                "vendor": "E샷시",
+                "amount": 1250
+              }
+            ],
+            "confirmedQuoteId": "q-e",
+            "payments": [
+              {
+                "id": "pay-sash-deposit",
+                "label": "계약금",
+                "amount": 250,
+                "dueDate": "2026-11-01",
+                "isPaid": true
+              },
+              {
+                "id": "pay-sash-balance",
+                "label": "잔금",
+                "amount": 1000,
+                "dueDate": "2026-11-05",
+                "isPaid": false
+              }
+            ],
+            "status": "confirmed",
+            "createdAt": "2026-10-26T00:03:00.000Z",
+            "updatedAt": "2026-10-26T00:03:00.000Z"
+          },
+          {
+            "id": "item-kitchen",
+            "spaceId": "sp-kitchen",
+            "trade": "주방가구",
+            "budget": 500,
+            "status": "planned",
+            "createdAt": "2026-10-26T00:04:00.000Z",
+            "updatedAt": "2026-10-26T00:04:00.000Z"
+          }
+        ]
+      },
+      "parsed": {
+        "status": "ok",
+        "plans": [
+          {
+            "id": "plan-p",
+            "name": "우리 집",
+            "budget": 3000,
+            "spaces": [
+              {
+                "id": "sp-all",
+                "name": "전체"
+              },
+              {
+                "id": "sp-entry",
+                "name": "현관"
+              },
+              {
+                "id": "sp-living",
+                "name": "거실"
+              },
+              {
+                "id": "sp-kitchen",
+                "name": "주방"
+              },
+              {
+                "id": "sp-bath1",
+                "name": "욕실1"
+              },
+              {
+                "id": "sp-bath2",
+                "name": "욕실2"
+              },
+              {
+                "id": "sp-room1",
+                "name": "방1"
+              },
+              {
+                "id": "sp-room2",
+                "name": "방2"
+              },
+              {
+                "id": "sp-room3",
+                "name": "방3"
+              },
+              {
+                "id": "sp-veranda",
+                "name": "베란다"
+              }
+            ],
+            "createdAt": "2026-10-26T00:00:00.000Z",
+            "updatedAt": "2026-10-26T00:00:00.000Z",
+            "items": [
+              {
+                "id": "item-wallpaper",
+                "spaceId": "sp-living",
+                "trade": "도배",
+                "budget": 300,
+                "quotes": [
+                  {
+                    "id": "q-a",
+                    "vendor": "A도배",
+                    "amount": 280
+                  },
+                  {
+                    "id": "q-b",
+                    "vendor": "B도배",
+                    "amount": 320
+                  }
+                ],
+                "confirmedQuoteId": "q-a",
+                "payments": [
+                  {
+                    "id": "pay-wallpaper-deposit",
+                    "label": "계약금",
+                    "amount": 30,
+                    "dueDate": "2026-11-01",
+                    "isPaid": true
+                  },
+                  {
+                    "id": "pay-wallpaper-balance",
+                    "label": "잔금",
+                    "amount": 250,
+                    "dueDate": "2026-11-20",
+                    "isPaid": false
+                  }
+                ],
+                "status": "confirmed",
+                "createdAt": "2026-10-26T00:01:00.000Z",
+                "updatedAt": "2026-10-26T00:01:00.000Z"
+              },
+              {
+                "id": "item-tile",
+                "spaceId": "sp-bath1",
+                "trade": "타일",
+                "budget": 600,
+                "quotes": [
+                  {
+                    "id": "q-c",
+                    "vendor": "C타일",
+                    "amount": 650
+                  }
+                ],
+                "status": "quoting",
+                "createdAt": "2026-10-26T00:02:00.000Z",
+                "updatedAt": "2026-10-26T00:02:00.000Z"
+              },
+              {
+                "id": "item-sash",
+                "spaceId": "sp-all",
+                "trade": "샷시",
+                "budget": 1200,
+                "quotes": [
+                  {
+                    "id": "q-d",
+                    "vendor": "D샷시",
+                    "amount": 1150
+                  },
+                  {
+                    "id": "q-e",
+                    "vendor": "E샷시",
+                    "amount": 1250
+                  }
+                ],
+                "confirmedQuoteId": "q-e",
+                "payments": [
+                  {
+                    "id": "pay-sash-deposit",
+                    "label": "계약금",
+                    "amount": 250,
+                    "dueDate": "2026-11-01",
+                    "isPaid": true
+                  },
+                  {
+                    "id": "pay-sash-balance",
+                    "label": "잔금",
+                    "amount": 1000,
+                    "dueDate": "2026-11-05",
+                    "isPaid": false
+                  }
+                ],
+                "status": "confirmed",
+                "createdAt": "2026-10-26T00:03:00.000Z",
+                "updatedAt": "2026-10-26T00:03:00.000Z"
+              },
+              {
+                "id": "item-kitchen",
+                "spaceId": "sp-kitchen",
+                "trade": "주방가구",
+                "budget": 500,
+                "status": "planned",
+                "createdAt": "2026-10-26T00:04:00.000Z",
+                "updatedAt": "2026-10-26T00:04:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "rows": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "key": "item-wallpaper:q-a",
+                "itemId": "item-wallpaper",
+                "quoteId": "q-a",
+                "quoteWon": 2800000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "item-wallpaper:q-b",
+                "itemId": "item-wallpaper",
+                "quoteId": "q-b",
+                "quoteWon": 3200000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "타일",
+            "rows": [
+              {
+                "key": "item-tile:q-c",
+                "itemId": "item-tile",
+                "quoteId": "q-c",
+                "quoteWon": 6500000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "샷시",
+            "rows": [
+              {
+                "key": "item-sash:q-d",
+                "itemId": "item-sash",
+                "quoteId": "q-d",
+                "quoteWon": 11500000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "item-sash:q-e",
+                "itemId": "item-sash",
+                "quoteId": "q-e",
+                "quoteWon": 12500000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "주방가구",
+            "rows": [
+              {
+                "key": "item-kitchen:",
+                "itemId": "item-kitchen",
+                "quoteId": null,
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "isConfirmed": false,
+                "budgetNoteWon": 5000000
+              }
+            ]
+          }
+        ],
+        "plannedTotalWon": 15300000,
+        "tbdCount": 0
+      },
+      "tableWithoutVendor": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 2800000,
+                "confirmedWon": 2800000,
+                "note": ""
+              },
+              {
+                "detail": "",
+                "quoteWon": 3200000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "타일",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 6500000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "샷시",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 11500000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              },
+              {
+                "detail": "",
+                "quoteWon": 12500000,
+                "confirmedWon": 12500000,
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "주방가구",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": "예산 5,000,000원"
+              }
+            ]
+          }
+        ],
+        "confirmedTotal": 15300000,
+        "totalNote": ""
+      },
+      "csvRows": [
+        ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
+        ["도배", "A도배", "", "2800000", "2800000", ""],
+        ["도배", "B도배", "", "3200000", "", ""],
+        ["타일", "C타일", "", "6500000", "", ""],
+        ["샷시", "D샷시", "", "11500000", "", ""],
+        ["샷시", "E샷시", "", "12500000", "12500000", ""],
+        ["주방가구", "", "", "", "", "예산 5,000,000원"],
+        ["계", "", "", "", "15300000", ""]
+      ],
+      "summary": {
+        "budgetWon": 30000000,
+        "plannedTotalWon": 15300000,
+        "tbdCount": 0,
+        "remainingWon": 14700000
+      },
+      "tableHeading": {
+        "title": "우리 집 인테리어 계획",
+        "line": "2026-10-28 기준 · 총 예산 30,000,000원 · 지출 예정 15,300,000원 · 남은 예산 14,700,000원"
+      }
+    },
+    "PPlus": {
+      "input": {
+        "id": "plan-simple",
+        "name": "우리 집",
+        "budget": 1000,
+        "spaces": [
+          {
+            "id": "sp-whole",
+            "name": "전체"
+          }
+        ],
+        "createdAt": "2026-10-27T00:00:00.000Z",
+        "updatedAt": "2026-10-27T00:00:00.000Z",
+        "items": [
+          {
+            "id": "r1",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "rq1",
+                "vendor": "육문수",
+                "amount": 180,
+                "memo": "실크 전체"
+              }
+            ],
+            "confirmedQuoteId": "rq1",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:01:00.000Z",
+            "updatedAt": "2026-10-27T00:01:00.000Z"
+          },
+          {
+            "id": "r2",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "rq2",
+                "vendor": "동네도배",
+                "amount": 150,
+                "memo": "합지"
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:02:00.000Z",
+            "updatedAt": "2026-10-27T00:02:00.000Z"
+          },
+          {
+            "id": "r3",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq3",
+                "vendor": "하루바스",
+                "amount": 370,
+                "memo": "철거·방수 (1)"
+              }
+            ],
+            "confirmedQuoteId": "rq3",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:03:00.000Z",
+            "updatedAt": "2026-10-27T00:03:00.000Z"
+          },
+          {
+            "id": "r4",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq4",
+                "vendor": "욕실나라",
+                "amount": 400,
+                "memo": "철거·방수 (1)"
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:04:00.000Z",
+            "updatedAt": "2026-10-27T00:04:00.000Z"
+          },
+          {
+            "id": "r5",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "rq5",
+                "vendor": "하루바스",
+                "amount": 250,
+                "memo": "타일 덧방 (2)"
+              }
+            ],
+            "confirmedQuoteId": "rq5",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:05:00.000Z",
+            "updatedAt": "2026-10-27T00:05:00.000Z"
+          },
+          {
+            "id": "r6",
+            "spaceId": "sp-whole",
+            "trade": "조명",
+            "quotes": [
+              {
+                "id": "rq6",
+                "vendor": "빛나라조명",
+                "memo": "거실 매입등"
+              }
+            ],
+            "confirmedQuoteId": "rq6",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:06:00.000Z",
+            "updatedAt": "2026-10-27T00:06:00.000Z"
+          },
+          {
+            "id": "r7",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "rq7",
+                "vendor": "한솔도배"
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:07:00.000Z",
+            "updatedAt": "2026-10-27T00:07:00.000Z"
+          }
+        ]
+      },
+      "parsed": {
+        "status": "ok",
+        "plans": [
+          {
+            "id": "plan-simple",
+            "name": "우리 집",
+            "budget": 1000,
+            "spaces": [
+              {
+                "id": "sp-whole",
+                "name": "전체"
+              }
+            ],
+            "createdAt": "2026-10-27T00:00:00.000Z",
+            "updatedAt": "2026-10-27T00:00:00.000Z",
+            "items": [
+              {
+                "id": "r1",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "rq1",
+                    "vendor": "육문수",
+                    "amount": 180,
+                    "memo": "실크 전체"
+                  }
+                ],
+                "confirmedQuoteId": "rq1",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:01:00.000Z",
+                "updatedAt": "2026-10-27T00:01:00.000Z"
+              },
+              {
+                "id": "r2",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "rq2",
+                    "vendor": "동네도배",
+                    "amount": 150,
+                    "memo": "합지"
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:02:00.000Z",
+                "updatedAt": "2026-10-27T00:02:00.000Z"
+              },
+              {
+                "id": "r3",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq3",
+                    "vendor": "하루바스",
+                    "amount": 370,
+                    "memo": "철거·방수 (1)"
+                  }
+                ],
+                "confirmedQuoteId": "rq3",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:03:00.000Z",
+                "updatedAt": "2026-10-27T00:03:00.000Z"
+              },
+              {
+                "id": "r4",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq4",
+                    "vendor": "욕실나라",
+                    "amount": 400,
+                    "memo": "철거·방수 (1)"
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:04:00.000Z",
+                "updatedAt": "2026-10-27T00:04:00.000Z"
+              },
+              {
+                "id": "r5",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "rq5",
+                    "vendor": "하루바스",
+                    "amount": 250,
+                    "memo": "타일 덧방 (2)"
+                  }
+                ],
+                "confirmedQuoteId": "rq5",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:05:00.000Z",
+                "updatedAt": "2026-10-27T00:05:00.000Z"
+              },
+              {
+                "id": "r6",
+                "spaceId": "sp-whole",
+                "trade": "조명",
+                "quotes": [
+                  {
+                    "id": "rq6",
+                    "vendor": "빛나라조명",
+                    "memo": "거실 매입등"
+                  }
+                ],
+                "confirmedQuoteId": "rq6",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:06:00.000Z",
+                "updatedAt": "2026-10-27T00:06:00.000Z"
+              },
+              {
+                "id": "r7",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "rq7",
+                    "vendor": "한솔도배"
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:07:00.000Z",
+                "updatedAt": "2026-10-27T00:07:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "rows": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "key": "r1:rq1",
+                "itemId": "r1",
+                "quoteId": "rq1",
+                "quoteWon": 1800000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r2:rq2",
+                "itemId": "r2",
+                "quoteId": "rq2",
+                "quoteWon": 1500000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r7:rq7",
+                "itemId": "r7",
+                "quoteId": "rq7",
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "key": "r3:rq3",
+                "itemId": "r3",
+                "quoteId": "rq3",
+                "quoteWon": 3700000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r4:rq4",
+                "itemId": "r4",
+                "quoteId": "rq4",
+                "quoteWon": 4000000,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "r5:rq5",
+                "itemId": "r5",
+                "quoteId": "rq5",
+                "quoteWon": 2500000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "조명",
+            "rows": [
+              {
+                "key": "r6:rq6",
+                "itemId": "r6",
+                "quoteId": "rq6",
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          }
+        ],
+        "plannedTotalWon": 8000000,
+        "tbdCount": 1
+      },
+      "tableWithoutVendor": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "detail": "실크 전체",
+                "quoteWon": 1800000,
+                "confirmedWon": 1800000,
+                "note": ""
+              },
+              {
+                "detail": "합지",
+                "quoteWon": 1500000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              },
+              {
+                "detail": "",
+                "quoteWon": "tbd",
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "detail": "철거·방수 (1)",
+                "quoteWon": 3700000,
+                "confirmedWon": 3700000,
+                "note": ""
+              },
+              {
+                "detail": "철거·방수 (1)",
+                "quoteWon": 4000000,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              },
+              {
+                "detail": "타일 덧방 (2)",
+                "quoteWon": 2500000,
+                "confirmedWon": 2500000,
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "조명",
+            "rows": [
+              {
+                "detail": "거실 매입등",
+                "quoteWon": "tbd",
+                "confirmedWon": "tbd",
+                "note": ""
+              }
+            ]
+          }
+        ],
+        "confirmedTotal": 8000000,
+        "totalNote": "금액 미정 1건 제외"
+      },
+      "csvRows": [
+        ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
+        ["도배", "육문수", "실크 전체", "1800000", "1800000", ""],
+        ["도배", "동네도배", "합지", "1500000", "", ""],
+        ["도배", "한솔도배", "", "미정", "", ""],
+        ["욕실", "하루바스", "철거·방수 (1)", "3700000", "3700000", ""],
+        ["욕실", "욕실나라", "철거·방수 (1)", "4000000", "", ""],
+        ["욕실", "하루바스", "타일 덧방 (2)", "2500000", "2500000", ""],
+        ["조명", "빛나라조명", "거실 매입등", "미정", "미정", ""],
+        ["계", "", "", "", "8000000", "금액 미정 1건 제외"]
+      ],
+      "summary": {
+        "budgetWon": 10000000,
+        "plannedTotalWon": 8000000,
+        "tbdCount": 1,
+        "remainingWon": 2000000
+      },
+      "tableHeading": {
+        "title": "우리 집 인테리어 계획",
+        "line": "2026-10-28 기준 · 총 예산 10,000,000원 · 지출 예정 8,000,000원(금액 미정 1건 제외) · 남은 예산 2,000,000원"
+      }
+    },
+    "M": {
+      "input": {
+        "id": "plan-m",
+        "name": "섞인 집",
+        "budget": 1000,
+        "spaces": [
+          {
+            "id": "sp-whole",
+            "name": "전체"
+          }
+        ],
+        "createdAt": "2026-10-27T00:00:00.000Z",
+        "updatedAt": "2026-10-27T00:00:00.000Z",
+        "items": [
+          {
+            "id": "m1",
+            "spaceId": "sp-whole",
+            "trade": "도배",
+            "quotes": [
+              {
+                "id": "mq1",
+                "vendor": "육문수",
+                "amount": 800
+              }
+            ],
+            "confirmedQuoteId": "mq1",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:01:00.000Z",
+            "updatedAt": "2026-10-27T00:01:00.000Z"
+          },
+          {
+            "id": "m2",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "mq2",
+                "vendor": "하루바스",
+                "amountWon": 1234500
+              }
+            ],
+            "confirmedQuoteId": "mq2",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:02:00.000Z",
+            "updatedAt": "2026-10-27T00:02:00.000Z"
+          },
+          {
+            "id": "m3",
+            "spaceId": "sp-whole",
+            "trade": "욕실",
+            "quotes": [
+              {
+                "id": "mq3",
+                "vendor": "욕실나라",
+                "amountWon": 1235000
+              }
+            ],
+            "confirmedQuoteId": "mq3",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:03:00.000Z",
+            "updatedAt": "2026-10-27T00:03:00.000Z"
+          },
+          {
+            "id": "m4",
+            "spaceId": "sp-whole",
+            "trade": "조명",
+            "quotes": [
+              {
+                "id": "mq4",
+                "vendor": "빛나라조명",
+                "amountWon": 999
+              }
+            ],
+            "status": "planned",
+            "createdAt": "2026-10-27T00:04:00.000Z",
+            "updatedAt": "2026-10-27T00:04:00.000Z"
+          },
+          {
+            "id": "m5",
+            "spaceId": "sp-whole",
+            "trade": "조명",
+            "quotes": [
+              {
+                "id": "mq5",
+                "vendor": "한빛전기"
+              }
+            ],
+            "confirmedQuoteId": "mq5",
+            "status": "planned",
+            "createdAt": "2026-10-27T00:05:00.000Z",
+            "updatedAt": "2026-10-27T00:05:00.000Z"
+          }
+        ]
+      },
+      "parsed": {
+        "status": "ok",
+        "plans": [
+          {
+            "id": "plan-m",
+            "name": "섞인 집",
+            "budget": 1000,
+            "spaces": [
+              {
+                "id": "sp-whole",
+                "name": "전체"
+              }
+            ],
+            "createdAt": "2026-10-27T00:00:00.000Z",
+            "updatedAt": "2026-10-27T00:00:00.000Z",
+            "items": [
+              {
+                "id": "m1",
+                "spaceId": "sp-whole",
+                "trade": "도배",
+                "quotes": [
+                  {
+                    "id": "mq1",
+                    "vendor": "육문수",
+                    "amount": 800
+                  }
+                ],
+                "confirmedQuoteId": "mq1",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:01:00.000Z",
+                "updatedAt": "2026-10-27T00:01:00.000Z"
+              },
+              {
+                "id": "m2",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "mq2",
+                    "vendor": "하루바스",
+                    "amountWon": 1234500
+                  }
+                ],
+                "confirmedQuoteId": "mq2",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:02:00.000Z",
+                "updatedAt": "2026-10-27T00:02:00.000Z"
+              },
+              {
+                "id": "m3",
+                "spaceId": "sp-whole",
+                "trade": "욕실",
+                "quotes": [
+                  {
+                    "id": "mq3",
+                    "vendor": "욕실나라",
+                    "amountWon": 1235000
+                  }
+                ],
+                "confirmedQuoteId": "mq3",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:03:00.000Z",
+                "updatedAt": "2026-10-27T00:03:00.000Z"
+              },
+              {
+                "id": "m4",
+                "spaceId": "sp-whole",
+                "trade": "조명",
+                "quotes": [
+                  {
+                    "id": "mq4",
+                    "vendor": "빛나라조명",
+                    "amountWon": 999
+                  }
+                ],
+                "status": "planned",
+                "createdAt": "2026-10-27T00:04:00.000Z",
+                "updatedAt": "2026-10-27T00:04:00.000Z"
+              },
+              {
+                "id": "m5",
+                "spaceId": "sp-whole",
+                "trade": "조명",
+                "quotes": [
+                  {
+                    "id": "mq5",
+                    "vendor": "한빛전기"
+                  }
+                ],
+                "confirmedQuoteId": "mq5",
+                "status": "planned",
+                "createdAt": "2026-10-27T00:05:00.000Z",
+                "updatedAt": "2026-10-27T00:05:00.000Z"
+              }
+            ]
+          }
+        ]
+      },
+      "rows": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "key": "m1:mq1",
+                "itemId": "m1",
+                "quoteId": "mq1",
+                "quoteWon": 8000000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "key": "m2:mq2",
+                "itemId": "m2",
+                "quoteId": "mq2",
+                "quoteWon": 1234500,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "m3:mq3",
+                "itemId": "m3",
+                "quoteId": "mq3",
+                "quoteWon": 1235000,
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          },
+          {
+            "trade": "조명",
+            "rows": [
+              {
+                "key": "m4:mq4",
+                "itemId": "m4",
+                "quoteId": "mq4",
+                "quoteWon": 999,
+                "isConfirmed": false,
+                "budgetNoteWon": null
+              },
+              {
+                "key": "m5:mq5",
+                "itemId": "m5",
+                "quoteId": "mq5",
+                "quoteWon": {
+                  "$undefined": true
+                },
+                "isConfirmed": true,
+                "budgetNoteWon": null
+              }
+            ]
+          }
+        ],
+        "plannedTotalWon": 10469500,
+        "tbdCount": 1
+      },
+      "tableWithoutVendor": {
+        "groups": [
+          {
+            "trade": "도배",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 8000000,
+                "confirmedWon": 8000000,
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "욕실",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 1234500,
+                "confirmedWon": 1234500,
+                "note": ""
+              },
+              {
+                "detail": "",
+                "quoteWon": 1235000,
+                "confirmedWon": 1235000,
+                "note": ""
+              }
+            ]
+          },
+          {
+            "trade": "조명",
+            "rows": [
+              {
+                "detail": "",
+                "quoteWon": 999,
+                "confirmedWon": {
+                  "$undefined": true
+                },
+                "note": ""
+              },
+              {
+                "detail": "",
+                "quoteWon": "tbd",
+                "confirmedWon": "tbd",
+                "note": ""
+              }
+            ]
+          }
+        ],
+        "confirmedTotal": 10469500,
+        "totalNote": "금액 미정 1건 제외"
+      },
+      "csvRows": [
+        ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
+        ["도배", "육문수", "", "8000000", "8000000", ""],
+        ["욕실", "하루바스", "", "1234500", "1234500", ""],
+        ["욕실", "욕실나라", "", "1235000", "1235000", ""],
+        ["조명", "빛나라조명", "", "999", "", ""],
+        ["조명", "한빛전기", "", "미정", "미정", ""],
+        ["계", "", "", "", "10469500", "금액 미정 1건 제외"]
+      ],
+      "summary": {
+        "budgetWon": 10000000,
+        "plannedTotalWon": 10469500,
+        "tbdCount": 1,
+        "remainingWon": -469500
+      },
+      "tableHeading": {
+        "title": "섞인 집 인테리어 계획",
+        "line": "2026-10-28 기준 · 총 예산 10,000,000원 · 지출 예정 10,469,500원(금액 미정 1건 제외) · 예산 초과 469,500원"
+      }
+    }
+  }
+}
