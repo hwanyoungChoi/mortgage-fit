@@ -129,7 +129,7 @@ describe("AC-1 옛 다견적 항목 F⁺ (q1 하루바스 370 확정, q2 욕실�
     const storage = storageWith([makeSimplePlanP({ items: [fPlus()] })]);
     await renderLoggedOut(storage);
     await user.click(screen.getByRole("checkbox", { name: `${F_Q2} 확정` }));
-    expect(await screen.findByRole("status")).toHaveTextContent(
+    expect(await within(screen.getByRole("main")).findByRole("status")).toHaveTextContent(
       "같은 항목의 다른 견적 확정이 풀렸습니다",
     );
     expect(screen.getByRole("checkbox", { name: `${F_Q2} 확정` })).toBeChecked();

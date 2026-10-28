@@ -451,7 +451,7 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
     const storage = storageWith([makePlanL()]);
     await renderLoggedOut(storage, L_HASH);
     await user.click(check(X_Q2_CHECK));
-    expect(await screen.findByRole("status")).toHaveTextContent(
+    expect(await within(screen.getByRole("main")).findByRole("status")).toHaveTextContent(
       "같은 항목의 다른 견적 확정이 풀렸습니다",
     );
     expect(check(X_Q2_CHECK)).toBeChecked();
@@ -469,7 +469,7 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
     await renderLoggedOut(storageWith([makePlanL()]), L_HASH);
     await user.click(check("욕실 하루바스 타일 덧방 확정"));
     await waitFor(() => expect(check("욕실 하루바스 타일 덧방 확정")).toBeChecked());
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("main")).queryByRole("status")).not.toBeInTheDocument();
     expect(headlineValue("지출 예정")).toBe("6,200,000원");
   });
 });

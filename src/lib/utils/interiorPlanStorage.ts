@@ -203,7 +203,9 @@ export function createInteriorPlanStore({
       const current = readWritablePlans();
       if (!current.ok) return current;
       if (current.plans.length >= INTERIOR_PLAN_MAX_COUNT) return { ok: false, reason: "limit" };
-      const fields = validateInteriorPlanFields(planInput);
+      // `lineOrder`는 값과 상관없이 버린다(서버 계획 POST와 같다, ADR-036 조건 3): 항목 id를 여기서 새로 만들어
+      // 보낸 줄 key(`item.id:quote.id`)가 맞을 수 없다
+      const fields = validateInteriorPlanFields({ ...planInput, lineOrder: undefined });
       if (fields === null || itemInputs.length > INTERIOR_PLAN_CREATE_MAX_ITEMS) {
         return { ok: false, reason: "invalid" };
       }

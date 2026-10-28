@@ -85,12 +85,15 @@ export type InteriorPlanSummary = {
   remainingWon: number | null;
 };
 
+/** 견적 없는 줄의 key `item.id:`. 같은 항목 줄의 순서 대체 자리이기도 하다(ADR-036) */
+const emptyLineKeyOf = (itemId: string) => `${itemId}:`;
+
 function rowsOfItem(item: InteriorItem): InteriorPlanRow[] {
   const quotes = item.quotes ?? [];
   if (quotes.length === 0) {
     return [
       {
-        key: `${item.id}:`,
+        key: emptyLineKeyOf(item.id),
         item,
         quote: null,
         quoteWon: undefined,
@@ -110,15 +113,36 @@ function rowsOfItem(item: InteriorItem): InteriorPlanRow[] {
 }
 
 /**
- * 계획 → 공정(구분)별 줄 묶음과 지출 예정·미정 건수. 항목 목록 순서(로컬 배열 = 서버 `created_at, id`)로 펼친 줄에서
- * 묶음은 처음 나온 순이라, 앞 줄을 지우면 묶음 순서가 바뀔 수 있다. 목록·표·CSV·인쇄·홈이 모두 이 결과를 쓴다.
+ * 줄 순서(`lineOrder`, ADR-036 D1 A)대로 놓은 줄. 줄의 자리는 자기 key의 자리, 없으면 같은 항목의 빈 줄 key `item.id:`의 자리
+ * (견적 없는 줄에 업체를 채워 key가 바뀐 줄이 제자리에 있게), 그것도 없으면 자리 없음이다. 자리 있는 줄을 자리 순으로,
+ * 그 뒤에 자리 없는 줄을 기본 순서로 놓는다(안정 정렬이라 같은 자리를 받은 줄은 기본 순서). 없는 줄의 key는 무시한다.
+ */
+function orderByLineOrder(
+  rows: InteriorPlanRow[],
+  lineOrder: string[] | undefined,
+): InteriorPlanRow[] {
+  if (lineOrder === undefined) return rows;
+  const positions = new Map(lineOrder.map((key, index) => [key, index]));
+  const unplaced = lineOrder.length;
+  const positionOf = ({ key, item }: InteriorPlanRow) =>
+    positions.get(key) ?? positions.get(emptyLineKeyOf(item.id)) ?? unplaced;
+  return rows
+    .map((row) => ({ row, position: positionOf(row) }))
+    .sort((a, b) => a.position - b.position)
+    .map(({ row }) => row);
+}
+
+/**
+ * 계획 → 공정(구분)별 줄 묶음과 지출 예정·미정 건수. 항목 목록 순서(로컬 배열 = 서버 `created_at, id`)로 펼친 줄을
+ * 줄 순서(`lineOrder`)대로 놓고, 묶음은 처음 나온 순이다(묶음 순서 = 그 묶음 줄의 가장 이른 자리). 그래서 새 줄은 그 묶음 끝,
+ * 새 구분은 맨 끝 묶음이고(U5), 앞 줄을 지우면 묶음 순서가 바뀔 수 있다. 목록·표·CSV·인쇄·홈이 모두 이 결과를 쓴다.
  * 확정 줄은 "금액이 있는가" 한 가지로 나눈다: 있으면 지출 예정에 더하고, 없으면(미정) 건수만 센다(ADR-033).
  */
 export function buildInteriorPlanRows(
-  plan: Pick<InteriorPlanWithItems, "items">,
+  plan: Pick<InteriorPlanWithItems, "items" | "lineOrder">,
 ): InteriorPlanRows {
   const groups = new Map<string, InteriorPlanRow[]>();
-  for (const row of plan.items.flatMap(rowsOfItem)) {
+  for (const row of orderByLineOrder(plan.items.flatMap(rowsOfItem), plan.lineOrder)) {
     const trade = row.item.trade.trim();
     groups.set(trade, [...(groups.get(trade) ?? []), row]);
   }

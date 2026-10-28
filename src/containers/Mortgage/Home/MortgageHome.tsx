@@ -310,6 +310,7 @@ function MortgageHome({
           item.updatedAt,
         )
       }
+      onLineOrderWrite={(lineOrder) => source.updatePlan(plan.id, { lineOrder })}
     />
   );
 

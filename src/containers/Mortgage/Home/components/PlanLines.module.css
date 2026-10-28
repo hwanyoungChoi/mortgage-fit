@@ -111,6 +111,45 @@
   outline-offset: -2px;
 }
 
+/*
+ * 꾹 눌러 드는 여는 버튼(줄 2개 이상 묶음). 세로 스크롤과 확대 제스처는 그대로 두고(touch-action: manipulation),
+ * 길게 누를 때 글자 선택·iOS 메뉴가 뜨지 않게 한다(저장 목록 줄과 같은 설정).
+ */
+.draggableOpenButton {
+  composes: openButton;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 끄는 동안 원래 줄은 바탕색 빈 자리로 남아 놓일 자리를 보인다. 떠 있는 줄은 DragOverlay가 그린다. */
+.placeholderRow {
+  composes: row;
+  background: var(--color-bg);
+}
+
+.placeholderRow > * {
+  opacity: 0;
+}
+
+/*
+ * 끄는 동안 손가락을 따라 뜬 줄(버튼·체크 없는 표시). 그림자 없이 옅은 코발트 면으로 든 줄임을 보인다
+ * (흐린 글자 대비 5.2:1). 여는 버튼과 같은 여백이고 확정 칸 자리는 비운다.
+ */
+.liftedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 100%;
+  min-height: var(--row-min-height);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+  font-size: var(--fs-body);
+  cursor: grabbing;
+}
+
 .rowText {
   display: flex;
   flex-direction: column;

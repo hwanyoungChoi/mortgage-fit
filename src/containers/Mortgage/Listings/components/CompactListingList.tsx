@@ -1,25 +1,17 @@
 import {
   DndContext,
   DragOverlay,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
   closestCenter,
-  useSensor,
-  useSensors,
   type Announcements,
   type DragEndEvent,
   type DragStartEvent,
-  type KeyboardCodes,
   type UniqueIdentifier,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState, type ComponentProps } from "react";
+
+import { useLongPressSensors } from "@/hooks/useLongPressSensors";
+import { SCREEN_READER_INSTRUCTIONS } from "@/lib/constants/dragReorder";
 
 import styles from "./CompactListingList.module.css";
 import CompactListingRow from "./CompactListingRow";
@@ -40,23 +32,9 @@ type CompactListingListProps = CardProps & {
   onReorder: (ids: string[]) => void;
 };
 
-/** 꾹 누르기(ADR-026): 약 250ms를 5px 안에서 누르고 있어야 든다. 그 전에 움직이면 스크롤이고, 짧게 떼면 펼치기다. */
-const LONG_PRESS = { delay: 250, tolerance: 5 };
-
-/** 엔터는 줄의 펼치기·접기로 남겨 두고 스페이스로 든다. 든 뒤에는 스페이스·엔터로 놓고 Esc로 취소한다. */
-const KEYBOARD_CODES: KeyboardCodes = {
-  start: ["Space"],
-  cancel: ["Escape"],
-  end: ["Space", "Enter"],
-};
-
-const SCREEN_READER_INSTRUCTIONS = {
-  draggable:
-    "순서를 바꾸려면 스페이스 키로 들고 위아래 화살표로 옮긴 뒤 스페이스나 엔터 키로 놓습니다. Esc 키로 취소합니다. 터치 화면에서는 길게 눌러 끕니다.",
-};
-
 /**
- * 간단히 보기 목록. 줄을 들어 끌면 순서를 바꾼다(마우스·터치는 꾹 누르기, 키보드는 스페이스).
+ * 간단히 보기 목록. 줄을 들어 끌면 순서를 바꾼다(마우스·터치는 꾹 누르기, 키보드는 스페이스. 센서·안내 문장은 우리 집 줄과 공용).
+ * 짧게 떼거나 엔터면 펼치기다.
  * 든 동안에는 든 순간의 목록을 그대로 그린다. 재조회(함께 쓰는 중 30초·창 포커스)로 순서나 매물이 바뀌어도
  * 끄는 줄이 밀리지 않게 하고, 놓은 뒤에 반영한다.
  */
@@ -70,14 +48,7 @@ function CompactListingList({
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [draggedListings, setDraggedListings] = useState<Listing[] | null>(null);
   const listings = draggedListings ?? currentListings;
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: LONG_PRESS }),
-    useSensor(TouchSensor, { activationConstraint: LONG_PRESS }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-      keyboardCodes: KEYBOARD_CODES,
-    }),
-  );
+  const sensors = useLongPressSensors();
   const ids = listings.map((listing) => listing.id);
   const activeListing = listings.find((listing) => listing.id === activeId) ?? null;
 
