@@ -28,7 +28,7 @@ describe("하단 탭 (AC-1)", () => {
       ["홈", "#/"],
       ["계산", "#/calculator"],
       ["매물", "#/listings"],
-      ["우리 집", "#/home"],
+      ["인테리어", "#/home"],
     ]);
   });
 
@@ -36,7 +36,7 @@ describe("하단 탭 (AC-1)", () => {
     ["hub", "홈"],
     ["calculator", "계산"],
     ["listings", "매물"],
-    ["home", "우리 집"],
+    ["home", "인테리어"],
   ])("현재 %s면 '%s'만 aria-current=page", (current, label) => {
     const { nav } = renderTabNav(current);
     const currentLinks = within(nav)
@@ -54,12 +54,12 @@ describe("하단 탭 (AC-1)", () => {
     ).toBe(false);
   });
 
-  it("[우리 집]을 누르면 onNavigate 뒤 #/home으로 replace(이력이 쌓이지 않음)", async () => {
+  it("[인테리어]을 누르면 onNavigate 뒤 #/home으로 replace(이력이 쌓이지 않음)", async () => {
     const user = userEvent.setup();
     window.location.hash = PATHS.calculator;
     const historyLength = window.history.length;
     const { nav, onNavigate } = renderTabNav("calculator");
-    await user.click(within(nav).getByRole("link", { name: "우리 집" }));
+    await user.click(within(nav).getByRole("link", { name: "인테리어" }));
     expect(onNavigate).toHaveBeenCalledTimes(1);
     expect(window.location.hash).toBe("#/home");
     expect(window.history.length).toBe(historyLength);

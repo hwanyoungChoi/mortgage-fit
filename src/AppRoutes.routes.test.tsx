@@ -27,7 +27,7 @@ async function expectScreen(name: Screen) {
     listings: /^저장 목록$/,
     share: /^만료되었거나 끊긴 링크입니다$/,
     invite: /^만료되었거나 이미 쓴 초대입니다$/,
-    home: /^우리 집$/,
+    home: /^인테리어$/,
   };
   await waitFor(() =>
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(expected[name]),
@@ -91,16 +91,16 @@ describe("기존 링크 통합 표 (AC-1)", () => {
     ["#/listings?sort=recent", "listings", "#/listings", "매물"],
     ["#/share/AbC_12", "share", "#/share/AbC_12", null],
     ["#/invite/XyZ", "invite", "#/invite/XyZ", null],
-    ["#/home", "home", "#/home", "우리 집"],
-    ["#/home/plan-p?view=table", "home", "#/home/plan-p?view=table", "우리 집"],
+    ["#/home", "home", "#/home", "인테리어"],
+    ["#/home/plan-p?view=table", "home", "#/home/plan-p?view=table", "인테리어"],
     [
       "#/home/plan-p?listing=listing-r&view=table",
       "home",
       "#/home/plan-p?listing=listing-r&view=table",
-      "우리 집",
+      "인테리어",
     ],
     // 형식 틀린 플랜 id(스펙 표의 "ZZ"는 올바른 id라 "a.b"로 본다)
-    ["#/home/a.b", "home", "#/home", "우리 집"],
+    ["#/home/a.b", "home", "#/home", "인테리어"],
   ];
 
   it.each(rows)(
@@ -218,7 +218,7 @@ describe("홈 카드는 push, 탭은 replace (AC-1)", () => {
     for (const [label, hash] of [
       ["계산", "#/calculator"],
       ["매물", "#/listings"],
-      ["우리 집", "#/home"],
+      ["인테리어", "#/home"],
       ["홈", "#/"],
     ]) {
       await user.click(within(tabNav()).getByRole("link", { name: label }));

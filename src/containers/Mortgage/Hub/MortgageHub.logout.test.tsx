@@ -123,7 +123,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     });
     const logout = await findLogoutButton();
     await waitFor(() =>
-      expect(cardDescription("우리 집 인테리어")).toHaveAccessibleDescription(
+      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
         "서버 계획 · 지출 예정 15,300,000원",
       ),
     );
@@ -136,7 +136,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     expect(within(hub).queryByText(STATUS)).not.toBeInTheDocument();
     await waitFor(() => {
       expect(cardDescription("매물 모으기")).toHaveAccessibleDescription("저장한 매물 2개");
-      expect(cardDescription("우리 집 인테리어")).toHaveAccessibleDescription(
+      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
         "우리 집 · 지출 예정 15,300,000원",
       );
     });
@@ -356,7 +356,7 @@ describe("홈 안내 줄: 매물 이전 실패·세션 만료 (AC-1)", () => {
 
     expect(await within(hub).findByText(SESSION_EXPIRED)).toBeInTheDocument();
     await waitFor(() =>
-      expect(cardDescription("우리 집 인테리어")).toHaveAccessibleDescription(
+      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
         "우리 집 · 지출 예정 15,300,000원",
       ),
     );

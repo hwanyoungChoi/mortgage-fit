@@ -15,7 +15,7 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 const CARDS = [
   ["대출 계산", "#/calculator", "매매가와 KB시세로 예상 한도와 필요한 자기자금을 계산합니다"],
   ["매물 모으기", "#/listings", "본 매물을 저장해 자기자금·추가 비용을 비교합니다"],
-  ["우리 집 인테리어", "#/home", "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"],
+  ["인테리어 계획", "#/home", "공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"],
 ] as const;
 
 function renderApp(hash: string, seed: Record<string, string> = {}) {
@@ -107,7 +107,7 @@ describe("홈 — 데이터 없음 (AC-5)", () => {
     renderApp("#/");
     for (const [name, href] of [
       ["매물 모으기", "#/listings"],
-      ["우리 집 인테리어", "#/home"],
+      ["인테리어 계획", "#/home"],
     ]) {
       // 뒤로 가기 뒤의 push는 앞쪽 이력을 잘라 길이가 그대로이므로, 매번 이력 끝(새 항목)에서 홈을 연다
       window.location.hash = "#/calculator";

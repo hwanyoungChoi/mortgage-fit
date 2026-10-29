@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 스펙 platform-home AC-0(a)(b): 홈 허브·하단 탭이 들어와도 기존 14개 키는 읽기만 한다.
-// `#/` 홈 → 탭 [계산] → [매물] → [우리 집] → [홈] → 카드 [대출 계산] → 뒤로 가기. 각 화면이 안정된 직후마다(체크포인트)
+// `#/` 홈 → 탭 [계산] → [매물] → [인테리어] → [홈] → 카드 [대출 계산] → 뒤로 가기. 각 화면이 안정된 직후마다(체크포인트)
 //   - 로그인 확인 전: setItem·removeItem·clear 0회
 //   - 로그아웃 확인 후: 허용되는 쓰기는 removeItem(session-hint) 1종
 //   - 로그인 확인 후: 허용되는 쓰기는 setItem(session-hint, "1")
@@ -203,9 +203,9 @@ async function expectHubSummary(mode: Mode) {
     expect(within(main).getByRole("link", { name: "매물 모으기" })).toHaveAccessibleDescription(
       listings,
     );
-    expect(
-      within(main).getByRole("link", { name: "우리 집 인테리어" }),
-    ).toHaveAccessibleDescription(home);
+    expect(within(main).getByRole("link", { name: "인테리어 계획" })).toHaveAccessibleDescription(
+      home,
+    );
   });
 }
 
@@ -251,10 +251,10 @@ async function walk(user: User, api: FakePlanApi, mode: Mode, check: (step: stri
   await expectListingsSettled(mode);
   check("탭 [매물]");
 
-  await user.click(tab("우리 집"));
+  await user.click(tab("인테리어"));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   await expectHomeSettled(mode);
-  check("탭 [우리 집]");
+  check("탭 [인테리어]");
 
   await user.click(tab("홈"));
   await expectHubSummary(mode);

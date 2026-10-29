@@ -61,7 +61,7 @@ afterEach(() => {
 });
 
 describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
-  it("확인 문구에 계획 귀속 문단(U12)이 있고, 나가면 같은 세션에서 기기 계획을 1회 옮기고 [우리 집]에 알린다", async () => {
+  it("확인 문구에 계획 귀속 문단(U12)이 있고, 나가면 같은 세션에서 기기 계획을 1회 옮기고 [인테리어]에 알린다", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     const { storage, api, planImports } = renderApp({
@@ -91,9 +91,9 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
       }),
     );
 
-    // 나간 뒤 [우리 집]: 내 계획(옮긴 기기 계획)만, 알림 1회
+    // 나간 뒤 [인테리어]: 내 계획(옮긴 기기 계획)만, 알림 1회
     api.server.plans = api.server.plans.filter((plan) => plan.id !== "plan-pa");
-    await user.click(screen.getByRole("link", { name: "우리 집" }));
+    await user.click(screen.getByRole("link", { name: "인테리어" }));
     expect(
       await screen.findByText("이 기기의 인테리어 계획을 계정으로 옮겼습니다"),
     ).toBeInTheDocument();

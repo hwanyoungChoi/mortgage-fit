@@ -99,7 +99,7 @@ const detailValue = (label: string) =>
   within(screen.getByRole("region", { name: "요약" })).getByText(label, { selector: "dt" })
     .nextElementSibling?.textContent;
 
-describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
+describe("AC-6 매물 카드 → [인테리어] (로그아웃)", () => {
   let fetchMock: ReturnType<typeof stubLoggedOutApi>;
 
   beforeEach(() => {
@@ -237,7 +237,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그아웃)", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(window.location.hash).toBe("#/home");
 
-    // 주소창·북마크처럼 같은 문서 안 해시 이동(탭을 거치지 않아 [우리 집]이 그대로 마운트돼 있다)
+    // 주소창·북마크처럼 같은 문서 안 해시 이동(탭을 거치지 않아 [인테리어]이 그대로 마운트돼 있다)
     window.location.hash = `#/home?listing=${RAEMIAN_ID}`;
     const sheet = await createSheet();
     expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");

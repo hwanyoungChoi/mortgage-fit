@@ -106,7 +106,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     accountImportStore,
     onImported: handleAccountImported,
   });
-  // [우리 집]에 한 번 보일 알림. 매물 이전 알림(저장 목록)과 따로 두어 서로 덮지 않는다.
+  // [인테리어]에 한 번 보일 알림. 매물 이전 알림(저장 목록)과 따로 두어 서로 덮지 않는다.
   const [homeNotice, setHomeNotice] = useState<string | null>(null);
   const handleInteriorPlanImported = useCallback(() => {
     setHomeNotice("이 기기의 인테리어 계획을 계정으로 옮겼습니다");

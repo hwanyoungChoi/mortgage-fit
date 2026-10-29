@@ -4,7 +4,7 @@
 // 다른 탭이 쓴 원문(`storage` 이벤트)도 손상이 아니다. 로그아웃에서 만든 P⁺·M은 로그인 이전 본문이 원문 그대로다.
 // 시드는 들여쓴 JSON이라 앱이 다시 직렬화해 쓰면 ===에서 걸린다.
 // 가리기 대조군(ADR-035 조건 6): 시드 privacy-mode "true"에서 저장 목록 [가리기] 2번 = setItem "false" → "true" 2회뿐이고,
-// [우리 집]·표·홈 단계의 privacy-mode 쓰기는 0회다.
+// [인테리어]·표·홈 단계의 privacy-mode 쓰기는 0회다.
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -175,7 +175,7 @@ const headlineValue = (label: string) =>
   within(summaryRegion()).getByText(label).nextElementSibling?.textContent;
 
 const hubPlanLines = () =>
-  within(screen.getByRole("link", { name: "우리 집 인테리어" }))
+  within(screen.getByRole("link", { name: "인테리어 계획" }))
     .queryAllByText(/지출 예정/)
     .map((line) => line.textContent);
 
@@ -185,7 +185,7 @@ async function expectHub() {
 }
 
 async function pickPlan(user: ReturnType<typeof userEvent.setup>, name: RegExp, hash: string) {
-  await user.click(tab("우리 집"));
+  await user.click(tab("인테리어"));
   expect(await screen.findByRole("heading", { name: "계획 고르기" })).toBeInTheDocument();
   await user.click(
     within(screen.getByRole("region", { name: "계획 고르기" })).getByRole("link", { name }),

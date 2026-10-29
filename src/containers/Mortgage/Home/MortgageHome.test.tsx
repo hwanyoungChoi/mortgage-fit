@@ -68,7 +68,10 @@ describe("우리 집 화면: 만들기·계획 수 상한 (스펙 interior-plann
         screen.getByText("공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"),
       ).toBeInTheDocument();
       expect(screen.getByText("저장 목록의 매물 카드에서도 만들 수 있어요")).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "우리 집" })).toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("link", { name: "인테리어" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
 
       await user.click(screen.getByRole("button", { name: "계획 만들기" }));
       const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });

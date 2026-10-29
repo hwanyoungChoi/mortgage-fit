@@ -1,4 +1,4 @@
-// 출처 선택(useListingSource에서 옮김, ea18953 "동작 무변경")을 [우리 집]도 쓴다(스펙 interior-planner "화면 — 상태").
+// 출처 선택(useListingSource에서 옮김, ea18953 "동작 무변경")을 [인테리어]도 쓴다(스펙 interior-planner "화면 — 상태").
 import { describe, expect, it } from "vitest";
 
 import { selectAccountSourceStatus } from "./accountSourceStatus";

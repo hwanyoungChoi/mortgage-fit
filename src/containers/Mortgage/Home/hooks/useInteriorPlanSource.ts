@@ -41,7 +41,7 @@ type InteriorPlanSourceOptions = {
 };
 
 /**
- * [우리 집] 화면이 쓰는 계획 출처(로그아웃: 로컬 스토어 / 로그인: 서버). `useListingSource`와 같은 경계다.
+ * [인테리어] 화면이 쓰는 계획 출처(로그아웃: 로컬 스토어 / 로그인: 서버). `useListingSource`와 같은 경계다.
  * 읽기는 `useInteriorPlanListSource`(홈과 같이 씀)이고, 여기서 쓰기를 얹는다(ADR-031 D5 B).
  * 쓰기는 두 출처 모두 서버 API와 같은 단위(계획 POST·PATCH·DELETE, 항목 POST·PUT·DELETE)의 Promise 결과다.
  * 출처가 정해지기 전(loading·error)에는 쓰지 않고 `notReady`로 실패한다(로컬로 몰래 쓰지 않는다).

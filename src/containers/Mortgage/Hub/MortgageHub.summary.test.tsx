@@ -52,7 +52,7 @@ const INTRO = {
 const CARD = {
   calculator: "대출 계산",
   listings: "매물 모으기",
-  home: "우리 집 인테리어",
+  home: "인테리어 계획",
 } as const;
 type CardKey = keyof typeof CARD;
 

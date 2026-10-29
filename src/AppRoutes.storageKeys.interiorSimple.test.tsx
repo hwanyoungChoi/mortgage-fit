@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-// 스펙 interior-simple AC-0(d)(ADR-032 조건 3): 새 [우리 집] 화면은 열기만 하면 저장소에 쓰지 않는다.
+// 스펙 interior-simple AC-0(d)(ADR-032 조건 3): 새 [인테리어] 화면은 열기만 하면 저장소에 쓰지 않는다.
 // 시드: 기존 14개 키 전부, `interior-plans`는 들여쓴 JSON(옛 계획 L + 옛 P) — 앱이 다시 직렬화해 쓰면 ===에서 걸린다.
-// 단계: 홈 → [매물] 저장 목록 [가리기] 끄기/켜기 → [우리 집] → 계획 L 목록 → 줄 시트 열었다 닫기 → [표] → CSV·인쇄 → [목록]
+// 단계: 홈 → [매물] 저장 목록 [가리기] 끄기/켜기 → [인테리어] → 계획 L 목록 → 줄 시트 열었다 닫기 → [표] → CSV·인쇄 → [목록]
 // → [홈] → 뒤로 가기. 단계마다 허용 목록 밖 setItem·removeItem·clear 0회, session-hint 외 13개 키 원문 ===, 새 키 0개.
 // 가리기 대조군(ADR-035 조건 6): 시드가 켜짐("true")이라 저장 목록 [가리기] 2번은 끄기 → 켜기이고 쓰기는
-// setItem(privacy-mode, "false") → setItem(privacy-mode, "true") 순서의 2회다. [우리 집]·표·홈 단계의 privacy-mode 쓰기는 0회다.
+// setItem(privacy-mode, "false") → setItem(privacy-mode, "true") 순서의 2회다. [인테리어]·표·홈 단계의 privacy-mode 쓰기는 0회다.
 // 모드: 로그아웃(주입 스파이 · Storage.prototype 스파이) / 로그인 혼자(서버 GET이 L) / 가구 — 로그인·가구는 서버 쓰기 0건.
 // 대조군(스파이가 살아 있음): 순회 뒤 L의 욕실나라 체크 1번 → 로컬 setItem 정확히 1회 또는 PUT 정확히 1건, 그 항목 외 값 그대로.
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -206,12 +206,12 @@ const tab = (name: string) =>
 
 const X_Q2_CHECK = "욕실 욕실나라 확정";
 
-/** 홈 카드 [우리 집]의 계획별 줄(L 370, 옛 P 1,530)이 그려졌다 */
+/** 홈 카드 [인테리어]의 계획별 줄(L 370, 옛 P 1,530)이 그려졌다 */
 async function expectHubPlanLines() {
   expect(await screen.findByRole("heading", { level: 1, name: "홈" })).toBeInTheDocument();
   await waitFor(() =>
     expect(
-      within(screen.getByRole("link", { name: "우리 집 인테리어" }))
+      within(screen.getByRole("link", { name: "인테리어 계획" }))
         .queryAllByText(/지출 예정/)
         .map((line) => line.textContent),
     ).toEqual(["옛 계획 · 지출 예정 3,700,000원", "우리 집 · 지출 예정 15,300,000원"]),
@@ -243,9 +243,9 @@ async function walk(user: User, api: FakePlanApi, check: Check) {
   expect(privacyButton).toHaveAttribute("aria-pressed", "true");
   check("저장 목록 가리기 켜기", PRIVACY_TOGGLED);
 
-  await user.click(tab("우리 집"));
+  await user.click(tab("인테리어"));
   expect(await screen.findByRole("heading", { name: "계획 고르기" })).toBeInTheDocument();
-  check("탭 [우리 집] 계획 고르기", PRIVACY_TOGGLED);
+  check("탭 [인테리어] 계획 고르기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("link", { name: /옛 계획/ }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-l"));
