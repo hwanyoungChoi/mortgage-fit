@@ -19,9 +19,10 @@
   <tr>
     <td align="center"><img src="docs/screenshots/04-trades.png" width="240" alt="실거래가 시트: 서울 강남구 래미안 검색 결과" /><br />실거래가</td>
     <td align="center"><img src="docs/screenshots/05-interior.png" width="240" alt="인테리어: 남은 예산·지출 예정·지출 완료 요약과 공정별 업체 견적 줄, 일정, 확정·완료 체크" /><br />인테리어</td>
-    <td align="center"><img src="docs/screenshots/06-interior-table.png" width="240" alt="인테리어 표 보기: 기준일 요약과 구분·업체·세부내용·견적 표, CSV 내려받기·인쇄 버튼" /><br />인테리어 견적 표</td>
   </tr>
 </table>
+
+<p align="center"><img src="docs/screenshots/06-interior-print.png" width="720" alt="인테리어 견적 표 인쇄·PDF 첫 페이지: 기준일 요약과 구분·업체·세부내용·견적·확정·완료·비고 표" /><br />인테리어 견적 표(인쇄·PDF 첫 페이지)</p>
 
 화면의 매물 이름, 업체, 금액은 예시입니다.
 
