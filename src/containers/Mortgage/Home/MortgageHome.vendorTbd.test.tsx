@@ -50,9 +50,11 @@ async function renderLoggedOut(storage: Storage, hash = P_HASH) {
 const openButton = (name: string) => screen.getByRole("button", { name: `${name} 열기` });
 const check = (name: string) => screen.getByRole("checkbox", { name: `${name} 확정` });
 
-/** 여는 버튼 왼쪽 글자 묶음의 줄들(금액 제외) */
-const textLines = (name: string) =>
-  Array.from(openButton(name).firstElementChild?.children ?? []) as HTMLElement[];
+/** 여는 버튼 왼쪽 글자 묶음의 줄들(금액 제외). 첫 줄은 글자와 일정 묶음이라 그 글자만 */
+const textLines = (name: string) => {
+  const [title, ...rest] = Array.from(openButton(name).firstElementChild?.children ?? []);
+  return [title.firstElementChild, ...rest] as HTMLElement[];
+};
 
 /** 여는 버튼의 금액 자리(글자 묶음 다음 형제) */
 const amountText = (name: string) => openButton(name).lastElementChild?.textContent;

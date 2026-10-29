@@ -117,7 +117,7 @@ describe("AC-1 옛 다견적 항목 F⁺ (q1 하루바스 370 확정, q2 욕실�
     await renderLoggedOut(storageWith([makeSimplePlanP({ items: [fPlus()] })]));
     expect(screen.getByRole("button", { name: `${F_Q1} 열기` })).toHaveTextContent("3,700,000원");
     expect(screen.getByRole("button", { name: `${F_Q2} 열기` })).toHaveTextContent(
-      /^도기 포함욕실나라미정$/,
+      /^도기 포함일정 11\/3~11\/7욕실나라미정$/,
     );
     expect(screen.getAllByRole("checkbox", { name: / 확정$/ })).toHaveLength(2);
     expect(headlineValue("지출 예정")).toBe("3,700,000원");
@@ -214,6 +214,8 @@ describe("시트 첫 포커스와 칸 순서", () => {
       "세부내용(선택)",
       "업체(비우면 미정)",
       "견적(비우면 미정)",
+      "시작일(선택)",
+      "끝나는 날(선택)",
       "비고(선택)",
     ];
     const textLabels = (dialog: HTMLElement) =>

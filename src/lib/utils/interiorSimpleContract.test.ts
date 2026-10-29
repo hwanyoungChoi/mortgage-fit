@@ -123,7 +123,12 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
             editLineInput(
               itemOf(store, "plan-l", "item-x"),
               "q2",
-              values({ amountWon: 3_800_000, note: "폐기물 포함" }),
+              values({
+                amountWon: 3_800_000,
+                startDate: "2026-11-03",
+                endDate: "2026-11-07",
+                note: "폐기물 포함",
+              }),
               createId,
             ),
           ),

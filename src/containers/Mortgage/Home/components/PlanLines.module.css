@@ -212,6 +212,23 @@
   min-width: 0;
 }
 
+/* 첫 줄 글자와 그 오른쪽 일정. 일정은 줄지 않고 글자가 줄을 바꾼다. */
+.titleLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* 일정 "11/3~11/7": 둘째 줄과 같은 흐린 14px, 숫자 폭 고정 */
+.schedule {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* 첫 줄(세부내용, 없으면 업체). 세부내용은 200자까지라 두 줄에서 자른다(전체는 줄 시트에서 본다). */
 .primaryText {
   display: -webkit-box;

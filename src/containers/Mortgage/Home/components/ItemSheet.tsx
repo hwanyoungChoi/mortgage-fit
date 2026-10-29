@@ -71,8 +71,10 @@ function deleteConfirmMessage(removal: InteriorLineRemoval): string {
   return DELETE_CONFIRM_MESSAGE;
 }
 
+type TextFieldName = Exclude<InteriorLineDraftField, "amount" | "startDate" | "endDate">;
+
 type TextFieldProps = {
-  field: Exclude<InteriorLineDraftField, "amount">;
+  field: TextFieldName;
   label: string;
   value: string;
   maxLength: number;
@@ -145,13 +147,54 @@ function TextField({
   );
 }
 
+type DateFieldProps = {
+  field: "startDate" | "endDate";
+  label: string;
+  value: string;
+  /** 고를 수 있는 가장 이른 날(끝나는 날 칸은 시작일) */
+  min?: string;
+  error: string | null;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+};
+
+/** 날짜 칸 하나: 라벨 · 기기 날짜 고르기(`type="date"`, 값은 YYYY-MM-DD, 비우면 "") · 그 칸 아래 오류 */
+function DateField({ field, label, value, min, error, onChange, onBlur }: DateFieldProps) {
+  const id = fieldInputId(field);
+  const errorId = `${id}-error`;
+  return (
+    <div className={formStyles.field}>
+      <label className={formStyles.label} htmlFor={id}>
+        {label}
+      </label>
+      <input
+        id={id}
+        className={formStyles.dateInput}
+        type="date"
+        value={value}
+        min={min === "" ? undefined : min}
+        aria-invalid={error !== null}
+        aria-describedby={error === null ? undefined : errorId}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
+      />
+      {error !== null && (
+        <p id={errorId} className={formStyles.error}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /**
- * 줄 시트: 구분(기존 구분 제안) · 세부내용 · 업체 · 견적 · 비고 · [확정] · [저장] · (기존 줄) [삭제].
+ * 줄 시트: 구분(기존 구분 제안) · 세부내용 · 업체 · 견적 · 일정(시작일·끝나는 날) · 비고 · [확정] · [저장] · (기존 줄) [삭제].
  * 칸 순서는 목록 줄(세부내용 위, 업체 아래)과 같다. 표·CSV 열 순서(구분·업체·세부내용)와는 따로다.
  * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경(폴링 포함)으로 덮이지 않는다. 그 사이 다른 사람이 같은 항목을
  * 저장했으면 저장하지 않고 알린 뒤 [최신 값 불러오기]를 보인다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
  * 저장을 누르면 모두 보이고 첫 오류 칸으로 간다. 고친 것이 없으면 [저장]이 막히고, 고친 채 닫으면 확인한다.
- * 견적 n≥2 옛 항목의 줄은 구분·비고·확정을 형제 줄과 같이 쓴다는 안내를 붙인다(D2 a).
+ * 일정은 항목 칸이라 견적 n≥2 옛 항목의 형제 줄과 같이 쓴다. 끝나는 날은 비워도 되고(하루 일정), 있으면 시작일과 같거나 뒤다.
+ * 견적 n≥2 옛 항목의 줄은 구분·일정·비고·확정을 형제 줄과 같이 쓴다는 안내를 붙인다(D2 a).
  */
 function ItemSheet({
   tradeSuggestions,
@@ -220,7 +263,7 @@ function ItemSheet({
     }
   };
 
-  const textFieldProps = (field: Exclude<InteriorLineDraftField, "amount">) => ({
+  const fieldProps = <Field extends Exclude<InteriorLineDraftField, "amount">>(field: Field) => ({
     field,
     value: draft[field],
     error: errorOf(field),
@@ -232,7 +275,7 @@ function ItemSheet({
     <Sheet title={openedRow === null ? "줄 추가" : "줄"} onClose={handleClose}>
       <form className={formStyles.form} noValidate onSubmit={handleSubmit}>
         <TextField
-          {...textFieldProps("trade")}
+          {...fieldProps("trade")}
           label="구분"
           maxLength={INTERIOR_TRADE_MAX_LENGTH}
           listId={tradeListId}
@@ -243,13 +286,13 @@ function ItemSheet({
           ))}
         </datalist>
         <TextField
-          {...textFieldProps("detail")}
+          {...fieldProps("detail")}
           label="세부내용(선택)"
           maxLength={INTERIOR_QUOTE_MEMO_MAX_LENGTH}
           isAutoFocused={isTradePrefilled}
         />
         <TextField
-          {...textFieldProps("vendor")}
+          {...fieldProps("vendor")}
           label="업체(비우면 미정)"
           maxLength={INTERIOR_VENDOR_MAX_LENGTH}
         />
@@ -262,8 +305,12 @@ function ItemSheet({
           onChange={(amount) => update({ amount })}
           onBlur={() => markBlurred("amount")}
         />
+        <div className={formStyles.dateRow}>
+          <DateField {...fieldProps("startDate")} label="시작일(선택)" />
+          <DateField {...fieldProps("endDate")} label="끝나는 날(선택)" min={draft.startDate} />
+        </div>
         <TextField
-          {...textFieldProps("note")}
+          {...fieldProps("note")}
           label="비고(선택)"
           maxLength={INTERIOR_ITEM_MEMO_MAX_LENGTH}
           isMultiline
@@ -279,7 +326,7 @@ function ItemSheet({
 
         {sharedQuoteCount >= 2 && (
           <p className={formStyles.note}>
-            같은 항목의 견적 {sharedQuoteCount}개가 구분·비고·확정을 같이 씁니다
+            같은 항목의 견적 {sharedQuoteCount}개가 구분·일정·비고·확정을 같이 씁니다
           </p>
         )}
         {writeError !== null && (

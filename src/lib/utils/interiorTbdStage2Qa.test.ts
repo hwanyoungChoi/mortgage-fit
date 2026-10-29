@@ -97,6 +97,8 @@ describe("줄 수정 행렬: 고친 견적만 amountWon(비우면 두 키 없음
       vendor: original.vendor!,
       ...(won !== undefined && { amountWon: won }),
       ...(original.memo !== undefined && { detail: original.memo }),
+      ...(item.startDate !== undefined && { startDate: item.startDate }),
+      ...(item.endDate !== undefined && { endDate: item.endDate }),
       ...(item.memo !== undefined && { note: item.memo }),
       isConfirmed: item.confirmedQuoteId === quoteId,
     };
@@ -144,6 +146,8 @@ describe("[줄 추가] (AC-2 2단계)", () => {
     vendor: "빛나라조명",
     amount: "",
     detail: "거실 매입등",
+    startDate: "",
+    endDate: "",
     note: "",
     isConfirmed: true,
     ...patch,

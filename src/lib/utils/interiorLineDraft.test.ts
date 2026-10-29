@@ -43,6 +43,8 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       vendor: "",
       amount: "",
       detail: "",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: false,
     });
@@ -55,6 +57,8 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       vendor: "육문수",
       amount: "1800000",
       detail: "실크 전체",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: true,
     });
@@ -66,6 +70,8 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       vendor: "욕실나라",
       amount: "4000000",
       detail: "",
+      startDate: "2026-11-03",
+      endDate: "2026-11-07",
       note: "폐기물 포함",
       isConfirmed: false,
     });
@@ -77,6 +83,8 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       vendor: "",
       amount: "",
       detail: "",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: false,
     });

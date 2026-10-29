@@ -2,6 +2,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useId } from "react";
 
+import { interiorScheduleTextOf } from "@/lib/utils/interiorScheduleText";
+
 import LineSummary from "./LineSummary";
 import styles from "./PlanLines.module.css";
 import { lineNameOf } from "../lineName";
@@ -31,7 +33,7 @@ const LINE_CHECKS: { check: LineCheck; label: string }[] = [
 const ROLE_DESCRIPTION = "순서를 바꿀 수 있는 버튼";
 
 /**
- * 줄 하나: [여는 버튼(세부내용 / 업체 · 견적)]과 [확정]·[완료] 체크를 형제로 둔다(버튼 안에 체크박스를 넣지 않는다).
+ * 줄 하나: [여는 버튼(세부내용 · 일정 / 업체 · 견적)]과 [확정]·[완료] 체크를 형제로 둔다(버튼 안에 체크박스를 넣지 않는다).
  * [완료](구매 완료)를 켜면 그 견적을 확정도 하고, [확정]을 끄면 완료도 풀린다(`interiorLineWrites`).
  * 비고(항목 메모)와 견적 없는 줄의 "예산 n원"은 목록에 그리지 않는다(줄 시트·표·CSV·인쇄에는 있다, 스펙 interior-tbd-amount 추가 요청).
  * 체크는 저장된 값 그대로이고, 저장 중에는 원래 상태로 비활성이다. 견적 없는 줄의 체크는 숨기지 않고 비활성으로 이유를 붙인다.
@@ -40,6 +42,7 @@ const ROLE_DESCRIPTION = "순서를 바꿀 수 있는 버튼";
  */
 function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: LineRowProps) {
   const noQuoteId = useId();
+  const scheduleId = useId();
   const { quote } = row;
   const name = lineNameOf(trade, row);
   const {
@@ -56,6 +59,13 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
     attributes: { roleDescription: ROLE_DESCRIPTION },
   });
   const dragProps = isDraggable ? { ...attributes, ...listeners } : {};
+  // 일정 글자를 끌기 안내(dnd-kit의 aria-describedby) 앞에 둔다. 덮어쓰면 끌기 안내가 사라진다
+  const describedBy = [
+    interiorScheduleTextOf(row.item) === null ? undefined : scheduleId,
+    isDraggable ? attributes["aria-describedby"] : undefined,
+  ]
+    .filter((id) => id !== undefined)
+    .join(" ");
 
   return (
     <li
@@ -70,9 +80,10 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
         className={isDraggable ? styles.draggableOpenButton : styles.openButton}
         aria-haspopup="dialog"
         aria-label={`${name} 열기`}
+        aria-describedby={describedBy === "" ? undefined : describedBy}
         onClick={(event) => onOpen(event.currentTarget)}
       >
-        <LineSummary row={row} />
+        <LineSummary row={row} scheduleId={scheduleId} />
       </button>
       {LINE_CHECKS.map(({ check, label }) => (
         <label key={check} className={styles.confirm}>

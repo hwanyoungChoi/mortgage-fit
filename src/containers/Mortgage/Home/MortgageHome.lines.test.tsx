@@ -210,12 +210,15 @@ describe("AC-1 목록·요약 (예시 P, 로그아웃)", () => {
 });
 
 describe("줄 글자 순서: 첫 줄 세부내용, 그 아래 업체", () => {
-  /** 여는 버튼 왼쪽 글자 묶음의 줄들: [클래스, 글자] (금액은 빼고) */
-  const rowLines = (openName: string) =>
-    Array.from(
+  /** 여는 버튼 왼쪽 글자 묶음의 줄들: [클래스, 글자] (금액은 빼고, 첫 줄은 일정 옆 글자만) */
+  const rowLines = (openName: string) => {
+    const [title, ...rest] = Array.from(
       screen.getByRole("button", { name: openName }).firstElementChild?.children ?? [],
+    );
+    return [title.firstElementChild!, ...rest].map(
       (line) => [line.className, line.textContent] as const,
     );
+  };
 
   it("세부내용이 있으면 세부내용이 첫 줄, 업체는 그 아래 줄 자리(세부내용 자리 스타일)다", async () => {
     await renderLoggedOut(storageWith([makePlanL()]), L_HASH);
@@ -417,8 +420,8 @@ describe("AC-4 옛 계획 L (보이기·확정 옮김, D2 a)", () => {
       [
         "욕실",
         [
-          ["철거·방수하루바스3,700,000원", true],
-          ["욕실나라4,000,000원", false],
+          ["철거·방수일정 11/3~11/7하루바스3,700,000원", true],
+          ["욕실나라일정 11/3~11/74,000,000원", false],
           ["타일 덧방하루바스2,500,000원", false],
         ],
       ],
