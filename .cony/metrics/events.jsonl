@@ -295,3 +295,4 @@
 {"ts":"2026-10-28T00:57:15.475Z","type":"task","task":2,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-28T01:05:26.399Z","type":"status","status":"완료"}
 {"ts":"2026-10-28T06:40:21.521Z","type":"hook","hook":"context-on-stop","decision":"block","context":245906}
+{"ts":"2026-10-28T07:09:55.117Z","type":"ship","pr":50,"result":"merged"}

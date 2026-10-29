@@ -124,7 +124,7 @@ function MortgageCalculator({
     loanInput === null || extraCosts === null ? null : { ...loanInput, extraCosts };
 
   /**
-   * [새 계산]은 추가 비용 줄도 비운다(스펙 U6). 저장하지 않은 줄이 있으면 한 번 묻는다.
+   * [초기화]는 추가 비용 줄도 비운다(스펙 U6). 저장하지 않은 줄이 있으면 한 번 묻는다.
    * 불러온 매물 그대로("저장됨")면 줄은 저장본에 있으므로 묻지 않는다.
    */
   const handleNewCalculation = () => {
@@ -132,7 +132,7 @@ function MortgageCalculator({
     const isConfirmed =
       extraCostCount === 0 ||
       !hasInputChanges ||
-      window.confirm(`추가 비용 ${extraCostCount}줄도 함께 비워집니다. 새 계산을 시작할까요?`);
+      window.confirm(`추가 비용 ${extraCostCount}줄도 함께 비워집니다. 초기화할까요?`);
     if (isConfirmed) resetToNewCalculation();
   };
 
@@ -175,7 +175,7 @@ function MortgageCalculator({
             <span className={styles.subtitle}>주담대 한도·자기자금 계산기</span>
           </h1>
           <button type="button" className={styles.newButton} onClick={handleNewCalculation}>
-            새 계산
+            초기화
           </button>
         </div>
         {editingListing !== null && (

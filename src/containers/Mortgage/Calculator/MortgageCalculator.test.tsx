@@ -412,7 +412,7 @@ describe("계산 화면 (통합)", () => {
     // "새 계산"은 LTV를 기본 70% 칩으로 되돌린다(소재지·보유 상태는 유지).
     await retype(user, screen.getByLabelText("사용자 지정 LTV"), "55");
     expect(within(summaryBar()).getByText("사용자 지정 LTV 55%")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "새 계산" }));
+    await user.click(screen.getByRole("button", { name: "초기화" }));
     expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
     expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "비수도권" })).toBeChecked();
@@ -514,7 +514,7 @@ describe("계산 화면 (통합)", () => {
 
     // 새 계산 뒤: 단지명은 비고 시군구 기억은 남는다. 단지명 없는 조회는 캐시에 있어 재조회하지 않는다.
     await user.click(within(sheet).getByRole("button", { name: "닫기" }));
-    await user.click(screen.getByRole("button", { name: "새 계산" }));
+    await user.click(screen.getByRole("button", { name: "초기화" }));
     await user.click(openButton);
     sheet = screen.getByRole("dialog", { name: "이 지역 실거래가" });
     expect(within(sheet).getByLabelText("단지명(선택)")).toHaveValue("");
