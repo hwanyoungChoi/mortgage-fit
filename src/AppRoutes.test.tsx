@@ -237,7 +237,7 @@ describe("저장 흐름 (통합)", () => {
     // "새 계산"은 금액과 listingId를 비우고 조건은 유지한다:
     // 같은 값을 다시 입력해도 더는 그 매물의 "저장됨"이 아니다.
     await user.click(screen.getByRole("link", { name: "계산" }));
-    await user.click(await screen.findByRole("button", { name: "새 계산" }));
+    await user.click(await screen.findByRole("button", { name: "초기화" }));
     expect(window.location.hash).toBe("#/calculator");
     expect(window.history.length).toBe(historyBeforeTab);
     expect(screen.getByLabelText("매매가")).toHaveValue("");
