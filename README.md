@@ -4,7 +4,7 @@
 
 - **대출 계산**: 매매가와 KB시세를 넣으면 주택담보대출 예상 한도와 필요한 자기자금(취득세·중개보수 포함)을 계산합니다.
 - **매물 모으기**: 계산한 매물을 저장해 놓고 내 예산과 비교하며 후보를 좁힙니다.
-- **우리 집 인테리어**: 계약한 집의 공정별 업체 견적을 모아 확정한 금액으로 예산을 관리합니다.
+- **인테리어**: 계약한 집의 공정별 업체 견적을 모아 확정한 금액으로 예산을 관리합니다.
 
 운영 주소: <https://loan.conychoi.dev>
 
@@ -12,14 +12,14 @@
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/01-home.png" width="240" alt="홈: 대출 계산·매물 모으기·우리 집 인테리어 요약과 카카오 로그인" /><br />홈</td>
+    <td align="center"><img src="docs/screenshots/01-home.png" width="240" alt="홈: 대출 계산·매물 모으기·인테리어 요약과 카카오 로그인" /><br />홈</td>
     <td align="center"><img src="docs/screenshots/02-calculator.png" width="240" alt="계산 결과: 예상 한도, 취득세·중개보수, 필요한 자기자금, 추가 비용과 총 필요 금액" /><br />대출 계산 결과</td>
     <td align="center"><img src="docs/screenshots/03-listings.png" width="240" alt="매물 모으기: 내 예산과 비교한 저장 목록, 펼친 매물 카드의 자기자금 내역과 메모" /><br />매물 모으기</td>
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/04-trades.png" width="240" alt="실거래가 시트: 서울 강남구 래미안 검색 결과" /><br />실거래가</td>
-    <td align="center"><img src="docs/screenshots/05-interior.png" width="240" alt="우리 집 인테리어: 남은 예산·지출 예정 요약과 공정별 업체 견적 줄, 확정 체크" /><br />우리 집 인테리어</td>
-    <td align="center"><img src="docs/screenshots/06-interior-table.png" width="240" alt="우리 집 표 보기: 구분·업체·세부내용·견적 표와 CSV 내려받기·인쇄 버튼" /><br />인테리어 견적 표</td>
+    <td align="center"><img src="docs/screenshots/05-interior.png" width="240" alt="인테리어: 남은 예산·지출 예정 요약과 공정별 업체 견적 줄, 확정 체크" /><br />인테리어</td>
+    <td align="center"><img src="docs/screenshots/06-interior-table.png" width="240" alt="인테리어 표 보기: 구분·업체·세부내용·견적 표와 CSV 내려받기·인쇄 버튼" /><br />인테리어 견적 표</td>
   </tr>
 </table>
 
@@ -29,7 +29,7 @@
 
 ### 홈
 
-- 대출 계산(작성 중인 매매가), 매물 모으기(저장한 매물 수), 우리 집 인테리어(지출 예정·금액 미정 건수)를 한 화면에서 보고 바로 들어갑니다.
+- 대출 계산(작성 중인 매매가), 매물 모으기(저장한 매물 수), 인테리어 계획(지출 예정·금액 미정 건수)를 한 화면에서 보고 바로 들어갑니다.
 - 카카오 로그인과 함께 쓰기도 홈에서 합니다.
 
 ### 대출 계산
@@ -49,7 +49,7 @@
 - **공유 링크**: 목록이나 매물 하나를 링크로 보내면 받은 사람이 값만 복사해 자기 목록에 추가합니다.
 - **인테리어 계획으로 이어 가기**: 매물 카드의 [인테리어 계획]으로 그 집의 인테리어 계획을 만듭니다.
 
-### 우리 집 인테리어
+### 인테리어
 
 턴키 없이 공정마다 업체에 따로 맡길 때 견적을 모아 예산을 짜는 화면입니다.
 
@@ -104,7 +104,7 @@ Vite + React 클라이언트를 Cloudflare Workers Static Assets로 서비스하
 | `/api/apt-trades`                                    | 국토교통부 아파트 매매 실거래가 프록시 |
 | `/api/auth/kakao/*`, `/api/auth/logout`, `/api/me`   | 카카오 로그인·세션                     |
 | `/api/listings`, `/api/listing-order`, `/api/budget` | 저장 목록·순서·예산(D1)                |
-| `/api/interior-plans`                                | 우리 집 인테리어 계획(D1)              |
+| `/api/interior-plans`                                | 인테리어 계획(D1)                      |
 | `/api/household/*`                                   | 함께 쓰기 초대·수락·나가기             |
 | `/api/shares`                                        | 공유 링크(30일 보관)                   |
 

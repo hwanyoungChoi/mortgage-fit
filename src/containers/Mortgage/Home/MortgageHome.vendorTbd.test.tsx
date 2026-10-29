@@ -266,7 +266,7 @@ describe("허브 (AC-1)", () => {
     window.location.hash = "#/";
     render(<AppRoutes storage={storageWith([makePlanV()])} />, { wrapper: api.wrapper });
     const card = () =>
-      within(screen.getByRole("main")).getByRole("link", { name: "우리 집 인테리어" });
+      within(screen.getByRole("main")).getByRole("link", { name: "인테리어 계획" });
     await waitFor(() =>
       expect(card()).toHaveAccessibleDescription("우리 집 · 지출 예정 8,300,000원 · 미정 1건"),
     );

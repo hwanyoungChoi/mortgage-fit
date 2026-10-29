@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// [우리 집] 로그인 상태 화면(스펙 interior-planner AC-7·8·9 클라이언트, "화면 — 상태", "반복 사용 불편 방지").
+// [인테리어] 로그인 상태 화면(스펙 interior-planner AC-7·8·9 클라이언트, "화면 — 상태", "반복 사용 불편 방지").
 // 화면 → 출처 훅 → API 훅 연결을 본다(훅 단위 테스트로는 이벤트 미전달을 못 잡는다).
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -63,7 +63,7 @@ afterEach(() => {
   window.location.hash = "#/";
 });
 
-describe("로그인 상태 [우리 집] — 서버 출처", () => {
+describe("로그인 상태 [인테리어] — 서버 출처", () => {
   it("서버 계획을 그린다(로컬 원본은 그리지도 쓰지도 않음)", async () => {
     const local = makePlanP({ id: "local-only", name: "기기 계획" });
     const { storage, api } = renderLoggedIn({ localPlans: [local], isInHousehold: true });
@@ -98,7 +98,7 @@ describe("로그인 상태 [우리 집] — 서버 출처", () => {
     ).toBeInTheDocument();
   });
 
-  it("로그인 이전: 혼자면 기기 계획을 옮기고 '옮겼습니다'를 [우리 집]에 한 번만 보인다", async () => {
+  it("로그인 이전: 혼자면 기기 계획을 옮기고 '옮겼습니다'를 [인테리어]에 한 번만 보인다", async () => {
     const user = userEvent.setup();
     const local = makePlanP({ id: "local-plan", name: "기기 계획", items: [] });
     const { api } = renderLoggedIn({ serverPlans: [], localPlans: [local] });
@@ -108,7 +108,7 @@ describe("로그인 상태 [우리 집] — 서버 출처", () => {
     expect(await screen.findByRole("heading", { name: "기기 계획" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("link", { name: "계산" }));
-    await user.click(screen.getByRole("link", { name: "우리 집" }));
+    await user.click(screen.getByRole("link", { name: "인테리어" }));
     expect(await screen.findByRole("heading", { name: "기기 계획" })).toBeInTheDocument();
     expect(screen.queryByText(MOVED_NOTICE)).not.toBeInTheDocument();
   });

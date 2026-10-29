@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// AC-0(c)(g): [우리 집]을 만들고 써도 기존 12개 키는 읽기만 한다. 허용 목록(새 키 2개) 밖의 키에
+// AC-0(c)(g): [인테리어]을 만들고 써도 기존 12개 키는 읽기만 한다. 허용 목록(새 키 2개) 밖의 키에
 // setItem·removeItem·clear가 0회이고, 시드한 원문이 `===`로 같다(같은 값을 다시 쓰는 것은 스파이만 잡는다).
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -150,7 +150,7 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   await user.click(screen.getByRole("link", { name: "매물" }));
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
 
-  await user.click(screen.getByRole("link", { name: "우리 집" }));
+  await user.click(screen.getByRole("link", { name: "인테리어" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   if (mode === "pending") {
     expect(screen.getByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
@@ -175,7 +175,7 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 
   // 탭으로 다시 들어오면(#/home) 하나뿐인 플랜을 연다
-  await user.click(screen.getByRole("link", { name: "우리 집" }));
+  await user.click(screen.getByRole("link", { name: "인테리어" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   expect(screen.getByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 
@@ -183,7 +183,7 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
 }
 
-describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () => {
+describe("AC-0(c)(g) 기존 12개 키는 [인테리어]을 써도 그대로", () => {
   beforeEach(() => {
     window.location.hash = PATHS.calculator;
   });
@@ -198,7 +198,7 @@ describe("AC-0(c)(g) 기존 12개 키는 [우리 집]을 써도 그대로", () =
     expect(Object.keys(LEGACY_SEED).toSorted()).toEqual(LEGACY_KEYS.toSorted());
   });
 
-  it("로그인 확인 응답 전: 앱 시작·각 탭·[우리 집](불러오는 중) 동안 쓰기 0회, 12개 원문 === 그대로, 새 키 없음", async () => {
+  it("로그인 확인 응답 전: 앱 시작·각 탭·[인테리어](불러오는 중) 동안 쓰기 0회, 12개 원문 === 그대로, 새 키 없음", async () => {
     stubApi("pending");
     const user = userEvent.setup();
     const { storage, setItem, forbiddenWrites } = createSpiedStorage(LEGACY_SEED);

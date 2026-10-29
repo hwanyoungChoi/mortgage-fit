@@ -17,7 +17,7 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 const VALID_TOKEN = "AbCdEfGhIjKlMnOpQrStUv";
 
 const SEED = {
-  // 계획 이름을 h1 "우리 집"(계획 0개·고르기)과 다르게 두어 계획 화면에 도착했는지 가른다
+  // 계획 이름을 h1 "인테리어"(계획 0개·고르기)와 다르게 두어 계획 화면에 도착했는지 가른다
   [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans([makePlanP({ name: "P 계획" })]),
   [LISTINGS_STORAGE_KEY]: JSON.stringify([makeListing({ name: "래미안 84" })]),
 };
@@ -64,10 +64,10 @@ describe("하단 탭 (AC-2)", () => {
       ["홈", "#/"],
       ["계산", "#/calculator"],
       ["매물", "#/listings"],
-      ["우리 집", "#/home"],
+      ["인테리어", "#/home"],
     ]);
     // 링크 이름(접근 이름)도 라벨 글자 그대로
-    for (const name of ["홈", "계산", "매물", "우리 집"]) {
+    for (const name of ["홈", "계산", "매물", "인테리어"]) {
       expect(within(tabNav()).getByRole("link", { name })).toBeInTheDocument();
     }
     expect(within(tabNav()).queryAllByRole("button")).toEqual([]);
@@ -78,8 +78,8 @@ describe("하단 탭 (AC-2)", () => {
     ["#/calculator", "계산"],
     ["#/listings", "매물"],
     ["#/?login=failed", "홈"],
-    ["#/home", "우리 집"],
-    ["#/home/plan-p?view=table", "우리 집"],
+    ["#/home", "인테리어"],
+    ["#/home/plan-p?view=table", "인테리어"],
     [`#/share/${VALID_TOKEN}`, null],
     [`#/invite/${VALID_TOKEN}`, null],
   ])("%s에서 aria-current=page는 %s 하나뿐", async (hash, label) => {
@@ -93,14 +93,14 @@ describe("하단 탭 (AC-2)", () => {
     );
   });
 
-  it("계산 화면에서 [우리 집]을 누르면 #/home으로 replace(이력 불변)", async () => {
+  it("계산 화면에서 [인테리어]을 누르면 #/home으로 replace(이력 불변)", async () => {
     const user = userEvent.setup();
     const { historyLength } = renderApp("#/calculator");
     expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
-    await user.click(within(tabNav()).getByRole("link", { name: "우리 집" }));
+    await user.click(within(tabNav()).getByRole("link", { name: "인테리어" }));
     await waitFor(() => expect(window.location.hash).toBe("#/home"));
     expect(window.history.length).toBe(historyLength);
-    expect(within(tabNav()).getByRole("link", { name: "우리 집" })).toHaveAttribute(
+    expect(within(tabNav()).getByRole("link", { name: "인테리어" })).toHaveAttribute(
       "aria-current",
       "page",
     );

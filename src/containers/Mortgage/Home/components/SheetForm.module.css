@@ -1,4 +1,4 @@
-/* [우리 집] 시트(만들기·줄·계획 관리)가 함께 쓰는 입력 모양. 저장 시트(SaveSheet)와 같은 칸·버튼이다. */
+/* [인테리어] 시트(만들기·줄·계획 관리)가 함께 쓰는 입력 모양. 저장 시트(SaveSheet)와 같은 칸·버튼이다. */
 .form {
   display: flex;
   flex-direction: column;

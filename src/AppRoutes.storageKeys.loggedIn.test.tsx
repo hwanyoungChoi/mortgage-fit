@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// AC-0(c)(g) 로그인 상태: 혼자·가구 모두 앱 시작·탭 이동·[우리 집] 사용·로그인 이전·이전 건너뛰기 동안
+// AC-0(c)(g) 로그인 상태: 혼자·가구 모두 앱 시작·탭 이동·[인테리어] 사용·로그인 이전·이전 건너뛰기 동안
 // 허용 목록(새 키 2개) 밖 키에 setItem·removeItem·clear 0회, 시드한 기존 12개 키 원문 ===.
 // 예외: 이번 사이클 전부터 있던 로그인 확인 결과에 따른 session-hint 표시(useListingSource, 같은 값 "1").
 import { screen, waitFor, within, render } from "@testing-library/react";
@@ -130,7 +130,7 @@ async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
   expect(await screen.findByText("저장한 매물이 없습니다")).toBeInTheDocument();
   await waitFor(() => expect(api.callsTo("GET", "/api/listings").length).toBeGreaterThan(0));
 
-  await user.click(screen.getByRole("link", { name: "우리 집" }));
+  await user.click(screen.getByRole("link", { name: "인테리어" }));
   expect(await screen.findByRole("heading", { name: planName })).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "줄 추가" }));
   const itemSheet = screen.getByRole("dialog", { name: "줄 추가" });
@@ -143,7 +143,7 @@ async function walkLoggedIn(user: User, api: FakePlanApi, planName: string) {
 
   await user.click(screen.getByRole("link", { name: "계산" }));
   expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
-  await user.click(screen.getByRole("link", { name: "우리 집" }));
+  await user.click(screen.getByRole("link", { name: "인테리어" }));
   expect(await screen.findByRole("button", { name: "도배 육문수 열기" })).toBeInTheDocument();
 }
 
@@ -165,7 +165,7 @@ describe("AC-0(c)(g) 로그인 상태에서도 기존 12개 키는 그대로", (
     window.location.hash = "#/";
   });
 
-  it("혼자 쓰는 계정(이 기기 매물·예산·순서는 이미 옮긴 기록): 계획 로그인 이전·[우리 집] 사용 동안 허용 목록 밖 쓰기 0회, 12개 원문 ===", async () => {
+  it("혼자 쓰는 계정(이 기기 매물·예산·순서는 이미 옮긴 기록): 계획 로그인 이전·[인테리어] 사용 동안 허용 목록 밖 쓰기 0회, 12개 원문 ===", async () => {
     const userId = "user-a";
     const seed: Record<string, string> = {
       ...legacySeed({

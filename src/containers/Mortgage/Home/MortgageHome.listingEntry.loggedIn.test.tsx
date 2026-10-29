@@ -115,7 +115,7 @@ async function createFromCard(user: User, api: FakePlanApi, { keepImport = true 
   return plan;
 }
 
-describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
+describe("AC-6 매물 카드 → [인테리어] (로그인)", () => {
   beforeEach(() => {
     window.location.hash = "#/";
   });
@@ -156,7 +156,7 @@ describe("AC-6 매물 카드 → [우리 집] (로그인)", () => {
     expect(api.queryClient.getQueryCache().getAll()).toEqual([]);
   });
 
-  it("앱: 저장 목록에서 카드를 펼쳐도 계획 GET 0회, 클릭 뒤 [우리 집]이 계획 목록을 한 번 받아 만들기 시트", async () => {
+  it("앱: 저장 목록에서 카드를 펼쳐도 계획 GET 0회, 클릭 뒤 [인테리어]이 계획 목록을 한 번 받아 만들기 시트", async () => {
     const user = userEvent.setup();
     const { api } = setUp();
     renderApp(api, "#/listings");

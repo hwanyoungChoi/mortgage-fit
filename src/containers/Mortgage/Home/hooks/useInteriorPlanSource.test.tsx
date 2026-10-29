@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// [우리 집] 출처·서버 목록(스펙 interior-planner AC-7·9 클라이언트, "동기화·이전 규칙", "화면 — 상태", ADR-029 조건 8).
+// [인테리어] 출처·서버 목록(스펙 interior-planner AC-7·9 클라이언트, "동기화·이전 규칙", "화면 — 상태", ADR-029 조건 8).
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

@@ -23,8 +23,8 @@ const TABS: Record<TabName, { label: string; href: string; Icon: LucideIcon }> =
   hub: { label: "홈", href: PATHS.hub, Icon: House },
   calculator: { label: "계산", href: PATHS.calculator, Icon: Calculator },
   listings: { label: "매물", href: PATHS.listings, Icon: Bookmark },
-  /** 라벨은 "우리 집"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
-  home: { label: "우리 집", href: PATHS.home(), Icon: PaintRoller },
+  /** 라벨은 "인테리어"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
+  home: { label: "인테리어", href: PATHS.home(), Icon: PaintRoller },
 };
 
 const TAB_ORDER = Object.keys(TABS) as TabName[];
@@ -35,7 +35,7 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 화면 아래 고정 탭 "홈 | 계산 | 매물 | 우리 집". 아이콘과 라벨을 늘 함께 보인다.
+ * 화면 아래 고정 탭 "홈 | 계산 | 매물 | 인테리어". 아이콘과 라벨을 늘 함께 보인다.
  * 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. 현재 화면에 대한 동작([가가] 등)은 두지 않는다.
  */
 function TabNav({ current, onNavigate }: TabNavProps) {

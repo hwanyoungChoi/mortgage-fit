@@ -375,7 +375,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       );
       expect(screen.getByRole("main").innerHTML).toContain("가려짐");
 
-      await user.click(tab("우리 집"));
+      await user.click(tab("인테리어"));
       await user.click(await screen.findByRole("radio", { name: "표" }));
       await waitFor(() => expect(window.location.hash).toBe("#/home?view=table"));
       expect(tableText(planTable())).toEqual([HEADER_TEXT, ...Q_TABLE_TEXT]);

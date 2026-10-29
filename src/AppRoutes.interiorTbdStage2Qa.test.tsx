@@ -414,7 +414,7 @@ describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로
     expect(api.server.plans).toStrictEqual(rawPlans(raw));
     await waitFor(() =>
       expect(
-        within(screen.getByRole("link", { name: "우리 집 인테리어" }))
+        within(screen.getByRole("link", { name: "인테리어 계획" }))
           .queryAllByText(/지출 예정/)
           .map((line) => line.textContent),
       ).toEqual(["옛 계획 · 지출 예정 3,700,000원", "새 집 · 지출 예정 0원 · 미정 1건"]),

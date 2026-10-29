@@ -51,7 +51,7 @@ export type InteriorPlanStore = {
 };
 
 /**
- * [우리 집]이 그리는 계획 목록. 로컬 스냅샷 3값에 더해 출처가 정해지기 전(loading), 계정 확인 실패(accountError),
+ * [인테리어]이 그리는 계획 목록. 로컬 스냅샷 3값에 더해 출처가 정해지기 전(loading), 계정 확인 실패(accountError),
  * 서버 조회 실패(loadFailed, 받아 둔 목록이 없을 때만)
  */
 export type InteriorPlanListState =
