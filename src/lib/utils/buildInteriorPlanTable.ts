@@ -1,8 +1,12 @@
-import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
+import {
+  INTERIOR_PLAN_TABLE_COLUMNS,
+  INTERIOR_PLAN_TBD_LABEL,
+} from "@/lib/constants/interiorPlanTable";
 
 import { rowNoteOf, tbdExclusionNote, vendorOf } from "./interiorPlanRows";
 
 import type { InteriorPlanRow, InteriorPlanRows } from "./interiorPlanRows";
+import type { InteriorPlanTableColumn } from "@/lib/constants/interiorPlanTable";
 
 /** 금액 칸 값: 원 단위 금액 / "tbd" 금액 미정(견적은 있고 금액 키가 없음, ADR-033) / undefined 빈칸 */
 export type InteriorPlanTableAmount = number | "tbd" | undefined;
@@ -24,6 +28,8 @@ export type InteriorPlanTableRow = {
   quoteWon: InteriorPlanTableAmount;
   /** 확정한 줄의 견적 금액(원, 미정이면 "tbd"). 미확정이면 undefined */
   confirmedWon: InteriorPlanTableAmount;
+  /** 구매 완료 줄의 견적 금액(원, 미정이면 "tbd"). 완료가 아니면 undefined */
+  doneWon: InteriorPlanTableAmount;
   /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산. 없으면 "" */
   note: string;
 };
@@ -31,8 +37,12 @@ export type InteriorPlanTableRow = {
 export type InteriorPlanTable = {
   /** 구분 묶음. 목록과 같은 순서, 줄 0개면 [] */
   groups: { trade: string; rows: InteriorPlanTableRow[] }[];
-  /** "계"(원) = 지출 예정. 견적을 다 더한 값은 뜻이 없어 두지 않는다(U6). 0이어도 0 */
+  /** 확정 칸의 "계"(원) = 지출 예정 + 지출 완료. 견적을 다 더한 값은 뜻이 없어 두지 않는다(U6). 0이어도 0 */
   confirmedTotal: number;
+  /** 완료 칸의 "계"(원) = 지출 완료. 0이어도 0 */
+  doneTotal: number;
+  /** 화면·인쇄·CSV의 열(같은 순서). [완료] 줄이 없으면 완료 열이 없다(완료를 안 쓰는 계획은 그대로) */
+  columns: readonly InteriorPlanTableColumn[];
   /** "계" 줄 비고 "금액 미정 n건 제외". 미정 0건이면 "" */
   totalNote: string;
 };
@@ -58,6 +68,7 @@ function toRow(row: InteriorPlanRow): InteriorPlanTableRow {
     detail: quote?.memo ?? "",
     quoteWon,
     confirmedWon: row.isConfirmed ? quoteWon : undefined,
+    doneWon: row.isDone ? quoteWon : undefined,
     note: rowNoteOf(row),
   };
 }
@@ -89,11 +100,18 @@ export function tableVendorText(vendor: InteriorPlanTableVendor): string {
 export function buildInteriorPlanTable({
   groups,
   plannedTotalWon,
+  doneTotalWon,
+  doneCount,
   tbdCount,
 }: InteriorPlanRows): InteriorPlanTable {
   return {
     groups: groups.map((group) => ({ trade: group.trade, rows: group.rows.map(toRow) })),
-    confirmedTotal: plannedTotalWon,
+    confirmedTotal: plannedTotalWon + doneTotalWon,
+    doneTotal: doneTotalWon,
+    columns:
+      doneCount === 0
+        ? INTERIOR_PLAN_TABLE_COLUMNS.filter((column) => column !== "done")
+        : INTERIOR_PLAN_TABLE_COLUMNS,
     totalNote: tbdExclusionNote(tbdCount),
   };
 }

@@ -86,7 +86,7 @@ function listShape() {
       within(region)
         .getAllByRole("listitem")
         .map((row) => {
-          const box = within(row).getByRole("checkbox") as HTMLInputElement;
+          const box = within(row).getByRole("checkbox", { name: / 확정$/ }) as HTMLInputElement;
           return [within(row).getByRole("button").textContent, box.checked, box.disabled];
         }),
     ]);

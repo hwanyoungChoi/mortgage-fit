@@ -1,6 +1,7 @@
+import { Fragment, type ReactNode } from "react";
+
 import {
   INTERIOR_PLAN_TABLE_COLUMN_LABELS,
-  INTERIOR_PLAN_TABLE_COLUMNS,
   INTERIOR_PLAN_TABLE_TOTAL_LABEL,
 } from "@/lib/constants/interiorPlanTable";
 import { formatThousands } from "@/lib/utils/amount";
@@ -22,6 +23,7 @@ const COLUMN_CLASS_NAMES: Record<InteriorPlanTableColumn, string> = {
   detail: styles.detailCell,
   quote: styles.amountCell,
   confirmed: styles.amountCell,
+  done: styles.amountCell,
   note: styles.noteCell,
 };
 
@@ -32,24 +34,34 @@ function AmountCell({ won }: { won: InteriorPlanTableAmount }) {
 
 type PlanTableRowProps = {
   row: InteriorPlanTableRow;
+  columns: readonly InteriorPlanTableColumn[];
   /** 구분 묶음의 첫 줄에만 구분 칸을 두고 묶음 줄 수만큼 병합한다 */
   trade: { name: string; rowSpan: number } | null;
 };
 
 /** 줄 하나 */
-function PlanTableRow({ row, trade }: PlanTableRowProps) {
+function PlanTableRow({ row, columns, trade }: PlanTableRowProps) {
+  const cells: Record<Exclude<InteriorPlanTableColumn, "trade">, ReactNode> = {
+    vendor: <td className={styles.vendorCell}>{tableVendorText(row.vendor)}</td>,
+    detail: <td className={styles.detailCell}>{row.detail}</td>,
+    quote: <AmountCell won={row.quoteWon} />,
+    confirmed: <AmountCell won={row.confirmedWon} />,
+    done: <AmountCell won={row.doneWon} />,
+    note: <td className={styles.noteCell}>{row.note}</td>,
+  };
   return (
     <tr>
-      {trade !== null && (
-        <th scope="rowgroup" rowSpan={trade.rowSpan} className={styles.tradeCell}>
-          {trade.name}
-        </th>
+      {columns.map((column) =>
+        column === "trade" ? (
+          trade !== null && (
+            <th key={column} scope="rowgroup" rowSpan={trade.rowSpan} className={styles.tradeCell}>
+              {trade.name}
+            </th>
+          )
+        ) : (
+          <Fragment key={column}>{cells[column]}</Fragment>
+        ),
       )}
-      <td className={styles.vendorCell}>{tableVendorText(row.vendor)}</td>
-      <td className={styles.detailCell}>{row.detail}</td>
-      <AmountCell won={row.quoteWon} />
-      <AmountCell won={row.confirmedWon} />
-      <td className={styles.noteCell}>{row.note}</td>
     </tr>
   );
 }
@@ -61,15 +73,28 @@ type PlanTableProps = {
 };
 
 /**
- * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정 칸만, U6).
+ * 계획 표(읽기 전용): 열 제목 → 구분(공정)마다 `<tbody>` 하나 → `<tfoot>` "계"(확정·완료 칸만, U6).
  * 금액은 이미 원 단위라 천 단위 쉼표만 붙이고 다시 곱하지 않는다. 빈칸은 비워 둔다.
  */
 function PlanTable({ table, title }: PlanTableProps) {
+  const totalCells: Record<InteriorPlanTableColumn, ReactNode> = {
+    trade: (
+      <th scope="row" className={styles.tradeCell}>
+        {INTERIOR_PLAN_TABLE_TOTAL_LABEL}
+      </th>
+    ),
+    vendor: <td className={styles.vendorCell} />,
+    detail: <td className={styles.detailCell} />,
+    quote: <td className={styles.amountCell} />,
+    confirmed: <AmountCell won={table.confirmedTotal} />,
+    done: <AmountCell won={table.doneTotal} />,
+    note: <td className={styles.noteCell}>{table.totalNote}</td>,
+  };
   return (
     <table className={styles.table} aria-label={title}>
       <thead>
         <tr>
-          {INTERIOR_PLAN_TABLE_COLUMNS.map((column) => (
+          {table.columns.map((column) => (
             <th key={column} scope="col" className={COLUMN_CLASS_NAMES[column]}>
               {INTERIOR_PLAN_TABLE_COLUMN_LABELS[column]}
             </th>
@@ -83,6 +108,7 @@ function PlanTable({ table, title }: PlanTableProps) {
             <PlanTableRow
               key={index}
               row={row}
+              columns={table.columns}
               trade={index === 0 ? { name: group.trade, rowSpan: group.rows.length } : null}
             />
           ))}
@@ -90,14 +116,9 @@ function PlanTable({ table, title }: PlanTableProps) {
       ))}
       <tfoot>
         <tr>
-          <th scope="row" className={styles.tradeCell}>
-            {INTERIOR_PLAN_TABLE_TOTAL_LABEL}
-          </th>
-          <td className={styles.vendorCell} />
-          <td className={styles.detailCell} />
-          <td className={styles.amountCell} />
-          <AmountCell won={table.confirmedTotal} />
-          <td className={styles.noteCell}>{table.totalNote}</td>
+          {table.columns.map((column) => (
+            <Fragment key={column}>{totalCells[column]}</Fragment>
+          ))}
         </tr>
       </tfoot>
     </table>

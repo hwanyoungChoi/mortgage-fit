@@ -51,7 +51,13 @@ const LOADING = { kind: "loading" } as const;
 const ERROR = { kind: "error" } as const;
 const CORRUPT = { kind: "corrupt" } as const;
 const DRAFT_125000 = { kind: "summary", value: 125000 } as const;
-const P_LINE = { id: "plan-p", name: "우리 집", plannedTotalWon: 15_300_000, tbdCount: 0 };
+const P_LINE = {
+  id: "plan-p",
+  name: "우리 집",
+  plannedTotalWon: 15_300_000,
+  doneTotalWon: 0,
+  tbdCount: 0,
+};
 
 describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 카드의 상태가 다른 카드에 번지지 않음)", () => {
   it.each<[string, Partial<Input>, HubSummary]>([
@@ -128,7 +134,15 @@ describe("AC-7 카드별 상태표 (입력 목록 상태 → 카드 3개, 한 �
         listings: { kind: "summary", value: { count: 4, isHousehold: true } },
         home: {
           kind: "summary",
-          value: [{ id: "plan-pa", name: "A 계획", plannedTotalWon: 15_300_000, tbdCount: 0 }],
+          value: [
+            {
+              id: "plan-pa",
+              name: "A 계획",
+              plannedTotalWon: 15_300_000,
+              doneTotalWon: 0,
+              tbdCount: 0,
+            },
+          ],
         },
       },
     ],
@@ -257,7 +271,7 @@ describe("AC-6 우리 집 카드: 계획별 지출 예정 (interior-simple U7)",
     expect(summarizeInteriorPlan(plan).plannedTotalWon).toBe(plannedTotalWon);
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, plannedTotalWon, tbdCount: 0 }],
+      value: [{ id: plan.id, name: plan.name, plannedTotalWon, doneTotalWon: 0, tbdCount: 0 }],
     });
   });
 });
@@ -292,7 +306,7 @@ describe("우리 집 카드 — 금액 미정 건수 (interior-tbd-amount)", () 
   ])("%s", (_name, plan, plannedTotalWon, tbdCount) => {
     expect(summarize({ plans: plansOk([plan]) }).home).toEqual({
       kind: "summary",
-      value: [{ id: plan.id, name: plan.name, plannedTotalWon, tbdCount }],
+      value: [{ id: plan.id, name: plan.name, plannedTotalWon, doneTotalWon: 0, tbdCount }],
     });
   });
 });

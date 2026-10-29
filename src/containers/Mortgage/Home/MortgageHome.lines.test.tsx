@@ -104,7 +104,7 @@ function listShape() {
         .getAllByRole("listitem")
         .map((row) => [
           within(row).getByRole("button").textContent,
-          (within(row).getByRole("checkbox") as HTMLInputElement).checked,
+          (within(row).getByRole("checkbox", { name: / 확정$/ }) as HTMLInputElement).checked,
         ]),
     ]);
 }
@@ -543,7 +543,7 @@ describe("AC-2(e) 상한은 항목 수 100개(줄 수가 아님)", () => {
       })),
     };
     await renderLoggedOut(storageWith([makeSimplePlanP({ items })]));
-    expect(screen.getAllByRole("checkbox")).toHaveLength(103);
+    expect(screen.getAllByRole("checkbox", { name: / 확정$/ })).toHaveLength(103);
     expect(screen.getByRole("button", { name: "줄 추가" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "도배에 줄 추가" })).toBeEnabled();
   });

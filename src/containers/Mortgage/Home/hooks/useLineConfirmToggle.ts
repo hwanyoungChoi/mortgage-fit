@@ -18,8 +18,11 @@ import type { InteriorPlanRow } from "@/lib/utils/interiorPlanRows";
  */
 export type LineNotice = { kind: "error" | "info"; message: string };
 
+/** 줄의 체크 두 개: [확정]과 [완료](구매 완료). [완료]를 켜면 그 견적을 확정도 한다(`toggleLineDoneInput`) */
+export type LineCheck = "confirm" | "done";
+
 /**
- * 목록의 [확정] 체크(U4: 시트 없이 바로 저장). 체크·요약은 저장된 값에서만 그린다(낙관적 갱신 없음).
+ * 목록의 [확정]·[완료] 체크(U4: 시트 없이 바로 저장). 체크·요약은 저장된 값에서만 그린다(낙관적 갱신 없음).
  * 저장 중에는 같은 항목의 모든 줄 체크를 잠근다: 형제 줄 연타가 앞선 변경을 덮거나 거짓 충돌을 내지 않게.
  * `write`는 그 줄 항목의 `updatedAt`으로 쓴다(낡았으면 conflict, A7). 결과는 `onNotice`로 목록 위 안내 줄에 보낸다.
  */
@@ -27,7 +30,8 @@ export function useLineConfirmToggle(
   write: (
     item: InteriorItem,
     quoteId: string,
-    isConfirmed: boolean,
+    check: LineCheck,
+    isChecked: boolean,
   ) => Promise<InteriorPlanSourceWriteResult>,
   onNotice: (notice: LineNotice | null) => void,
 ) {
@@ -41,13 +45,14 @@ export function useLineConfirmToggle(
     setSavingItemIds(new Set(savingRef.current));
   };
 
-  const toggle = async (row: InteriorPlanRow, isConfirmed: boolean) => {
+  const toggle = async (row: InteriorPlanRow, check: LineCheck, isChecked: boolean) => {
     const itemId = row.item.id;
     // 견적 없는 줄은 확정할 것이 없다(체크는 비활성이고, 강제로 불려도 쓰지 않는다)
     if (row.quote === null || savingRef.current.has(itemId)) return;
-    const releasesOther = releasesOtherConfirm(row.item, row.quote.id, isConfirmed);
+    // [완료]를 켜도 이 견적이 확정되므로 같은 기준으로 알린다
+    const releasesOther = releasesOtherConfirm(row.item, row.quote.id, isChecked);
     setSaving(itemId, true);
-    const result = await write(row.item, row.quote.id, isConfirmed);
+    const result = await write(row.item, row.quote.id, check, isChecked);
     setSaving(itemId, false);
     if (!result.ok) {
       onNotice({

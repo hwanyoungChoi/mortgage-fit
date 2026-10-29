@@ -115,6 +115,8 @@ type WriteCase = {
   changedKeys: readonly (keyof InteriorItemInput)[];
   /** 바꾼 키 안쪽의 기대값 */
   expectChanged: (input: InteriorItemInput, item: InteriorItem) => void;
+  /** 확정 견적을 바꾸는 쓰기. 구매 완료("done")였으면 "planned"로 풀리고 그 밖의 상태는 그대로다 */
+  changesConfirm?: true;
 };
 
 const EDIT_KEYS = ["trade", "memo", "quotes", "confirmedQuoteId"] as const;
@@ -122,6 +124,7 @@ const EDIT_KEYS = ["trade", "memo", "quotes", "confirmedQuoteId"] as const;
 const WRITE_CASES: WriteCase[] = [
   {
     name: "줄 수정(견적 1개, 옛 만원 키 fq1): 업체·금액 바꾸고 세부내용·비고·확정 비우기",
+    changesConfirm: true,
     item: singleQuoteItem,
     write: (item) => editLineInput(item, "fq1", values({ trade: "도배" }), fixedId),
     changedKeys: EDIT_KEYS,
@@ -176,6 +179,7 @@ const WRITE_CASES: WriteCase[] = [
   },
   {
     name: "확정 켜기(fq2): 확정만 fq2로",
+    changesConfirm: true,
     item: makeFullItem,
     write: (item) => toggleLineConfirmInput(item, "fq2", true),
     changedKeys: ["confirmedQuoteId"],
@@ -183,6 +187,7 @@ const WRITE_CASES: WriteCase[] = [
   },
   {
     name: "확정 끄기(fq1): 확정 키 삭제",
+    changesConfirm: true,
     item: makeFullItem,
     write: (item) => toggleLineConfirmInput(item, "fq1", false),
     changedKeys: ["confirmedQuoteId"],
@@ -237,16 +242,20 @@ describe("c3 모든 선택 키가 채워진 fixture", () => {
 });
 
 describe.each(INTERIOR_ITEM_STATUSES)("쓰기 입력 표 — 상태 %s", (status) => {
-  it.each(WRITE_CASES)("$name", ({ item: makeItem, write, changedKeys, expectChanged }) => {
-    const item = makeItem(status);
-    const input = write(item);
-    // c1 형식
-    expect(validateInteriorItemFields(input)).toStrictEqual(input);
-    // c2 보존: 바꾼 키 밖(공간·예산·지급·상태·날짜 등)은 원래 그대로
-    expect(omit(input, changedKeys)).toStrictEqual(omit(fieldsOf(item), changedKeys));
-    expect(input.status).toBe(status);
-    expectChanged(input, item);
-  });
+  it.each(WRITE_CASES)(
+    "$name",
+    ({ item: makeItem, write, changedKeys, expectChanged, changesConfirm }) => {
+      const item = makeItem(status);
+      const input = write(item);
+      // c1 형식
+      expect(validateInteriorItemFields(input)).toStrictEqual(input);
+      // c2 보존: 바꾼 키 밖(공간·예산·지급·날짜 등)은 원래 그대로. 상태는 확정이 바뀐 완료만 풀린다
+      const keys = [...changedKeys, "status"] as const;
+      expect(omit(input, keys)).toStrictEqual(omit(fieldsOf(item), keys));
+      expect(input.status).toBe(changesConfirm && status === "done" ? "planned" : status);
+      expectChanged(input, item);
+    },
+  );
 
   it("견적 1개 항목의 줄 삭제 → removeItem(지급 2건도 같이 지워진다고 알린다)", () => {
     expect(removeLineWrite(singleQuoteItem(status), "fq1")).toEqual({

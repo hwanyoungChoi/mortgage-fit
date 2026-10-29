@@ -20,7 +20,7 @@ import HubNotices, { type HubResult } from "./components/HubNotices";
 import HubSummaryPair from "./components/HubSummaryPair";
 import { useLeaveHousehold } from "./hooks/useLeaveHousehold";
 import { useLogout } from "./hooks/useLogout";
-import { summarizeHub } from "./summarizeHub";
+import { summarizeHub, type HubPlanLine } from "./summarizeHub";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
@@ -63,6 +63,15 @@ const LEAVE_CONFIRM_MESSAGE = [
 
 /** 홈의 시트(한 번에 하나, ADR-017): 함께 쓰기 */
 type HubSheet = { name: "household" };
+
+/** 계획 줄 뒤에 붙는 지출 완료·확정 미정 줄 수(있는 것만). 둘 다 없으면 없음 */
+function planLineTailOf(line: HubPlanLine): string | undefined {
+  const pieces = [
+    line.doneTotalWon > 0 ? `· 완료 ${formatWon(line.doneTotalWon)}` : null,
+    line.tbdCount > 0 ? `· ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건` : null,
+  ].filter((piece) => piece !== null);
+  return pieces.length === 0 ? undefined : pieces.join(" ");
+}
 
 /**
  * 홈(허브, `#/`). 첫 화면이다(ADR-031 D1). 기능 카드 3개를 단계 없이 보인다: 대출 계산(가장 크게) → 매물 모으기 →
@@ -269,12 +278,7 @@ function MortgageHub({
                       label={line.name}
                       mark="·"
                       figure={`지출 예정 ${formatWon(line.plannedTotalWon)}`}
-                      // 확정 미정 줄 수
-                      tail={
-                        line.tbdCount > 0
-                          ? `· ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건`
-                          : undefined
-                      }
+                      tail={planLineTailOf(line)}
                     />
                   </span>
                 ))

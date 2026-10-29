@@ -296,3 +296,5 @@
 {"ts":"2026-10-28T01:05:26.399Z","type":"status","status":"완료"}
 {"ts":"2026-10-28T06:40:21.521Z","type":"hook","hook":"context-on-stop","decision":"block","context":245906}
 {"ts":"2026-10-28T07:09:55.117Z","type":"ship","pr":50,"result":"merged"}
+{"ts":"2026-10-29T02:51:31.908Z","type":"ship","pr":52,"result":"merged"}
+{"ts":"2026-10-29T04:32:37.817Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/lib/utils/interiorLineDone.test.ts"}

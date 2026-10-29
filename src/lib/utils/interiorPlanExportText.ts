@@ -14,7 +14,8 @@ type InteriorPlanTableHeading = {
   /** `{플랜 이름} 인테리어 계획`. 표의 접근 가능한 이름이기도 하다 */
   title: string;
   /**
-   * `{today} 기준 · 총 예산 · 지출 예정 · 남은 예산`(있는 조각만 " · "로 잇는다). 지출 예정은 0이어도 있고,
+   * `{today} 기준 · 총 예산 · 지출 예정 · 지출 완료 · 남은 예산`(있는 조각만 " · "로 잇는다). 지출 예정은 0이어도 있고
+   * 지출 완료는 [완료] 줄이 없으면 없다.
    * 확정 미정 줄이 있으면 뒤에 `(금액 미정 n건 제외)`. 남은 예산이 음수면 `예산 초과`
    */
   line: string;
@@ -28,7 +29,7 @@ function remainingOf(remainingWon: number | null): string | undefined {
 }
 
 /**
- * 표 머리(화면·인쇄 공통, U8): `{today} 기준 · 총 예산 · 지출 예정 · 남은 예산`(총 예산이 없으면 지출 예정만).
+ * 표 머리(화면·인쇄 공통, U8): `{today} 기준 · 총 예산 · 지출 예정 · (지출 완료) · 남은 예산`(총 예산이 없으면 지출 예정·완료만).
  * `today`는 파일 이름과 같은 렌더의 `now`에서 온다.
  */
 export function interiorPlanTableHeading(
@@ -45,8 +46,12 @@ export function interiorPlanTableHeading(
   const plannedTotal =
     INTERIOR_PLAN_TABLE_HEADING.plannedTotal(formatWon(summary.plannedTotalWon)) +
     (tbdNote === "" ? "" : `(${tbdNote})`);
+  const doneTotal =
+    summary.doneCount === 0
+      ? undefined
+      : INTERIOR_PLAN_TABLE_HEADING.doneTotal(formatWon(summary.doneTotalWon));
   const remaining = remainingOf(summary.remainingWon);
-  const pieces = [basis, budget, plannedTotal, remaining].filter(
+  const pieces = [basis, budget, plannedTotal, doneTotal, remaining].filter(
     (piece): piece is string => piece !== undefined,
   );
   return {

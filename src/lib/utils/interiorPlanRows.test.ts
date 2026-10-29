@@ -76,6 +76,8 @@ describe("buildInteriorPlanRows — 예시 P (AC-1)", () => {
     expect(buildInteriorPlanRows({ items: [] })).toEqual({
       groups: [],
       plannedTotalWon: 0,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
     });
   });
@@ -183,6 +185,7 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
         quote: null,
         quoteWon: undefined,
         isConfirmed: false,
+        isDone: false,
         budgetNoteWon: null,
       },
     ]);
@@ -205,6 +208,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makeSimplePlanP())).toEqual({
       budgetWon: 10_000_000,
       plannedTotalWon: 8_000_000,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
       remainingWon: 2_000_000,
     });
@@ -224,6 +229,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(withoutBudget)).toEqual({
       budgetWon: null,
       plannedTotalWon: 8_000_000,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
       remainingWon: null,
     });
@@ -233,6 +240,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makeSimplePlanP({ items: [] }))).toEqual({
       budgetWon: 10_000_000,
       plannedTotalWon: 0,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
       remainingWon: 10_000_000,
     });
@@ -242,6 +251,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
     expect(summarizeInteriorPlan(makePlanL())).toEqual({
       budgetWon: 30_000_000,
       plannedTotalWon: 3_700_000,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
       remainingWon: 26_300_000,
     });

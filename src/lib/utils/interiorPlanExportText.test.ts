@@ -30,7 +30,14 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
     expect(
       interiorPlanTableHeading(
         "우리 집",
-        { budgetWon: 8_000_000, plannedTotalWon: 8_000_000, tbdCount: 0, remainingWon: 0 },
+        {
+          budgetWon: 8_000_000,
+          plannedTotalWon: 8_000_000,
+          doneTotalWon: 0,
+          doneCount: 0,
+          tbdCount: 0,
+          remainingWon: 0,
+        },
         TODAY,
       ).line,
     ).toBe("2026-10-27 기준 · 총 예산 8,000,000원 · 지출 예정 8,000,000원 · 남은 예산 0원");
@@ -39,7 +46,14 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
   it("총 예산이 없으면(null) 총 예산·남은 예산 조각을 빼고 구분자가 어긋나지 않는다", () => {
     const heading = interiorPlanTableHeading(
       "우리 집",
-      { budgetWon: null, plannedTotalWon: 7_500_000, tbdCount: 0, remainingWon: null },
+      {
+        budgetWon: null,
+        plannedTotalWon: 7_500_000,
+        doneTotalWon: 0,
+        doneCount: 0,
+        tbdCount: 0,
+        remainingWon: null,
+      },
       TODAY,
     );
     expect(heading.line).toBe("2026-10-27 기준 · 지출 예정 7,500,000원");
@@ -57,14 +71,28 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
     expect(
       interiorPlanTableHeading(
         "우리 집",
-        { budgetWon: null, plannedTotalWon: 0, tbdCount: 0, remainingWon: null },
+        {
+          budgetWon: null,
+          plannedTotalWon: 0,
+          doneTotalWon: 0,
+          doneCount: 0,
+          tbdCount: 0,
+          remainingWon: null,
+        },
         TODAY,
       ).line,
     ).toBe("2026-10-27 기준 · 지출 예정 0원");
     expect(
       interiorPlanTableHeading(
         "우리 집",
-        { budgetWon: 0, plannedTotalWon: 0, tbdCount: 0, remainingWon: 0 },
+        {
+          budgetWon: 0,
+          plannedTotalWon: 0,
+          doneTotalWon: 0,
+          doneCount: 0,
+          tbdCount: 0,
+          remainingWon: 0,
+        },
         TODAY,
       ).line,
     ).toBe("2026-10-27 기준 · 총 예산 0원 · 지출 예정 0원 · 남은 예산 0원");
@@ -74,7 +102,14 @@ describe("interiorPlanTableHeading (U8 표 머리)", () => {
     expect(
       interiorPlanTableHeading(
         "집",
-        { budgetWon: null, plannedTotalWon: 10_000, tbdCount: 0, remainingWon: null },
+        {
+          budgetWon: null,
+          plannedTotalWon: 10_000,
+          doneTotalWon: 0,
+          doneCount: 0,
+          tbdCount: 0,
+          remainingWon: null,
+        },
         "1999-01-02",
       ).line,
     ).toBe("1999-01-02 기준 · 지출 예정 10,000원");

@@ -10,6 +10,7 @@ import styles from "./PlanScreen.module.css";
 import PlanSummary from "./PlanSummary";
 import PlanTableView from "./PlanTableView";
 
+import type { LineCheck } from "../hooks/useLineConfirmToggle";
 import type { LinkedListing } from "../linkedListing";
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
@@ -27,11 +28,12 @@ type PlanScreenProps = {
   onLineOpen: (row: InteriorPlanRow, button: HTMLButtonElement) => void;
   /** `trade`가 있으면 그 구분을 채운 새 줄 */
   onLineAdd: (trade: string | null, button: HTMLButtonElement) => void;
-  /** 목록의 [확정] 체크. 그 줄 항목의 확정만 바꿔 저장한다 */
-  onConfirmWrite: (
+  /** 목록의 [확정]·[완료] 체크. 그 줄 항목의 확정·상태만 바꿔 저장한다 */
+  onLineCheckWrite: (
     item: InteriorItem,
     quoteId: string,
-    isConfirmed: boolean,
+    check: LineCheck,
+    isChecked: boolean,
   ) => Promise<InteriorPlanSourceWriteResult>;
   /** 이 계획의 줄 순서(`lineOrder`)를 저장한다(플랜 PATCH 한 번, 출처는 모른다) */
   onLineOrderWrite: (lineOrder: string[]) => Promise<InteriorPlanSourceWriteResult>;
@@ -70,7 +72,7 @@ function PlanScreen({
   onSettingsOpen,
   onLineOpen,
   onLineAdd,
-  onConfirmWrite,
+  onLineCheckWrite,
   onLineOrderWrite,
 }: PlanScreenProps) {
   const [pending, setPending] = useState<PendingLineOrder | null>(null);
@@ -135,7 +137,7 @@ function PlanScreen({
           onReorder={handleReorder}
           onLineAdd={onLineAdd}
           onLineOpen={onLineOpen}
-          onConfirmWrite={onConfirmWrite}
+          onLineCheckWrite={onLineCheckWrite}
         />
       )}
     </>

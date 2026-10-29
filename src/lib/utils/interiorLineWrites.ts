@@ -52,6 +52,18 @@ function editedQuote(quote: InteriorQuote, values: InteriorLineValues): Interior
 }
 
 /**
+ * 확정이 바뀐 뒤의 상태. 구매 완료("done")는 확정한 견적의 완료라, 확정이 풀리거나 다른 견적으로 옮겨 가면 "planned"로 되돌린다.
+ * 그 밖의 상태(옛 플래너의 진행 중 등)는 그대로 둔다.
+ */
+function withStatusAfterConfirm(
+  input: InteriorItemInput,
+  previousConfirmedQuoteId: string | undefined,
+): InteriorItemInput {
+  const isConfirmChanged = input.confirmedQuoteId !== previousConfirmedQuoteId;
+  return isConfirmChanged && input.status === "done" ? { ...input, status: "planned" } : input;
+}
+
+/**
  * 이 견적을 켜거나 끈 뒤의 확정 견적 id. 항목당 확정은 하나라, 켜면 같은 항목의 다른 견적 확정이 이 견적으로 옮겨 간다(D2 a).
  * 끄면 이 견적이 확정이었을 때만 풀리고 다른 견적의 확정은 그대로다.
  */
@@ -117,19 +129,39 @@ export function editLineInput(
   const quotes = (item.quotes ?? []).map((quote) =>
     quote.id === quoteId ? editedQuote(quote, values) : quote,
   );
-  return withConfirmedQuoteId(
-    { ...base, quotes },
-    confirmedQuoteIdAfter(item, quoteId, values.isConfirmed),
+  return withStatusAfterConfirm(
+    withConfirmedQuoteId(
+      { ...base, quotes },
+      confirmedQuoteIdAfter(item, quoteId, values.isConfirmed),
+    ),
+    item.confirmedQuoteId,
   );
 }
 
-/** 확정 토글(목록 체크). `confirmedQuoteId`만 바꾸고 상태는 그대로다(A4) */
+/** 확정 토글(목록 체크). `confirmedQuoteId`를 바꾸고, 구매 완료였던 확정이 바뀌면 완료도 푼다(A4) */
 export function toggleLineConfirmInput(
   item: InteriorItem,
   quoteId: string,
   isConfirmed: boolean,
 ): InteriorItemInput {
-  return withConfirmedQuoteId(inputOf(item), confirmedQuoteIdAfter(item, quoteId, isConfirmed));
+  return withStatusAfterConfirm(
+    withConfirmedQuoteId(inputOf(item), confirmedQuoteIdAfter(item, quoteId, isConfirmed)),
+    item.confirmedQuoteId,
+  );
+}
+
+/**
+ * 구매 완료 토글(목록 체크). 켜면 이 견적을 확정하고(같은 항목의 다른 확정은 옮겨 온다) 상태를 "done"으로,
+ * 끄면 확정은 그대로 두고 상태만 "planned"로 되돌린다. 이 견적이 확정이 아니면 끌 것이 없어 그대로 돌려보낸다
+ */
+export function toggleLineDoneInput(
+  item: InteriorItem,
+  quoteId: string,
+  isDone: boolean,
+): InteriorItemInput {
+  const input = inputOf(item);
+  if (isDone) return { ...withConfirmedQuoteId(input, quoteId), status: "done" };
+  return item.confirmedQuoteId === quoteId ? { ...input, status: "planned" } : input;
 }
 
 /** 이 견적을 켜면 같은 항목의 다른 견적 확정이 풀린다(목록 위 안내) */
