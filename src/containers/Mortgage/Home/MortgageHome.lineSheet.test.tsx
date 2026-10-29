@@ -134,7 +134,7 @@ describe("AC-2 줄 추가", () => {
     const wallpaper = screen.getByRole("region", { name: "도배" });
     expect(
       within(wallpaper)
-        .getAllByRole("checkbox")
+        .getAllByRole("checkbox", { name: / 확정$/ })
         .map((box) => box.getAttribute("aria-label")),
     ).toEqual(["도배 동네도배 합지 확정", "도배 육문수 실크 전체 확정"]);
     expect(headlineValue("지출 예정")).toBe("8,000,000원");

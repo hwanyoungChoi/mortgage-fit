@@ -119,7 +119,7 @@ describe("AC-1 옛 다견적 항목 F⁺ (q1 하루바스 370 확정, q2 욕실�
     expect(screen.getByRole("button", { name: `${F_Q2} 열기` })).toHaveTextContent(
       /^도기 포함욕실나라미정$/,
     );
-    expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+    expect(screen.getAllByRole("checkbox", { name: / 확정$/ })).toHaveLength(2);
     expect(headlineValue("지출 예정")).toBe("3,700,000원");
     expect(within(summaryRegion()).queryByText(/금액 미정/)).not.toBeInTheDocument();
   });

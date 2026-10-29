@@ -485,7 +485,7 @@ describe("AC-0(d) 로그아웃에서 만든 P⁺·M → 로그인 이전 본문 
     expect(calls.slice(calls.indexOf(`POST ${IMPORT_PATH}`) + 1)).toContain(
       "GET /api/interior-plans",
     );
-    expect(screen.getAllByRole("checkbox")).toHaveLength(7);
+    expect(screen.getAllByRole("checkbox", { name: / 확정$/ })).toHaveLength(7);
     expect(headlineValue("지출 예정")).toBe("8,000,000원");
     expect(headlineValue("남은 예산")).toBe("2,000,000원");
     expect(within(summaryRegion()).getByText("금액 미정 1건 제외")).toBeInTheDocument();

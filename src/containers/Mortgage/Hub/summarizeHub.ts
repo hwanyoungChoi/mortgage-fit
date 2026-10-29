@@ -19,10 +19,16 @@ export type HubCardSummary<T> =
 export type HubListingsValue = { count: number; isHousehold: boolean };
 
 /**
- * 계획 하나의 줄. `plannedTotalWon`은 지출 예정(원, 확정이고 금액이 있는 줄의 견적 합),
- * `tbdCount`는 지출 예정에서 빠진 확정 미정 줄 수
+ * 계획 하나의 줄. `plannedTotalWon`은 지출 예정(원, 확정이고 완료가 아닌 줄의 견적 합),
+ * `doneTotalWon`은 지출 완료(원), `tbdCount`는 둘에서 빠진 확정 미정 줄 수
  */
-export type HubPlanLine = { id: string; name: string; plannedTotalWon: number; tbdCount: number };
+export type HubPlanLine = {
+  id: string;
+  name: string;
+  plannedTotalWon: number;
+  doneTotalWon: number;
+  tbdCount: number;
+};
 
 export type HubSummary = {
   /** 작성 중 매매가(만원) */
@@ -79,8 +85,8 @@ function summarizePlans(plans: InteriorPlanListState): HubCardSummary<HubPlanLin
     kind: "summary",
     value: plans.plans.map((plan) => {
       // 우리 집 요약과 같은 정의(U7). 홈이 따로 계산하지 않는다.
-      const { plannedTotalWon, tbdCount } = summarizeInteriorPlan(plan);
-      return { id: plan.id, name: plan.name, plannedTotalWon, tbdCount };
+      const { plannedTotalWon, doneTotalWon, tbdCount } = summarizeInteriorPlan(plan);
+      return { id: plan.id, name: plan.name, plannedTotalWon, doneTotalWon, tbdCount };
     }),
   };
 }

@@ -76,6 +76,8 @@ describe("예시 V — 목록 묶음·요약 (AC-1)", () => {
     expect(summarizeInteriorPlan(makePlanV())).toStrictEqual({
       budgetWon: 10_000_000,
       plannedTotalWon: 8_300_000,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 1,
       remainingWon: 1_700_000,
     });
@@ -84,7 +86,12 @@ describe("예시 V — 목록 묶음·요약 (AC-1)", () => {
   it("R9를 확정하면 미정 2건, 지출 예정 그대로", () => {
     const plan = makePlanV();
     plan.items[8] = { ...r9(), confirmedQuoteId: "rq9" };
-    expect(summarizeInteriorPlan(plan)).toMatchObject({ plannedTotalWon: 8_300_000, tbdCount: 2 });
+    expect(summarizeInteriorPlan(plan)).toMatchObject({
+      plannedTotalWon: 8_300_000,
+      doneTotalWon: 0,
+      doneCount: 0,
+      tbdCount: 2,
+    });
   });
 });
 

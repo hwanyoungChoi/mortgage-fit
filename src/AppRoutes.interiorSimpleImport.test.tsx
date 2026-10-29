@@ -24,7 +24,7 @@ const headlineValue = (label: string) =>
 /** 목록의 [확정 체크 이름, 체크 여부] (화면 순서) */
 const checks = () =>
   screen
-    .getAllByRole("checkbox")
+    .getAllByRole("checkbox", { name: / 확정$/ })
     .map((box) => [box.getAttribute("aria-label"), (box as HTMLInputElement).checked]);
 
 /** 로그인 확인 → 이전 → 서버 GET → 화면. 이전 본문과 이전 뒤 GET 순서를 돌려준다 */

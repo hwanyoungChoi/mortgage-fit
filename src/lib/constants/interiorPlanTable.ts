@@ -3,7 +3,7 @@
 
 /** 표의 열(화면·인쇄·CSV 같은 순서) */
 export type InteriorPlanTableColumn =
-  "trade" | "vendor" | "detail" | "quote" | "confirmed" | "note";
+  "trade" | "vendor" | "detail" | "quote" | "confirmed" | "done" | "note";
 
 export const INTERIOR_PLAN_TABLE_COLUMNS: readonly InteriorPlanTableColumn[] = [
   "trade",
@@ -11,6 +11,7 @@ export const INTERIOR_PLAN_TABLE_COLUMNS: readonly InteriorPlanTableColumn[] = [
   "detail",
   "quote",
   "confirmed",
+  "done",
   "note",
 ];
 
@@ -21,6 +22,7 @@ export const INTERIOR_PLAN_TABLE_COLUMN_LABELS: Record<InteriorPlanTableColumn, 
   detail: "세부내용",
   quote: "견적(원)",
   confirmed: "확정(원)",
+  done: "완료(원)",
   note: "비고",
 };
 
@@ -42,6 +44,7 @@ export const INTERIOR_PLAN_TABLE_HEADING = {
   basis: (today: string) => `${today} 기준`,
   budget: (won: string) => `총 예산 ${won}`,
   plannedTotal: (won: string) => `지출 예정 ${won}`,
+  doneTotal: (won: string) => `지출 완료 ${won}`,
   remaining: (won: string) => `남은 예산 ${won}`,
   overBudget: (won: string) => `예산 초과 ${won}`,
 };

@@ -93,7 +93,7 @@ describe("줄 추가는 첫 공간의 견적 1개 항목 (공간이 여럿인 �
     expect(items[1]).toStrictEqual(legacyY());
     expect(
       within(screen.getByRole("region", { name: "도배" }))
-        .getAllByRole("checkbox")
+        .getAllByRole("checkbox", { name: / 확정$/ })
         .map((box) => box.getAttribute("aria-label")),
     ).toEqual(["도배 확정", "도배 육문수 확정"]);
     expect(headlineValue("지출 예정")).toBe("5,500,000원");

@@ -5,6 +5,7 @@ import LineRow from "./LineRow";
 import styles from "./PlanLines.module.css";
 import { groupDragIdOf, type LineDragKind } from "../lineDrag";
 
+import type { LineCheck } from "../hooks/useLineConfirmToggle";
 import type { InteriorPlanRow, InteriorPlanRowGroup } from "@/lib/utils/interiorPlanRows";
 
 type LineGroupProps = {
@@ -20,7 +21,7 @@ type LineGroupProps = {
   canAddLine: boolean;
   onLineAdd: (trade: string, button: HTMLButtonElement) => void;
   onLineOpen: (row: InteriorPlanRow, button: HTMLButtonElement) => void;
-  onConfirmChange: (row: InteriorPlanRow, isConfirmed: boolean) => void;
+  onCheckChange: (row: InteriorPlanRow, check: LineCheck, isChecked: boolean) => void;
 };
 
 /** 보조기기가 읽는 묶음 제목의 역할 이름 */
@@ -41,7 +42,7 @@ function LineGroup({
   canAddLine,
   onLineAdd,
   onLineOpen,
-  onConfirmChange,
+  onCheckChange,
 }: LineGroupProps) {
   const keys = group.rows.map((row) => row.key);
   const isDraggable = canReorder && group.rows.length > 1 && dragKind !== "group";
@@ -92,7 +93,7 @@ function LineGroup({
               isSaving={savingItemIds.has(row.item.id)}
               isDraggable={isDraggable}
               onOpen={(button) => onLineOpen(row, button)}
-              onConfirmChange={(isConfirmed) => onConfirmChange(row, isConfirmed)}
+              onCheckChange={(check, isChecked) => onCheckChange(row, check, isChecked)}
             />
           ))}
         </ul>

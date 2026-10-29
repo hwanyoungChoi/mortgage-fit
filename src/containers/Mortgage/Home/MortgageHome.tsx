@@ -10,6 +10,7 @@ import {
   addLineInput,
   editLineInput,
   toggleLineConfirmInput,
+  toggleLineDoneInput,
 } from "@/lib/utils/interiorLineWrites";
 import { buildInteriorPlanRows } from "@/lib/utils/interiorPlanRows";
 
@@ -302,11 +303,13 @@ function MortgageHome({
       onLineAdd={(trade, button) =>
         sheet.open({ name: "line", planId: plan.id, rowKey: null, trade: trade ?? "" }, button)
       }
-      onConfirmWrite={(item, quoteId, isConfirmed) =>
+      onLineCheckWrite={(item, quoteId, check, isChecked) =>
         source.updateItem(
           plan.id,
           item.id,
-          toggleLineConfirmInput(item, quoteId, isConfirmed),
+          check === "done"
+            ? toggleLineDoneInput(item, quoteId, isChecked)
+            : toggleLineConfirmInput(item, quoteId, isChecked),
           item.updatedAt,
         )
       }

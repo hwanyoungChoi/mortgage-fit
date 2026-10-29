@@ -25,7 +25,7 @@ import { dragKindOf, groupDragIdOf, type LineDragKind } from "../lineDrag";
 import { lineNameOf } from "../lineName";
 import { ITEM_LIMIT_MESSAGE, lineOrderFailureMessage } from "../planWriteFailure";
 
-import type { LineNotice } from "../hooks/useLineConfirmToggle";
+import type { LineCheck, LineNotice } from "../hooks/useLineConfirmToggle";
 import type { InteriorItem } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 import type { InteriorPlanRow, InteriorPlanRowGroup } from "@/lib/utils/interiorPlanRows";
@@ -39,11 +39,12 @@ type PlanLinesProps = {
   /** `trade`가 있으면 그 묶음 끝의 [+ {구분}에 줄 추가]다(구분을 채워 연다) */
   onLineAdd: (trade: string | null, button: HTMLButtonElement) => void;
   onLineOpen: (row: InteriorPlanRow, button: HTMLButtonElement) => void;
-  /** 목록의 [확정] 체크. 그 줄 항목의 확정만 바꿔 저장한다 */
-  onConfirmWrite: (
+  /** 목록의 [확정]·[완료] 체크. 그 줄 항목의 확정·상태만 바꿔 저장한다 */
+  onLineCheckWrite: (
     item: InteriorItem,
     quoteId: string,
-    isConfirmed: boolean,
+    check: LineCheck,
+    isChecked: boolean,
   ) => Promise<InteriorPlanSourceWriteResult>;
   /** 끌어 놓은 뒤의 줄 순서 전체를 저장한다. 부르는 즉시 놓은 순서로 보여야 한다(저장 중 순서) */
   onReorder: (lineOrder: string[]) => Promise<InteriorPlanSourceWriteResult>;
@@ -89,11 +90,11 @@ function PlanLines({
   canReorder,
   onLineAdd,
   onLineOpen,
-  onConfirmWrite,
+  onLineCheckWrite,
   onReorder,
 }: PlanLinesProps) {
   const [notice, setNotice] = useState<LineNotice | null>(null);
-  const { savingItemIds, toggle } = useLineConfirmToggle(onConfirmWrite, setNotice);
+  const { savingItemIds, toggle } = useLineConfirmToggle(onLineCheckWrite, setNotice);
   const [draggedGroups, setDraggedGroups] = useState<InteriorPlanRowGroup[] | null>(null);
   const [activeKey, setActiveKey] = useState<UniqueIdentifier | null>(null);
   const [dragKind, setDragKind] = useState<LineDragKind | null>(null);
@@ -263,7 +264,7 @@ function PlanLines({
                   canAddLine={canAddLine}
                   onLineAdd={onLineAdd}
                   onLineOpen={onLineOpen}
-                  onConfirmChange={(row, isConfirmed) => void toggle(row, isConfirmed)}
+                  onCheckChange={(row, check, isChecked) => void toggle(row, check, isChecked)}
                 />
               ))}
             </div>

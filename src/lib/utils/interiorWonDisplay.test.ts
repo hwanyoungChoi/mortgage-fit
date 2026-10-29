@@ -74,6 +74,8 @@ describe("예시 M(ADR-034 조건 8): 요약·표·표 머리·CSV가 같은 숫
     expect(summarizeInteriorPlan(plan)).toStrictEqual({
       budgetWon: 10_000_000,
       plannedTotalWon: 10_469_500,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 1,
       remainingWon: -469_500,
     });
@@ -99,6 +101,8 @@ describe("예시 M(ADR-034 조건 8): 요약·표·표 머리·CSV가 같은 숫
     expect(summarizeInteriorPlan(plan)).toStrictEqual({
       budgetWon: 12_000_000,
       plannedTotalWon: 10_469_500,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 1,
       remainingWon: 1_530_500,
     });
@@ -136,6 +140,8 @@ describe("0원과 미정(qa Q1·Q10)", () => {
     expect(summarizeInteriorPlan(zeroPlan)).toStrictEqual({
       budgetWon: 1,
       plannedTotalWon: 0,
+      doneTotalWon: 0,
+      doneCount: 0,
       tbdCount: 0,
       remainingWon: 1,
     });
