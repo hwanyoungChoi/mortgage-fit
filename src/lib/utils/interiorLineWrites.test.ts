@@ -119,11 +119,11 @@ type WriteCase = {
   changesConfirm?: true;
 };
 
-const EDIT_KEYS = ["trade", "memo", "quotes", "confirmedQuoteId"] as const;
+const EDIT_KEYS = ["trade", "memo", "quotes", "confirmedQuoteId", "startDate", "endDate"] as const;
 
 const WRITE_CASES: WriteCase[] = [
   {
-    name: "줄 수정(견적 1개, 옛 만원 키 fq1): 업체·금액 바꾸고 세부내용·비고·확정 비우기",
+    name: "줄 수정(견적 1개, 옛 만원 키 fq1): 업체·금액 바꾸고 세부내용·일정·비고·확정 비우기",
     changesConfirm: true,
     item: singleQuoteItem,
     write: (item) => editLineInput(item, "fq1", values({ trade: "도배" }), fixedId),
@@ -136,6 +136,7 @@ const WRITE_CASES: WriteCase[] = [
       ]);
       expect("memo" in input).toBe(false);
       expect("confirmedQuoteId" in input).toBe(false);
+      expect("startDate" in input || "endDate" in input).toBe(false);
     },
   },
   {
@@ -145,7 +146,13 @@ const WRITE_CASES: WriteCase[] = [
       editLineInput(
         item,
         "fq1",
-        values({ detail: "철거만", note: "새 비고", isConfirmed: true }),
+        values({
+          detail: "철거만",
+          startDate: "2026-11-10",
+          endDate: "2026-11-12",
+          note: "새 비고",
+          isConfirmed: true,
+        }),
         fixedId,
       ),
     changedKeys: EDIT_KEYS,
@@ -162,13 +169,20 @@ const WRITE_CASES: WriteCase[] = [
       ]);
       expect(input.memo).toBe("새 비고");
       expect(input.confirmedQuoteId).toBe("fq1");
+      expect([input.startDate, input.endDate]).toStrictEqual(["2026-11-10", "2026-11-12"]);
     },
   },
   {
     name: "견적 0개 항목 채우기: 숨은 값 유지 + 견적 1개(확정 꺼짐)",
     item: blankItem,
-    write: (item) => editLineInput(item, null, values({ trade: item.trade }), fixedId),
-    changedKeys: ["trade", "memo", "quotes"],
+    write: (item) =>
+      editLineInput(
+        item,
+        null,
+        values({ trade: item.trade, startDate: item.startDate, endDate: item.endDate }),
+        fixedId,
+      ),
+    changedKeys: ["trade", "memo", "quotes", "startDate", "endDate"],
     expectChanged: (input) => {
       expect(input.quotes).toStrictEqual([
         { id: "new-quote", vendor: "새업체", amountWon: 9_990_000 },
@@ -350,7 +364,14 @@ describe("옛 계획 L 고치기 (AC-4, D2 a)", () => {
     const input = editLineInput(
       x,
       "q2",
-      values({ trade: "욕실", vendor: "욕실나라", amountWon: 3_800_000, note: "폐기물 포함" }),
+      values({
+        trade: "욕실",
+        vendor: "욕실나라",
+        amountWon: 3_800_000,
+        startDate: x.startDate,
+        endDate: x.endDate,
+        note: "폐기물 포함",
+      }),
       fixedId,
     );
     expect(input).toStrictEqual({

@@ -3,6 +3,27 @@
 // DOM 구조(클래스·자식 순서)에는 기대지 않는다. 끌기가 붙어도 이 값들은 `lineOrder`가 없으면 변경 전과 같아야 한다.
 import { screen, within } from "@testing-library/react";
 
+/**
+ * 여는 버튼이 설명(aria-describedby)으로 읽는 일정 글자(골든 뒤에 생긴 항목 일정). 골든의 `openText`는 이 글자를 뺀 값이고,
+ * 일정은 `captureLineSchedules`로 따로 본다
+ */
+function scheduleElementOf(button: HTMLElement): Element | null {
+  const ids = (button.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean);
+  return (
+    ids.map((id) => document.getElementById(id)).find((el) => el && button.contains(el)) ?? null
+  );
+}
+
+/** 줄마다 [여는 버튼 이름, 일정 글자(없으면 null)], 화면 순서 */
+export function captureLineSchedules() {
+  return screen
+    .getAllByRole("button", { name: / 열기$/ })
+    .map((button) => [
+      button.getAttribute("aria-label"),
+      scheduleElementOf(button)?.textContent ?? null,
+    ]);
+}
+
 /** 목록 보기: 줄마다 (묶음, 여는 버튼 이름·글자, 확정 체크 이름·상태). 묶음은 줄을 감싼 `section[aria-label]`이다 */
 export function captureListGolden() {
   const openButtons = screen.getAllByRole("button", { name: / 열기$/ });
@@ -15,7 +36,7 @@ export function captureListGolden() {
     return {
       group: button.closest("section[aria-label]")?.getAttribute("aria-label") ?? null,
       openName: button.getAttribute("aria-label"),
-      openText: button.textContent,
+      openText: textWithout(button, scheduleElementOf(button)),
       confirmName: checkbox.getAttribute("aria-label"),
       isChecked: checkbox.checked,
       isDisabled: checkbox.disabled,
@@ -29,6 +50,11 @@ export function captureListGolden() {
     groupAddButtons,
     summary: screen.getByRole("region", { name: "요약" }).textContent,
   };
+}
+
+function textWithout(element: HTMLElement, part: Element | null): string | null {
+  const text = element.textContent;
+  return part === null || text === null ? text : text.replace(part.textContent ?? "", "");
 }
 
 /** 표 보기: 표 머리 기준일 줄, 표의 줄마다 칸 글자(병합된 구분 칸은 첫 줄에만 있다) */

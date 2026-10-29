@@ -9,6 +9,7 @@ import {
 import { validateWonAmount } from "./amount";
 import { vendorOf } from "./interiorPlanRows";
 import { optionalTextError, requiredTextError } from "./interiorTextErrors";
+import { isCalendarDate } from "./validateInteriorPlan";
 
 import type { InteriorPlanRow } from "./interiorPlanRows";
 import type {
@@ -19,10 +20,21 @@ import type {
 } from "@/lib/types/interiorLineDraft";
 
 const TRADE_REQUIRED_MESSAGE = "구분을 입력하세요";
+const DATE_INVALID_MESSAGE = "날짜를 확인하세요";
+const END_BEFORE_START_MESSAGE = "끝나는 날은 시작일과 같거나 뒤여야 합니다";
 
 /** 새 줄. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분을 채운다. 확정은 꺼진 채 시작한다(U3) */
 export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
-  return { trade, vendor: "", amount: "", detail: "", note: "", isConfirmed: false };
+  return {
+    trade,
+    vendor: "",
+    amount: "",
+    detail: "",
+    startDate: "",
+    endDate: "",
+    note: "",
+    isConfirmed: false,
+  };
 }
 
 /**
@@ -43,6 +55,8 @@ export function toInteriorLineDraft({
     // 견적 없는 줄과 금액 미정(키 없음, ADR-033)은 빈칸이다(`String(undefined)`가 "undefined"를 넣지 않게)
     amount: quoteWon === undefined ? "" : String(quoteWon),
     detail: quote?.memo ?? "",
+    startDate: item.startDate ?? "",
+    endDate: item.endDate ?? "",
     note: item.memo ?? "",
     isConfirmed,
   };
@@ -59,9 +73,23 @@ function amountError(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
+/** 날짜 칸은 빈칸(없음)이거나 달력에 있는 YYYY-MM-DD다. 날짜 칸(`type="date"`)이 다른 값을 주지 않지만 저장 규칙과 맞춘다 */
+function dateError(raw: string): string | null {
+  return raw === "" || isCalendarDate(raw) ? null : DATE_INVALID_MESSAGE;
+}
+
+/** 둘 다 있으면 끝나는 날이 시작일과 같거나 뒤다(공용 검증과 같은 규칙). 끝나는 날만 있어도 된다 */
+function endDateError(startDate: string, endDate: string): string | null {
+  const error = dateError(endDate);
+  if (error !== null || startDate === "" || endDate === "" || dateError(startDate) !== null) {
+    return error;
+  }
+  return endDate < startDate ? END_BEFORE_START_MESSAGE : null;
+}
+
 /**
  * 시트 입력의 오류(화면 순서). 길이는 앞뒤 공백을 뗀 코드포인트 수이고 저장 규칙은 공용 검증(`validateInteriorItemFields`)과 같다.
- * 구분은 필수, 업체(비우면 미정)·견적(비우면 미정)·세부내용·비고는 선택이다(U1·U3, ADR-036).
+ * 구분은 필수, 업체(비우면 미정)·견적(비우면 미정)·세부내용·일정·비고는 선택이다(U1·U3, ADR-036).
  */
 export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineDraftError[] {
   const candidates: [InteriorLineDraftField, string | null][] = [
@@ -69,6 +97,8 @@ export function interiorLineDraftErrors(draft: InteriorLineDraft): InteriorLineD
     ["detail", optionalTextError(draft.detail, INTERIOR_QUOTE_MEMO_MAX_LENGTH)],
     ["vendor", optionalTextError(draft.vendor, INTERIOR_VENDOR_MAX_LENGTH)],
     ["amount", amountError(draft.amount)],
+    ["startDate", dateError(draft.startDate)],
+    ["endDate", endDateError(draft.startDate, draft.endDate)],
     ["note", optionalTextError(draft.note, INTERIOR_ITEM_MEMO_MAX_LENGTH)],
   ];
   return candidates.flatMap(([field, message]) => (message === null ? [] : [{ field, message }]));
@@ -97,6 +127,8 @@ export function validateInteriorLineDraft(
       ...(vendor !== undefined && { vendor }),
       ...(amount.status === "valid" && { amountWon: amount.value }),
       ...(detail !== undefined && { detail }),
+      ...(draft.startDate !== "" && { startDate: draft.startDate }),
+      ...(draft.endDate !== "" && { endDate: draft.endDate }),
       ...(note !== undefined && { note }),
       isConfirmed: draft.isConfirmed,
     },

@@ -425,13 +425,13 @@ describe("AC-2(d) 줄 삭제·고치기 (P)", () => {
 });
 
 describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
-  it("(a)(d) 욕실나라 견적 400만 → 3,800,000원: X와 quotes[1]의 금액 키만 다르다, 시트 아래 '같은 항목의 견적 2개가 구분·비고·확정을 같이 씁니다'", async () => {
+  it("(a)(d) 욕실나라 견적 400만 → 3,800,000원: X와 quotes[1]의 금액 키만 다르다, 시트 아래 '같은 항목의 견적 2개가 구분·일정·비고·확정을 같이 씁니다'", async () => {
     const user = userEvent.setup();
     const storage = storageWith([makePlanL()]);
     await renderApp(storage, L_HASH);
     const dialog = await openLine(user, "욕실 욕실나라");
     expect(
-      within(dialog).getByText("같은 항목의 견적 2개가 구분·비고·확정을 같이 씁니다"),
+      within(dialog).getByText("같은 항목의 견적 2개가 구분·일정·비고·확정을 같이 씁니다"),
     ).toBeInTheDocument();
     expect(field(dialog, "비고(선택)")).toHaveValue("폐기물 포함");
     await user.clear(field(dialog, AMOUNT));
@@ -543,10 +543,19 @@ describe("AC-4 옛 계획 L 고치기 (D2 a 제자리 수정)", () => {
 });
 
 describe("줄 시트 입력 순서 (스펙 interior-tbd-amount 추가 요청)", () => {
-  it("칸 순서는 구분 → 세부내용(선택) → 업체 → 견적 → 비고(선택) → 확정이다(새 줄·기존 줄 같음)", async () => {
+  it("칸 순서는 구분 → 세부내용(선택) → 업체 → 견적 → 시작일 → 끝나는 날 → 비고(선택) → 확정이다(새 줄·기존 줄 같음)", async () => {
     const user = userEvent.setup();
     await renderApp(storageWith([makeSimplePlanP()]));
-    const order = ["구분", "세부내용(선택)", "업체(비우면 미정)", AMOUNT, "비고(선택)", "확정"];
+    const order = [
+      "구분",
+      "세부내용(선택)",
+      "업체(비우면 미정)",
+      AMOUNT,
+      "시작일(선택)",
+      "끝나는 날(선택)",
+      "비고(선택)",
+      "확정",
+    ];
     const labelsIn = (dialog: HTMLElement) =>
       Array.from(dialog.querySelectorAll("input, textarea"), (input) =>
         input.getAttribute("type") === "checkbox"

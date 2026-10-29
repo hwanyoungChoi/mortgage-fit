@@ -10,13 +10,18 @@ export type InteriorLineDraft = {
   amount: string;
   /** 세부내용 = 그 견적의 메모 */
   detail: string;
+  /** 시작일 = 항목 `startDate`(YYYY-MM-DD, 날짜 칸 값). 빈칸 = 없음 */
+  startDate: string;
+  /** 끝나는 날 = 항목 `endDate`. 빈칸 = 없음(하루 일정) */
+  endDate: string;
   /** 비고 = 항목 메모 */
   note: string;
   isConfirmed: boolean;
 };
 
 /** 오류를 보일 칸(화면 순서) */
-export type InteriorLineDraftField = "trade" | "detail" | "vendor" | "amount" | "note";
+export type InteriorLineDraftField =
+  "trade" | "detail" | "vendor" | "amount" | "startDate" | "endDate" | "note";
 
 /** 칸 하나의 오류. 목록 순서 = 화면 순서(제출 실패 시 첫 오류로 포커스를 옮긴다) */
 export type InteriorLineDraftError = { field: InteriorLineDraftField; message: string };
@@ -29,6 +34,10 @@ export type InteriorLineValues = {
   /** 원 정수 0~MAX_WON(ADR-034). 없으면 금액 미정(견적 칸을 비움, ADR-033) */
   amountWon?: number;
   detail?: string;
+  /** YYYY-MM-DD. 없으면 일정 없음 */
+  startDate?: string;
+  /** YYYY-MM-DD, 시작일과 같거나 뒤 */
+  endDate?: string;
   note?: string;
   isConfirmed: boolean;
 };

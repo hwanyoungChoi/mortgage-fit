@@ -232,6 +232,8 @@ describe("시트 입력 — 미정·0원 채우기 (AC-2, 2단계)", () => {
       vendor: "빛나라조명",
       amount: "",
       detail: "거실 매입등",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: true,
     });

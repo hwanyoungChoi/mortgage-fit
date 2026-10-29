@@ -19,6 +19,17 @@ function withMemo(input: InteriorItemInput, memo: string | undefined): InteriorI
   return memo === undefined ? rest : { ...rest, memo };
 }
 
+/** 일정(시작일·끝나는 날)은 항목 칸이다. 비운 날은 키 삭제다 */
+function withSchedule(input: InteriorItemInput, values: InteriorLineValues): InteriorItemInput {
+  const { startDate: previousStart, endDate: previousEnd, ...rest } = input;
+  void [previousStart, previousEnd];
+  return {
+    ...rest,
+    ...(values.startDate !== undefined && { startDate: values.startDate }),
+    ...(values.endDate !== undefined && { endDate: values.endDate }),
+  };
+}
+
 function withConfirmedQuoteId(
   input: InteriorItemInput,
   confirmedQuoteId: string | undefined,
@@ -102,12 +113,14 @@ export function addLineInput(
     ...(createsQuote(values) && { quotes: [editedQuote({ id: quoteId }, values)] }),
     ...(values.isConfirmed && { confirmedQuoteId: quoteId }),
     status: "planned",
+    ...(values.startDate !== undefined && { startDate: values.startDate }),
+    ...(values.endDate !== undefined && { endDate: values.endDate }),
     ...(values.note !== undefined && { memo: values.note }),
   };
 }
 
 /**
- * 줄 수정(시트 저장). 구분·비고는 항목 칸이라 같은 항목의 형제 줄과 공유한다(견적 n≥2 옛 항목, D2 a).
+ * 줄 수정(시트 저장). 구분·일정·비고는 항목 칸이라 같은 항목의 형제 줄과 공유한다(견적 n≥2 옛 항목, D2 a).
  * 견적 없는 줄(`quoteId` null)은 업체·견적·세부내용을 채우거나 확정을 켜면 견적 1개 항목이 되고, 아니면 견적 없는 줄
  * 그대로다(U2). 새 견적 id는 견적을 만들 때만 `createId`로 만든다.
  */
@@ -117,7 +130,10 @@ export function editLineInput(
   values: InteriorLineValues,
   createId: () => string,
 ): InteriorItemInput {
-  const base = withMemo({ ...inputOf(item), trade: values.trade }, values.note);
+  const base = withSchedule(
+    withMemo({ ...inputOf(item), trade: values.trade }, values.note),
+    values,
+  );
   if (quoteId === null) {
     if (!createsQuote(values)) return base;
     const newQuoteId = createId();

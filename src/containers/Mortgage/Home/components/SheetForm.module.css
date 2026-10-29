@@ -39,6 +39,21 @@
   background: var(--color-raised);
 }
 
+/* 날짜 칸: 글자 칸과 같은 면. iOS는 빈 날짜 칸의 높이를 줄이므로 기본 모양을 끄고 높이를 고정한다 */
+.dateInput {
+  composes: input;
+  appearance: none;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 시작일 · 끝나는 날을 한 줄에 반씩(360px에서 칸당 150px 안팎) */
+.dateRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
 .textarea {
   padding: var(--space-3) var(--space-4);
   resize: vertical;

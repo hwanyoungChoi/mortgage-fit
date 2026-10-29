@@ -436,6 +436,8 @@ describe("F⁺ (q1 하루바스 370 확정, q2 욕실나라 금액 없음)", () 
         vendor: "하루바스",
         amountWon: 3_800_000,
         detail: "철거·방수",
+        startDate: item.startDate,
+        endDate: item.endDate,
         note: "폐기물 포함",
         isConfirmed: true,
       }),

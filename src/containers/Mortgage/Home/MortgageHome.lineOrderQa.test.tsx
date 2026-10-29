@@ -52,12 +52,13 @@ async function renderLoggedOut(
   return result;
 }
 
-/** 여는 버튼 왼쪽 글자 묶음의 줄 글자들(금액 제외). 같은 이름이 여럿이면 index번째 */
-const rowTexts = (openName: string, index = 0) =>
-  Array.from(
+/** 여는 버튼 왼쪽 글자 묶음의 줄 글자들(금액·일정 제외). 첫 줄은 글자와 일정 묶음이라 그 글자만. 같은 이름이 여럿이면 index번째 */
+const rowTexts = (openName: string, index = 0) => {
+  const [title, ...rest] = Array.from(
     screen.getAllByRole("button", { name: openName })[index].firstElementChild?.children ?? [],
-    (line) => line.textContent,
   );
+  return [title.firstElementChild, ...rest].map((line) => line?.textContent);
+};
 
 afterEach(() => {
   vi.unstubAllGlobals();

@@ -166,6 +166,8 @@ describe("1단계 시트 채우기 (AC-1)", () => {
       vendor: "",
       amount: "",
       detail: "",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: false,
     });
@@ -177,6 +179,8 @@ describe("1단계 시트 채우기 (AC-1)", () => {
       vendor: "",
       amount: "300000",
       detail: "거실 간접등",
+      startDate: "",
+      endDate: "",
       note: "",
       isConfirmed: true,
     });
