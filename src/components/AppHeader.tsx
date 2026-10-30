@@ -14,7 +14,10 @@ function AppHeader({ onTextSizeOpen }: AppHeaderProps) {
   return (
     <header className={styles.header} aria-label="모기지핏">
       <div className={styles.bar}>
-        <span className={styles.brand}>모기지핏</span>
+        <span className={styles.brand}>
+          <img className={styles.logo} src="/favicon.svg" alt="" width={22} height={22} />
+          모기지핏
+        </span>
         <button
           type="button"
           className={styles.textSizeButton}

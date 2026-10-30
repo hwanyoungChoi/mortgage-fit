@@ -33,6 +33,18 @@
   --color-badge-text: #3d3d3d;
   --color-scrim: rgb(10 10 10 / 45%);
 
+  /*
+   * 답 면: 화면마다 돈의 답 하나(홈 대출 계산 카드·필요한 자기자금·인테리어 요약)에만 쓰는 진한 남색 면.
+   * 그 위 글자는 흰색(14.9:1)·흐린 하늘색(8.5:1)이고, 예산 초과는 옅은 산호색(8.3:1)이다.
+   * 답 면을 쓰는 곳은 위 글자·면 토큰을 이 값들로 다시 정의해 안쪽 컴포넌트가 그대로 따라오게 한다.
+   */
+  --color-answer-bg: #10295a;
+  --color-on-answer: #fff;
+  --color-on-answer-muted: #b9c9ec;
+  --color-on-answer-rule: rgb(255 255 255 / 14%);
+  --color-on-answer-raised: rgb(255 255 255 / 12%);
+  --color-on-answer-alert: #ffb4ab;
+
   /* 그림자는 떠 있는 것(끌고 있는 줄, 떠 있는 [+])에만 쓴다. 쉬는 면에는 쓰지 않는다. */
   --shadow-lifted: 0 8px 24px rgb(10 10 10 / 14%), 0 2px 6px rgb(10 10 10 / 10%);
 

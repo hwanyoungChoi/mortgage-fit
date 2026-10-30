@@ -51,13 +51,43 @@
     color 120ms ease-out;
 }
 
-/* 바탕(--color-bg) 위에 놓일 때는 흰 면 위 채움이 바탕과 겹쳐 보이지 않으므로 한 단계 진한 채움 */
+/*
+ * 바탕(--color-bg) 위의 보기 전환([목록|표]): 한 줄 홈 안에 칸을 두고, 고른 칸만 흰 면으로 떠오르는 세그먼트
+ * (iOS 세그먼트 컨트롤 관례). 홈 채움은 바탕보다 한 단계 진하다.
+ */
 .groupOnBackground {
   composes: group;
 }
 
-.groupOnBackground .label {
+/* 칸 이름(목록·표)만으로 뜻이 보이므로 라벨("보기")은 보조기기에만 읽힌다 */
+.groupOnBackground .legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.groupOnBackground .options {
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: calc(var(--radius-control) + var(--space-1));
   background: var(--color-raised-on-bg);
+}
+
+.groupOnBackground .label {
+  min-height: 40px;
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.groupOnBackground .input:checked + .label {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgb(10 10 10 / 12%);
 }
 
 /* 고른 칸: 옅은 코발트 면 + 진한 코발트 글자 600. 크기는 그대로다. */

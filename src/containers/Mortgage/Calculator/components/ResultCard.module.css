@@ -54,14 +54,26 @@
  */
 .answerRow {
   composes: row;
+  --color-text: var(--color-on-answer);
+  --color-text-muted: var(--color-on-answer-muted);
+
   grid-template-columns: minmax(0, 1fr);
   row-gap: var(--space-1);
-  margin-top: var(--space-1);
-  padding: var(--space-4) 0;
+  margin: var(--space-2) 0;
+  padding: var(--space-4);
+  border-top: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-answer-bg);
+  color: var(--color-text);
   font-size: var(--fs-answer);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
+}
+
+/* 답 면 바로 다음 줄은 면이 구분하므로 구분선을 두지 않는다 */
+.answerRow + .row {
+  border-top: 0;
 }
 
 .answerRow .rowLabel {
