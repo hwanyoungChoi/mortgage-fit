@@ -17,6 +17,7 @@ import { SCREEN_READER_INSTRUCTIONS } from "@/lib/constants/dragReorder";
 import { lineOrderAfterGroupMove, lineOrderAfterMove } from "@/lib/utils/lineOrderAfterMove";
 
 import EmptyItems from "./EmptyItems";
+import GroupHeader from "./GroupHeader";
 import LineGroup from "./LineGroup";
 import LineSummary from "./LineSummary";
 import styles from "./PlanLines.module.css";
@@ -278,7 +279,7 @@ function PlanLines({
             )}
             {activeGroup !== null && (
               <div className={styles.liftedGroup} aria-hidden="true">
-                <p className={styles.groupTitle}>{activeGroup.group.trade}</p>
+                <GroupHeader group={activeGroup.group} title={activeGroup.group.trade} as="p" />
                 <ul className={styles.rows}>
                   {activeGroup.group.rows.map((row) => (
                     <li key={row.key} className={styles.liftedGroupRow}>

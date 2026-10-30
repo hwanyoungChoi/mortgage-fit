@@ -2,9 +2,20 @@
 import { describe, expect, it } from "vitest";
 
 import { makePlanP } from "@/test/interiorPlanFixture";
-import { makePlanL, makeSimplePlanP, r1, simpleTime } from "@/test/interiorSimpleFixture";
+import {
+  makePlanL,
+  makeSimplePlanP,
+  makeSimplePlanPPlus,
+  r1,
+  simpleTime,
+} from "@/test/interiorSimpleFixture";
 
-import { buildInteriorPlanRows, rowNoteOf, summarizeInteriorPlan } from "./interiorPlanRows";
+import {
+  buildInteriorPlanRows,
+  groupConfirmedWonOf,
+  rowNoteOf,
+  summarizeInteriorPlan,
+} from "./interiorPlanRows";
 
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 
@@ -294,5 +305,23 @@ describe("rowNoteOf — 비고 = 항목 메모 · (빈 줄이면) 예산", () =>
 
   it("P: 메모·예산이 없어 모두 빈 문자열", () => {
     expect(notesOf(makeSimplePlanP())).toEqual(["", "", "", "", ""]);
+  });
+});
+
+describe("groupConfirmedWonOf — 묶음 제목 오른쪽 확정 합계", () => {
+  const totalsOf = (plan: Pick<InteriorPlanWithItems, "items">) =>
+    buildInteriorPlanRows(plan).groups.map((group) => [group.trade, groupConfirmedWonOf(group)]);
+
+  it("P⁺: 확정이고 금액이 있는 줄만 더하고, 그런 줄이 없는 묶음(조명: 확정 미정뿐)은 null", () => {
+    expect(totalsOf(makeSimplePlanPPlus())).toEqual([
+      ["도배", 1_800_000],
+      ["욕실", 6_200_000],
+      ["조명", null],
+    ]);
+  });
+
+  it("완료 줄도 더한다", () => {
+    const done = { ...r1(), status: "done" as const };
+    expect(totalsOf({ items: [done] })).toEqual([["도배", 1_800_000]]);
   });
 });

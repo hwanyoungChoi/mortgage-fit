@@ -175,6 +175,17 @@ export function buildInteriorPlanRows(
   };
 }
 
+/**
+ * 묶음의 확정 합계(원) = Σ(확정이고 금액이 있는 줄의 견적, 완료 줄 포함). 미정 줄은 더하지 않는다.
+ * 확정이고 금액이 있는 줄이 없으면 null이라 목록 묶음 제목 오른쪽에 그리지 않는다
+ */
+export function groupConfirmedWonOf(group: InteriorPlanRowGroup): number | null {
+  const amounts = group.rows
+    .filter((row) => row.isConfirmed && row.quoteWon !== undefined)
+    .map((row) => row.quoteWon ?? 0);
+  return amounts.length === 0 ? null : amounts.reduce((total, won) => total + won, 0);
+}
+
 /** "금액 미정 n건 제외"(요약·표 머리·계 비고·CSV 공통 문구). 0건이면 "" */
 export function tbdExclusionNote(tbdCount: number): string {
   return tbdCount === 0 ? "" : `금액 ${INTERIOR_PLAN_TBD_LABEL} ${tbdCount}건 제외`;
