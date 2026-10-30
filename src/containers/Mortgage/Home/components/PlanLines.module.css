@@ -75,11 +75,29 @@
   background: var(--color-surface);
 }
 
+/* 묶음 머리: 제목이 남는 너비를 갖고 확정 합계는 오른쪽 끝에 붙는다(제목 칸 = 손잡이 누를 자리는 그대로). */
+.groupHeader {
+  display: flex;
+  align-items: baseline;
+}
+
 .groupTitle {
+  flex: 1;
+  min-width: 0;
   padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-1);
   font-size: var(--fs-body);
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+/* 확정 합계: 줄 금액과 같은 숫자 모양, 오른쪽 여백은 줄 금액 끝과 맞춘다 */
+.groupTotal {
+  flex: none;
+  padding: var(--space-2) var(--space-4) var(--space-1) 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /*

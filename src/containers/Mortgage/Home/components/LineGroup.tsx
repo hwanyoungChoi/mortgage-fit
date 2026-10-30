@@ -1,6 +1,7 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import GroupHeader from "./GroupHeader";
 import LineRow from "./LineRow";
 import styles from "./PlanLines.module.css";
 import { groupDragIdOf, type LineDragKind } from "../lineDrag";
@@ -28,7 +29,7 @@ type LineGroupProps = {
 const GROUP_ROLE_DESCRIPTION = "순서를 바꿀 수 있는 묶음";
 
 /**
- * 구분 묶음 하나: 제목 → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
+ * 구분 묶음 하나: 제목(오른쪽 끝 확정 합계) → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
  * 묶음마다 `SortableContext`를 따로 둬서 든 줄이 없는 묶음의 줄은 밀리지 않는다(줄은 묶음 안에서만 옮긴다).
  * 묶음 제목을 꾹 누르면(키보드는 스페이스) 묶음을 통째로 든다. 묶음을 든 동안 줄은 들 수도 놓을 수도 없다
  * (키보드 이동이 줄 자리로 건너뛰지 않게). 줄을 든 동안 묶음을 놓을 자리에서 빼는 것은 목록의 충돌 판정이 맡는다.
@@ -68,21 +69,24 @@ function LineGroup({
       style={{ transform: CSS.Translate.toString(transform), transition }}
       aria-label={group.trade}
     >
-      <h3 className={styles.groupTitle}>
-        {canMoveGroup ? (
-          <button
-            ref={setActivatorNodeRef}
-            type="button"
-            {...attributes}
-            {...listeners}
-            className={styles.groupHandle}
-          >
-            {group.trade}
-          </button>
-        ) : (
-          group.trade
-        )}
-      </h3>
+      <GroupHeader
+        group={group}
+        title={
+          canMoveGroup ? (
+            <button
+              ref={setActivatorNodeRef}
+              type="button"
+              {...attributes}
+              {...listeners}
+              className={styles.groupHandle}
+            >
+              {group.trade}
+            </button>
+          ) : (
+            group.trade
+          )
+        }
+      />
       <SortableContext id={group.trade} items={keys} strategy={verticalListSortingStrategy}>
         <ul className={styles.rows}>
           {group.rows.map((row) => (
