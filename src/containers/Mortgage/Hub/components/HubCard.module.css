@@ -11,11 +11,22 @@
   text-decoration: none;
 }
 
-/* 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 22px, 위아래 여백 32px) 둔다. */
+/*
+ * 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 22px, 위아래 여백 32px) 두고 답 면(진한 남색)에 올린다.
+ * 글자 토큰을 답 면 값으로 바꿔 안쪽 요약 줄(HubSummaryPair)이 그대로 따라온다.
+ */
 .primaryCard {
   composes: card;
+  --color-text: var(--color-on-answer);
+  --color-text-muted: var(--color-on-answer-muted);
+
   gap: var(--space-3);
   padding: calc(var(--space-5) + var(--space-2)) calc(var(--space-4) + var(--space-1));
+  background: var(--color-answer-bg);
+}
+
+.primaryCard:focus-visible {
+  outline-offset: 3px;
 }
 
 /* 카드 제목 20px 700(오른쪽 위 chevron 자리를 비운다). 대출 계산 카드는 22px */

@@ -9,10 +9,20 @@
   padding: 0 var(--space-2) 0 var(--space-4);
 }
 
+/* 앱 아이콘(집 + 맞음 표시, public/favicon.svg)과 이름 */
 .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-text);
-  font-size: var(--fs-body);
+  font-size: calc(var(--fs-body) + 1px);
   font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.logo {
+  flex: none;
+  border-radius: 6px;
 }
 
 /* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼 */

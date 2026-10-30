@@ -1,10 +1,23 @@
+/* 이 화면의 답이라 답 면(진한 남색)에 올린다. 글자·면 토큰을 답 면 값으로 바꿔 안쪽이 그대로 따라온다. */
 .summary {
+  --color-text: var(--color-on-answer);
+  --color-text-muted: var(--color-on-answer-muted);
+  --color-accent: var(--color-on-answer);
+  --color-error: var(--color-on-answer-alert);
+  --color-raised: var(--color-on-answer-raised);
+  --color-rule: var(--color-on-answer-rule);
+
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
-  background: var(--color-surface);
+  background: var(--color-answer-bg);
+  color: var(--color-text);
+}
+
+.summary :focus-visible {
+  outline-color: var(--color-on-answer);
 }
 
 /*
