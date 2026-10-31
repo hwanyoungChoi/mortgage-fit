@@ -4,7 +4,7 @@
   gap: var(--space-3);
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
+  padding: var(--space-2) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
 }
 
 /* 제목 왼쪽, 계정 버튼 오른쪽 같은 줄(모든 화면 머리글 구조). 제목 줄 높이 = 머리글 버튼 높이 36px */
@@ -22,11 +22,9 @@
   line-height: 36px;
 }
 
-/* 계정 자리: 흰 카드 한 장(로그인 안내·계정 줄·함께 쓰기 줄) */
+/* 계정 자리: 기능 카드 아래 면 없는 한 칸(로그인 이유·계정 줄). 기능 카드보다 앞서 보이지 않게 한다. */
 .account {
-  padding: calc(var(--space-4) + var(--space-1));
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+  padding: 0 calc(var(--space-4) + var(--space-1));
 }
 
 .cards {

@@ -27,15 +27,26 @@
   white-space: nowrap;
 }
 
+/* 펼친 줄의 이름·금액: 줄 버튼의 이름으로만 남긴다 */
+.hiddenText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .chevron {
   flex: none;
   color: var(--color-text-muted);
-  font-size: var(--fs-figure);
   transition: transform 0.15s;
 }
 
+/* 펼치면 글자가 빠져 꺾쇠 혼자 남으므로 누르는 자리 가운데에 둔다 */
 .chevronOpen {
   composes: chevron;
+  margin: 0 auto;
   transform: rotate(180deg);
 }
 

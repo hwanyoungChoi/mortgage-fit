@@ -12,7 +12,7 @@ type HubSummaryPairProps = {
    * 안에 요소가 섞이면(가리기) 부르는 쪽이 `<span>` 하나로 감싼다. grid에서 한 칸이어야 한다.
    */
   figure: ReactNode;
-  /** 숫자 뒤에 붙는 덧말(예: "· 미정 1건"). 화면에서는 첫 줄 오른쪽에 놓인다 */
+  /** 숫자 뒤에 붙는 덧말(예: "미정 1건"). 화면에서는 첫 줄 오른쪽에 놓이고 보조기기 설명에는 구분 기호 뒤로 읽힌다 */
   tail?: string;
 };
 
@@ -28,6 +28,8 @@ function HubSummaryPair({ label, mark, figure, tail }: HubSummaryPairProps) {
       {mark !== undefined && <span className={styles.mark}>{mark}</span>}
       {mark !== undefined && " "}
       {figure}
+      {tail !== undefined && " "}
+      {tail !== undefined && <span className={styles.mark}>·</span>}
       {tail !== undefined && " "}
       {tail !== undefined && <span className={styles.tail}>{tail}</span>}
     </span>

@@ -109,7 +109,7 @@ const ACCOUNT_AREA: Record<ListingSourceStatus, (props: HubAccountProps) => Reac
 };
 
 /**
- * 홈의 계정 자리(카드 위). 로그아웃이면 로그인하는 이유를, 로그인이면 저장 상태와 함께 쓰기 줄을 둔다. 계정 확인에
+ * 홈의 계정 자리(카드 아래). 로그아웃이면 로그인하는 이유를, 로그인이면 저장 상태와 함께 쓰기 줄을 둔다. 계정 확인에
  * 실패하면(로그인했던 브라우저) 이유와 [다시 시도]를 둔다. 로그인·[로그아웃] 버튼은 제목 줄에 있다(HubAccountAction).
  */
 function HubAccount(props: HubAccountProps) {

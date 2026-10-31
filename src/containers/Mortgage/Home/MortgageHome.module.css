@@ -5,7 +5,7 @@
   gap: var(--space-3);
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
+  padding: var(--space-2) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
 }
 
 .title {

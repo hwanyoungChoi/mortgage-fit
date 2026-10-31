@@ -4,6 +4,8 @@
  */
 .lines {
   --add-fab-size: 56px;
+  /* 확정·완료 칸 하나의 폭. 묶음 합계를 줄 금액 열에 맞출 때도 쓴다. */
+  --check-column: 52px;
 
   display: flex;
   flex-direction: column;
@@ -90,10 +92,10 @@
   overflow-wrap: anywhere;
 }
 
-/* 확정 합계: 줄 금액과 같은 숫자 모양, 오른쪽 여백은 줄 금액 끝과 맞춘다 */
+/* 확정 합계: 줄 금액과 같은 숫자 모양. 확정·완료 두 칸만큼 비워 줄 금액 열과 자리를 맞춘다. */
 .groupTotal {
   flex: none;
-  padding: var(--space-2) var(--space-4) var(--space-1) 0;
+  padding: var(--space-2) calc(2 * var(--check-column) + var(--space-1)) var(--space-1) 0;
   font-size: var(--fs-body);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -300,9 +302,9 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 52px;
+  width: var(--check-column);
   min-height: 44px;
-  padding: 0 var(--space-3) 0 var(--space-1);
+  padding: 0 var(--space-2) 0 0;
   color: var(--color-text-muted);
   font-size: var(--fs-tiny);
   font-weight: 600;
@@ -310,16 +312,16 @@
 }
 
 /*
- * 네이티브 체크박스를 24px 원으로 그린다(키보드·보조기기 동작은 체크박스 그대로, 85㎡ 스위치와 같은 방식).
+ * 네이티브 체크박스를 22px 원으로 그린다(키보드·보조기기 동작은 체크박스 그대로, 85㎡ 스위치와 같은 방식).
  * 꺼짐 = 회색 테두리 원, 켜짐 = 코발트 채움 + 흰 체크(::before의 꺾인 선).
  */
 .confirm input {
   position: relative;
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   margin: 0;
-  border: 2px solid var(--color-control);
+  border: 1.5px solid var(--color-control);
   border-radius: 50%;
   background: var(--color-surface);
   appearance: none;
@@ -332,9 +334,9 @@
 .confirm input::before {
   position: absolute;
   top: 3px;
-  left: 6px;
+  left: 6.5px;
   width: 6px;
-  height: 11px;
+  height: 10px;
   border: solid transparent;
   border-width: 0 2px 2px 0;
   content: "";
@@ -374,7 +376,7 @@
   }
 }
 
-/* 텍스트 동작(코발트 글자) */
+/* 텍스트 동작. 묶음마다 있어 흐린 글자로 둔다(주 동작은 떠 있는 [+]) */
 .groupAddButton {
   width: 100%;
   min-height: 48px;
@@ -382,7 +384,7 @@
   border: 0;
   border-top: 1px solid var(--color-rule);
   background: none;
-  color: var(--color-accent);
+  color: var(--color-text-muted);
   font-size: var(--fs-small);
   font-weight: 600;
   text-align: left;

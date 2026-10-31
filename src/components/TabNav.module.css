@@ -11,7 +11,7 @@
   z-index: 5;
   height: var(--bottom-tab-offset);
   padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid var(--color-rule);
+  border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
 
@@ -29,8 +29,8 @@
 }
 
 /*
- * 선택 탭은 아이콘 뒤 옅은 파란 알약(Material 3 내비게이션 바 관례) + 코발트 아이콘·라벨 + 굵은 라벨(700)·굵은 아이콘 선.
- * 색만으로 하지 않는다(알약 모양·굵기). 비활성은 muted 500. 코발트 글자는 흰 바탕 대비 5.6:1.
+ * 선택 탭은 코발트 아이콘·라벨 + 굵은 라벨(700)·굵은 아이콘 선. 색만으로 하지 않는다(굵기). 비활성은 muted 500.
+ * 코발트 글자는 흰 바탕 대비 5.6:1.
  */
 .tab {
   display: flex;
@@ -53,10 +53,6 @@
   font-weight: 700;
 }
 
-.tab[aria-current="page"] .indicator {
-  background: var(--color-accent-soft);
-}
-
 .tab[aria-current="page"] svg {
   stroke-width: 2.4;
 }
@@ -69,9 +65,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
   height: 28px;
-  border-radius: 999px;
 }
 
 @media print {

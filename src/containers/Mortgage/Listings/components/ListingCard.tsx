@@ -1,3 +1,4 @@
+import Pencil from "lucide-react/icons/pencil";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
@@ -153,6 +154,7 @@ function ListingCard({
               onClick={() => setIsNameEditing(true)}
             >
               <strong className={styles.name}>{listing.name}</strong>
+              <Pencil className={styles.nameIcon} size={14} aria-hidden="true" />
             </button>
             {statusBadge !== null && <span className={styles.badge}>{statusBadge}</span>}
             {isCustomLtv && <span className={styles.customBadge}>사용자 지정</span>}

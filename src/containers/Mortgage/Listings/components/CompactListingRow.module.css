@@ -82,8 +82,21 @@
   overflow-wrap: anywhere;
 }
 
-/* 펼친 상세 카드. 바탕색 우물 위에 흰 카드로 앉혀 줄과 구분한다. */
+/* 펼친 줄: 상세의 머리가 이름·상태를 맡으므로 줄 버튼은 오른쪽 위 꺾쇠(접기) 하나로 남는다. */
+.lineExpanded {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  z-index: 2;
+}
+
+.lineExpanded .row {
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+
 .detail {
-  padding: var(--space-3);
-  background: var(--color-bg);
+  background: var(--color-surface);
 }

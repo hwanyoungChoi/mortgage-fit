@@ -1,33 +1,11 @@
-/* 이 화면의 답이라 답 면(진한 남색)에 올린다. 글자·면 토큰을 답 면 값으로 바꿔 안쪽이 그대로 따라온다. */
+/* 이 화면의 답. 면은 다른 카드와 같고 큰 숫자와 예산 막대로 답을 세운다. */
 .summary {
-  --color-text: var(--color-on-answer);
-  --color-text-muted: var(--color-on-answer-muted);
-  --color-accent: var(--color-on-answer);
-  --color-error: var(--color-on-answer-alert);
-  --color-raised: var(--color-on-answer-raised);
-  --color-rule: var(--color-on-answer-rule);
-
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: calc(var(--space-4) + var(--space-1));
   border-radius: var(--radius-card);
-  background: var(--color-answer-bg);
-  color: var(--color-text);
-}
-
-.summary :focus-visible {
-  outline-color: var(--color-on-answer);
-}
-
-/*
- * 답 두 개(남은 예산·지출 예정)를 위아래로 쌓는다. 화면에서 가장 큰 글자(--fs-answer)라 360px에서 두 칸으로 나누면
- * "1,234,500원"이 숫자 중간에서 끊긴다.
- */
-.headline {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  background: var(--color-surface);
 }
 
 .headlineItem {
@@ -64,10 +42,29 @@
   color: var(--color-error);
 }
 
-/* 남은 예산·지출 예정 두 칸 아래 전체 폭 한 줄(한 칸 아래에 붙이면 좁은 폭에서 두 칸 높이가 어긋난다) */
-.tbdNote {
-  color: var(--color-text-muted);
-  font-size: var(--fs-small);
+/*
+ * 예산 막대: 총 예산 길이의 칸에 완료(진한 코발트)·예정(코발트)을 쌓고 남은 칸이 곧 남은 예산이다. 숫자는 아래에 모두
+ * 있어 보조기기에서는 뺀다. 넘치면 예정 칸이 오류 색으로 끝까지 찬다.
+ */
+.meter {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-raised);
+}
+
+.meterDone {
+  background: var(--color-accent-ink);
+}
+
+.meterPlanned {
+  background: var(--color-primary);
+}
+
+.meterOver {
+  background: var(--color-error);
 }
 
 /* 보조 버튼(채운 면) */
@@ -76,30 +73,39 @@
   margin-top: var(--space-1);
   padding: 0 var(--space-3);
   border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-small);
   background: var(--color-raised);
   font-size: var(--fs-body);
   font-weight: 600;
 }
 
+.detailGroups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 막대에 색이 있는 칸끼리 붙도록 지출 완료를 총 예산 위에 그린다(읽는 순서는 그대로). */
 .details {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-1) var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-rule);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
 }
 
 .detail {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
   min-width: 0;
-  font-size: var(--fs-small);
+  font-size: var(--fs-body);
 }
 
 .detail dt {
+  display: flex;
   flex: none;
+  align-items: center;
+  gap: 6px;
   color: var(--color-text-muted);
 }
 
@@ -108,4 +114,36 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   overflow-wrap: anywhere;
+}
+
+/* 막대 색과 같은 점. 어느 칸이 무엇인지 잇는다. */
+.swatchDone,
+.swatchPlanned {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.swatchDone {
+  background: var(--color-accent-ink);
+}
+
+.swatchPlanned {
+  background: var(--color-primary);
+}
+
+.plannedDetail {
+  composes: detail;
+}
+
+.plannedDetail dd {
+  font-weight: 600;
+}
+
+/* 금액 미정 안내: 지출 예정 값 바로 아래 */
+.tbdNote {
+  color: var(--color-text-muted);
+  text-align: right;
+  font-size: var(--fs-small);
 }

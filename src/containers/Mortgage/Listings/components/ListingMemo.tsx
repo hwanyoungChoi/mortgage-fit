@@ -1,3 +1,4 @@
+import ChevronDown from "lucide-react/icons/chevron-down";
 import { useEffect, useId, useRef, useState } from "react";
 
 import MaskedValue from "@/components/MaskedValue";
@@ -55,9 +56,11 @@ function ListingMemo({ memo, isMasked }: ListingMemoProps) {
             onClick={() => setIsExpanded((isOpen) => !isOpen)}
           >
             {isExpanded ? "접기" : "펼치기"}
-            <span className={isExpanded ? styles.chevronOpen : styles.chevron} aria-hidden="true">
-              ▾
-            </span>
+            <ChevronDown
+              className={isExpanded ? styles.chevronOpen : styles.chevron}
+              size={14}
+              aria-hidden="true"
+            />
           </button>
         )}
       </div>

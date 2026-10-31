@@ -43,7 +43,7 @@
   min-height: 36px;
   padding: 0 var(--space-3);
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-small);
   background: var(--color-raised-on-bg);
   font-size: var(--fs-small);
   font-weight: 600;
