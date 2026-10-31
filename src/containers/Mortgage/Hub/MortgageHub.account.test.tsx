@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 홈의 계정 자리(카드 위): 로그아웃이면 카카오 로그인(주 동작 크기)과 이유 한 줄, 로그인이면 상태 줄과 [로그아웃],
+// 홈의 계정 자리(제목 줄 버튼 + 카드 위): 로그아웃이면 카카오 로그인(머리글 크기)과 이유 한 줄, 로그인이면 상태 줄과 [로그아웃],
 // 계정 확인 중이면 보이지 않게 자리만 지키고, 계정 확인 실패면 이유와 [다시 시도](hub-account AC-1).
 // 홈은 저장소에 쓰지 않는다(AC-0).
 import { render, screen, waitFor, within } from "@testing-library/react";

@@ -15,6 +15,7 @@ import { formatManwon, formatWon } from "@/lib/utils/amount";
 import styles from "./MortgageHub.module.css";
 import HouseholdSheet from "./components/HouseholdSheet";
 import HubAccount from "./components/HubAccount";
+import HubAccountAction from "./components/HubAccountAction";
 import HubCard from "./components/HubCard";
 import HubNotices, { type HubResult } from "./components/HubNotices";
 import HubSummaryPair from "./components/HubSummaryPair";
@@ -75,8 +76,8 @@ function planLineTailOf(line: HubPlanLine): string | undefined {
 
 /**
  * 홈(허브, `#/`). 첫 화면이다(ADR-031 D1). 기능 카드 3개를 단계 없이 보인다: 대출 계산(가장 크게) → 매물 모으기 →
- * 인테리어 계획. 데이터가 있으면 소개 문구 자리에 내 현황을 보인다. 카드 위에는 계정 자리(로그아웃이면 카카오 로그인,
- * 로그인이면 상태 줄과 [로그아웃], 함께 쓰기 줄)와 그 아래 안내 줄을 둔다(ADR-035). 홈은 저장소에 쓰지 않는다(AC-0):
+ * 인테리어 계획. 데이터가 있으면 소개 문구 자리에 내 현황을 보인다. 제목 줄 오른쪽에 카카오 로그인·[로그아웃]을, 카드 위에는
+ * 계정 자리(로그아웃이면 로그인 이유, 로그인이면 저장 상태와 함께 쓰기 줄)와 그 아래 안내 줄을 둔다(ADR-035). 홈은 저장소에 쓰지 않는다(AC-0):
  * 계획은 읽기 훅만 쓰고, 매물 출처의 쓰기 함수는 부르지 않는다. 예외는 로그아웃·로그인 확인 결과의 session-hint다.
  */
 function MortgageHub({
@@ -203,14 +204,19 @@ function MortgageHub({
   return (
     <>
       <div className={styles.page} inert={sheet.isOpen}>
-        <h1 className={styles.title}>홈</h1>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>홈</h1>
+          <HubAccountAction
+            status={status}
+            onLogout={handleLogout}
+            isLoggingOut={logout.isPending}
+          />
+        </div>
         {/* 버튼이 사라졌는데 안내 줄이 없을 때 포커스를 받는 자리 */}
         <div ref={accountRef} className={styles.account} tabIndex={-1}>
           <HubAccount
             status={status}
             hasSessionHint={sessionHintStore.has()}
-            onLogout={handleLogout}
-            isLoggingOut={logout.isPending}
             onAccountRetry={handleAccountRetry}
             isAccountRetrying={listingSource.isRetrying}
             household={listingSource.household}

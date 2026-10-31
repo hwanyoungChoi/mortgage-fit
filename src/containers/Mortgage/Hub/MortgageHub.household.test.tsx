@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 스펙 hub-account AC-4: 홈 계정 자리 둘째 줄의 함께 쓰기([함께 쓰기] 시트 / "n명이 함께 쓰는 중" · [나가기])와
+// 스펙 hub-account AC-4: 홈 계정 자리 줄의 함께 쓰기([함께 쓰기] 시트 / "n명이 함께 쓰는 중" · [나가기])와
 // 결과 안내·포커스 규칙(ADR-035 조건 5). 시트를 열고 닫거나 나가도 이 기기 저장소에는 쓰지 않는다(AC-0 (b)).
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -117,7 +117,7 @@ afterEach(() => {
 });
 
 describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
-  it("로그인·혼자: 상태 줄 아래 [함께 쓰기](aria-haspopup=dialog), '함께 쓰는 중'·[나가기]는 없다", async () => {
+  it("로그인·혼자: 상태 줄 옆 [함께 쓰기](aria-haspopup=dialog), '함께 쓰는 중'·[나가기]는 없다", async () => {
     renderHub();
     const button = await findHouseholdButton();
     const hub = screen.getByRole("main");
@@ -288,9 +288,6 @@ describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
     expect(leave).toHaveTextContent("나가기");
     const status = within(hub).getByText("2명이 함께 쓰는 중");
     expect(status.compareDocumentPosition(leave)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(within(hub).getByText("카카오 계정에 저장 중").compareDocumentPosition(status)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
     expect(within(hub).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
   });
 

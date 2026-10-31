@@ -131,7 +131,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     await user.click(logout);
 
     const hub = screen.getByRole("main");
-    const login = await within(hub).findByRole("link", { name: LOGIN });
+    await within(hub).findByRole("link", { name: LOGIN });
     expect(logoutCalls()).toHaveLength(1);
     expect(within(hub).queryByText(STATUS)).not.toBeInTheDocument();
     await waitFor(() => {
@@ -142,7 +142,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     });
     // 버튼이 사라지면 포커스는 계정 자리(안내 줄이 없다)
     expect(within(hub).queryByRole("status")).toBeNull();
-    expect(document.activeElement).toContainElement(login);
+    expect(document.activeElement).toHaveTextContent("로그인하면 저장 목록");
     expect(document.activeElement).toHaveAttribute("tabindex", "-1");
   });
 
@@ -260,18 +260,13 @@ describe("홈 [로그아웃] (AC-1)", () => {
     expect(within(hub).queryByText("로그인하지 못했습니다. 다시 시도해 주세요")).toBeNull();
   });
 
-  it("확인 중(로그인했던 브라우저): 숨긴 자리의 [로그아웃]은 inert·aria-hidden 안이고 눌러도 요청이 없다", async () => {
-    const user = userEvent.setup();
+  it("확인 중(로그인했던 브라우저): [로그아웃]이 아직 없어 요청을 보낼 수 없다", async () => {
     const { logoutCalls } = renderHub({
       respond: (call) => (call.path === "/api/me" ? PENDING : undefined),
     });
     const hub = await findHub();
 
-    const hidden = within(hub).getByText("로그아웃", { selector: "button" });
-    expect(hidden.closest("[inert]")).toHaveAttribute("aria-hidden", "true");
-    expect(within(hub).queryByRole("button", { name: "로그아웃" })).toBeNull();
-    await user.click(hidden);
-
+    expect(within(hub).queryByText("로그아웃")).toBeNull();
     expect(logoutCalls()).toHaveLength(0);
   });
 });
