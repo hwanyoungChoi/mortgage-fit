@@ -78,7 +78,7 @@ describe("홈 계정 자리 (QA 보강)", () => {
     expect(login.className).toBe((container.querySelector("a") as HTMLAnchorElement).className);
   });
 
-  it("로그아웃: 제목 줄에 h1 홈 → 로그인 링크, 그 뒤 카드 목록 앞에 이유 줄이다", async () => {
+  it("로그아웃: 제목 줄에 h1 홈 → 로그인 링크, 그 뒤 카드 목록, 그 아래 이유 줄이다", async () => {
     renderHub();
     const hub = await findHub();
     const login = await within(hub).findByRole("link", { name: LOGIN });
@@ -88,12 +88,12 @@ describe("홈 계정 자리 (QA 보강)", () => {
 
     expect(heading.parentElement).toContainElement(login);
     expect(heading.compareDocumentPosition(login)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(login.compareDocumentPosition(reason)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(reason.compareDocumentPosition(cards)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(login.compareDocumentPosition(cards)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(cards.compareDocumentPosition(reason)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(cards).not.toContainElement(login);
   });
 
-  it("로그인: 상태 줄도 카드 목록 앞이고 링크는 카드 3개뿐이다", async () => {
+  it("로그인: 상태 줄은 카드 목록 아래고 링크는 카드 3개뿐이다", async () => {
     renderHub({ seed: LOGGED_IN_SEED, userId: USER_ID });
     const hub = await findHub();
     // 확인 중 자리표시자도 같은 글자를 inert 안에 숨겨 그린다(hub-account 태스크 1). jsdom의 toBeVisible은 inert를 보지 않으므로
@@ -104,7 +104,7 @@ describe("홈 계정 자리 (QA 보강)", () => {
     const status = within(hub).getByText(STATUS);
     expect(status.closest("[inert]")).toBeNull();
     expect(status.closest("[aria-hidden]")).toBeNull();
-    expect(status.compareDocumentPosition(within(hub).getByRole("list"))).toBe(
+    expect(within(hub).getByRole("list").compareDocumentPosition(status)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(

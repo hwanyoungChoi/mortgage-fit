@@ -1,6 +1,6 @@
 .reason {
   color: var(--color-text-muted);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   line-height: 1.5;
 }
 
@@ -30,14 +30,14 @@
   font-weight: 600;
 }
 
-/* 저장 목록 머리 버튼과 같은 크기. 계정 카드(흰 면) 위라 채운 면 */
+/* 저장 목록 머리 버튼과 같은 크기. 바탕 위라 바탕용 채운 면 */
 .button {
   flex: none;
   min-height: 36px;
   padding: 0 var(--space-3);
   border: 0;
-  border-radius: var(--radius-control);
-  background: var(--color-raised);
+  border-radius: var(--radius-small);
+  background: var(--color-raised-on-bg);
   font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;

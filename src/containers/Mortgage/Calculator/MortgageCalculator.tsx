@@ -1,3 +1,4 @@
+import ImageUp from "lucide-react/icons/image-up";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useDraft } from "@/hooks/useDraft";
@@ -192,6 +193,7 @@ function MortgageCalculator({
           className={styles.secondaryAction}
           onClick={() => sheet.open("screenshot", screenshotButtonRef.current)}
         >
+          <ImageUp size={18} aria-hidden="true" />
           스크린샷으로 채우기
         </button>
         <LoanInputs

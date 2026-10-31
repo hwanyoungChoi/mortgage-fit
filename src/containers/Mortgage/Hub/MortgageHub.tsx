@@ -68,16 +68,16 @@ type HubSheet = { name: "household" };
 /** 계획 줄 뒤에 붙는 지출 완료·확정 미정 줄 수(있는 것만). 둘 다 없으면 없음 */
 function planLineTailOf(line: HubPlanLine): string | undefined {
   const pieces = [
-    line.doneTotalWon > 0 ? `· 완료 ${formatWon(line.doneTotalWon)}` : null,
-    line.tbdCount > 0 ? `· ${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건` : null,
+    line.doneTotalWon > 0 ? `완료 ${formatWon(line.doneTotalWon)}` : null,
+    line.tbdCount > 0 ? `${INTERIOR_PLAN_TBD_LABEL} ${line.tbdCount}건` : null,
   ].filter((piece) => piece !== null);
-  return pieces.length === 0 ? undefined : pieces.join(" ");
+  return pieces.length === 0 ? undefined : pieces.join(" · ");
 }
 
 /**
  * 홈(허브, `#/`). 첫 화면이다(ADR-031 D1). 기능 카드 3개를 단계 없이 보인다: 대출 계산(가장 크게) → 매물 모으기 →
  * 인테리어 계획. 데이터가 있으면 소개 문구 자리에 내 현황을 보인다. 제목 줄 오른쪽에 카카오 로그인·[로그아웃]을, 카드 위에는
- * 계정 자리(로그아웃이면 로그인 이유, 로그인이면 저장 상태와 함께 쓰기 줄)와 그 아래 안내 줄을 둔다(ADR-035). 홈은 저장소에 쓰지 않는다(AC-0):
+ * 안내 줄을, 카드 아래에는 계정 자리(로그아웃이면 로그인 이유, 로그인이면 저장 상태와 함께 쓰기 줄)를 둔다(ADR-035). 홈은 저장소에 쓰지 않는다(AC-0):
  * 계획은 읽기 훅만 쓰고, 매물 출처의 쓰기 함수는 부르지 않는다. 예외는 로그아웃·로그인 확인 결과의 session-hint다.
  */
 function MortgageHub({
@@ -212,19 +212,6 @@ function MortgageHub({
             isLoggingOut={logout.isPending}
           />
         </div>
-        {/* 버튼이 사라졌는데 안내 줄이 없을 때 포커스를 받는 자리 */}
-        <div ref={accountRef} className={styles.account} tabIndex={-1}>
-          <HubAccount
-            status={status}
-            hasSessionHint={sessionHintStore.has()}
-            onAccountRetry={handleAccountRetry}
-            isAccountRetrying={listingSource.isRetrying}
-            household={listingSource.household}
-            onHouseholdOpen={handleHouseholdOpen}
-            onLeave={handleLeave}
-            isLeaving={leaveHousehold.isPending}
-          />
-        </div>
         <HubNotices
           ref={noticesRef}
           result={result}
@@ -292,6 +279,19 @@ function MortgageHub({
             />
           </li>
         </ul>
+        {/* 버튼이 사라졌는데 안내 줄이 없을 때 포커스를 받는 자리 */}
+        <div ref={accountRef} className={styles.account} tabIndex={-1}>
+          <HubAccount
+            status={status}
+            hasSessionHint={sessionHintStore.has()}
+            onAccountRetry={handleAccountRetry}
+            isAccountRetrying={listingSource.isRetrying}
+            household={listingSource.household}
+            onHouseholdOpen={handleHouseholdOpen}
+            onLeave={handleLeave}
+            isLeaving={leaveHousehold.isPending}
+          />
+        </div>
       </div>
       {sheet.openSheet !== null && (
         <HouseholdSheet

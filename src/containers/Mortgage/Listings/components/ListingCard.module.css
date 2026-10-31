@@ -3,17 +3,19 @@
   --reveal-button-width: 56px;
   /* 상태 칩(ListingStatusChip .chip의 min-width)도 같은 방식으로 머리 왼쪽, 이름 맨 앞에 앉힌다. */
   --status-chip-width: 56px;
+  /* 목록 줄 글자와 같은 안쪽 여백 */
+  --card-inset: calc(var(--space-4) + var(--space-1));
+  /* 오른쪽 위 접기 꺾쇠(CompactListingRow) 자리 */
+  --collapse-width: 44px;
 
   position: relative;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
 }
 
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4) var(--space-4) var(--space-3);
+  padding: var(--space-4) var(--card-inset) var(--space-3);
   color: inherit;
   text-decoration: none;
 }
@@ -31,6 +33,7 @@
   gap: var(--space-2);
   /* 상태 칩 자리를 비운다. */
   padding-left: calc(var(--status-chip-width) + var(--space-2));
+  padding-right: var(--collapse-width);
 }
 
 /*
@@ -40,7 +43,7 @@
 .statusButton {
   position: absolute;
   top: calc(var(--space-4) - var(--space-2));
-  left: calc(var(--space-4) - var(--space-2));
+  left: calc(var(--card-inset) - var(--space-2));
   z-index: 1;
   display: flex;
   align-items: center;
@@ -57,7 +60,7 @@
 }
 
 .statusError {
-  margin: 0 var(--space-4) var(--space-3);
+  margin: 0 var(--card-inset) var(--space-3);
   color: var(--color-error);
   font-size: var(--fs-small);
   overflow-wrap: anywhere;
@@ -67,14 +70,14 @@
 .headingWithReveal {
   composes: heading;
   min-height: 40px;
-  padding-right: calc(var(--reveal-button-width) + var(--space-2));
+  padding-right: calc(var(--reveal-button-width) + var(--collapse-width));
 }
 
 /* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 선택 표시(옅은 코발트 면)로 채운다. */
 .revealButton {
   position: absolute;
   top: var(--space-4);
-  right: var(--space-4);
+  right: var(--collapse-width);
   z-index: 1;
   min-width: var(--reveal-button-width);
   min-height: 40px;
@@ -93,10 +96,13 @@
 }
 
 /*
- * 이름을 누르면 그 자리에서 고친다. 글자 모양은 그대로 두고 점선 밑줄로 누를 수 있음을 보인다.
+ * 이름을 누르면 그 자리에서 고친다. 글자 모양은 그대로 두고 뒤의 연필로 누를 수 있음을 보인다.
  * 누르는 자리는 위아래로 넓히되 음수 여백으로 줄 높이는 그대로 둔다(상태 칩 위치가 흔들리지 않게).
  */
 .nameButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   min-width: 0;
   margin: calc(-1 * var(--space-2)) 0;
   padding: var(--space-2) 0;
@@ -104,9 +110,11 @@
   background: none;
   color: inherit;
   text-align: left;
-  text-decoration: underline dotted;
-  text-decoration-color: var(--color-control);
-  text-underline-offset: 4px;
+}
+
+.nameIcon {
+  flex: none;
+  color: var(--color-text-muted);
 }
 
 .name {
@@ -238,14 +246,13 @@
 
 /* [추가 비용 내역 n개]: 본문 링크 밖의 펼침. 메모 우물과 같은 들여쓰기 */
 .extraCosts {
-  margin: 0 var(--space-4) var(--space-3);
+  margin: 0 var(--card-inset) var(--space-3);
   font-size: var(--fs-small);
 }
 
 .extraCostsSummary {
   padding: var(--space-2) 0;
-  color: var(--color-accent);
-  cursor: pointer;
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
@@ -276,13 +283,13 @@
 }
 
 /*
- * 수정·복사·메모·공유·삭제는 카드 아래 한 줄에 같은 폭으로 둔다. 360px의 펼친 카드(가장 좁은 자리)에서도
- * 줄이 넘치거나 잘리지 않게 버튼이 줄어든다.
+ * 수정·복사·메모·공유·삭제는 카드 아래 한 줄에 같은 폭의 글자 버튼으로 둔다. 다섯 개가 같은 무게라 면을 씌우지 않는다.
+ * 360px의 펼친 카드(가장 좁은 자리)에서도 줄이 넘치거나 잘리지 않게 버튼이 줄어든다.
  */
 .actions {
   display: flex;
-  gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-2);
+  margin: 0 var(--card-inset);
+  border-top: 1px solid var(--color-rule);
 }
 
 /* [인테리어 계획]: 버튼 줄 아래 전체 폭 한 줄(U11). 버튼 줄과 같은 높이·바탕이라 같은 묶음으로 읽힌다. */
@@ -291,7 +298,7 @@
   align-items: center;
   justify-content: center;
   min-height: 40px;
-  margin: 0 var(--space-4) var(--space-4);
+  margin: var(--space-1) var(--card-inset) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-raised);
   color: var(--color-text);
@@ -307,11 +314,10 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 var(--space-1);
   border: 0;
-  border-radius: var(--radius-control);
-  background: var(--color-raised);
+  background: none;
   color: var(--color-error);
   font-size: var(--fs-body);
   font-weight: 600;

@@ -72,15 +72,20 @@
 .groupOnBackground .options {
   gap: var(--space-1);
   padding: var(--space-1);
-  border-radius: calc(var(--radius-control) + var(--space-1));
+  border-radius: var(--radius-control);
   background: var(--color-raised-on-bg);
 }
 
 .groupOnBackground .label {
-  min-height: 40px;
+  min-height: 34px;
   background: none;
   color: var(--color-text-muted);
   font-weight: 600;
+}
+
+.groupOnBackground .label {
+  border-radius: var(--radius-chip);
+  font-size: var(--fs-small);
 }
 
 .groupOnBackground .input:checked + .label {

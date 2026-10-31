@@ -125,7 +125,7 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     expect(button).toHaveAttribute("aria-haspopup", "dialog");
     const status = within(hub).getByText("카카오 계정에 저장 중");
     expect(status.compareDocumentPosition(button)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(button.compareDocumentPosition(within(hub).getByRole("list"))).toBe(
+    expect(within(hub).getByRole("list").compareDocumentPosition(button)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(within(hub).queryByRole("button", { name: LEAVE_NAME })).toBeNull();

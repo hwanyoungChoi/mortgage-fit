@@ -12,11 +12,11 @@ type PlanSummaryProps = {
 };
 
 /**
- * 요약 줄(U6). 남은 예산(코발트)·지출 예정을 화면에서 가장 크게, 총 예산·지출 완료를 작게 둔다.
+ * 요약 줄(U6). 남은 예산(코발트)을 화면에서 가장 크게 두고, 그 아래 예산 막대와 지출 예정·지출 완료·총 예산을 둔다.
  * 지출 예정 = 확정이고 완료가 아닌 줄의 견적 합, 지출 완료 = [완료] 줄의 견적 합, 남은 예산 = 총 예산 − 둘.
  * 지출 완료는 [완료] 줄이 있을 때만 보인다.
  * 금액은 원("1,234,500원"). 남은 예산이 음수면 "예산 초과 n원"(0은 "0원"), 총 예산이 없으면 그 자리에 [총 예산 입력]이다.
- * 확정한 미정 줄이 있으면 두 칸 아래 전체 폭 한 줄로 "금액 미정 n건 제외"다(두 칸 모두 같은 기준).
+ * 확정한 미정 줄이 있으면 지출 예정 아래 "금액 미정 n건 제외"다.
  */
 function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
   const tbdNote = tbdExclusionNote(summary.tbdCount);
@@ -42,31 +42,60 @@ function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
     return <strong className={styles.remainingFigure}>{formatWon(summary.remainingWon)}</strong>;
   };
 
+  const hasBudget = summary.budgetWon !== null && summary.budgetWon > 0;
+  const budget = summary.budgetWon ?? 0;
+  const isOver = summary.remainingWon !== null && summary.remainingWon < 0;
+  const donePercent = hasBudget ? Math.min(summary.doneTotalWon / budget, 1) * 100 : 0;
+  const plannedPercent = hasBudget
+    ? Math.min(summary.plannedTotalWon / budget, 1 - donePercent / 100) * 100
+    : 0;
+
   return (
     <section className={styles.summary} aria-label="요약">
-      <div className={styles.headline}>
-        <div className={styles.headlineItem}>
-          <span className={styles.headlineLabel}>남은 예산</span>
-          {renderRemaining()}
-        </div>
-        <div className={styles.headlineItem}>
-          <span className={styles.headlineLabel}>지출 예정</span>
-          <strong className={styles.figure}>{formatWon(summary.plannedTotalWon)}</strong>
-        </div>
+      <div className={styles.headlineItem}>
+        <span className={styles.headlineLabel}>남은 예산</span>
+        {renderRemaining()}
       </div>
-      {tbdNote !== "" && <p className={styles.tbdNote}>{tbdNote}</p>}
-      <dl className={styles.details}>
-        <div className={styles.detail}>
-          <dt>총 예산</dt>
-          <dd>{summary.budgetWon === null ? "—" : formatWon(summary.budgetWon)}</dd>
+      {hasBudget && (
+        <div className={styles.meter} aria-hidden="true">
+          {donePercent > 0 && (
+            <span className={styles.meterDone} style={{ width: `${donePercent}%` }} />
+          )}
+          {plannedPercent > 0 && (
+            <span
+              className={isOver ? styles.meterOver : styles.meterPlanned}
+              style={{ width: `${plannedPercent}%` }}
+            />
+          )}
         </div>
-        {summary.doneCount > 0 && (
-          <div className={styles.detail}>
-            <dt>지출 완료</dt>
-            <dd>{formatWon(summary.doneTotalWon)}</dd>
+      )}
+      <div className={styles.detailGroups}>
+        <dl>
+          <div className={styles.plannedDetail}>
+            <dt>
+              {hasBudget && <span className={styles.swatchPlanned} aria-hidden="true" />}
+              지출 예정
+            </dt>
+            <dd>{formatWon(summary.plannedTotalWon)}</dd>
           </div>
-        )}
-      </dl>
+        </dl>
+        {tbdNote !== "" && <p className={styles.tbdNote}>{tbdNote}</p>}
+        <dl className={styles.details}>
+          <div className={styles.detail}>
+            <dt>총 예산</dt>
+            <dd>{summary.budgetWon === null ? "—" : formatWon(summary.budgetWon)}</dd>
+          </div>
+          {summary.doneCount > 0 && (
+            <div className={styles.detail}>
+              <dt>
+                {hasBudget && <span className={styles.swatchDone} aria-hidden="true" />}
+                지출 완료
+              </dt>
+              <dd>{formatWon(summary.doneTotalWon)}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
     </section>
   );
 }
