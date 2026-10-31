@@ -8,7 +8,7 @@
 //   - 대조군: 저장 목록 [가리기] 2번 = setItem(privacy-mode,"false") → setItem(privacy-mode,"true") 정확히 이 순서의 2회.
 //     [매물] 단계에서만 일어나고 [인테리어]·표·홈 단계의 privacy-mode 쓰기는 0회(removeItem도 0회)
 //   - session-hint 외 13개 키 원문 ===(privacy-mode는 마지막으로 쓴 값, 쓰지 않았으면 시드), 키 집합 불변
-// 확인 중 모드: 홈 단계까지 쓰기 0회이고 숨긴 자리의 [로그아웃]을 눌러도 요청·쓰기가 없다.
+// 확인 중 모드: 홈 단계까지 쓰기 0회이고 [로그아웃]이 아직 없어 요청도 없다.
 // 추가 갈래: (a) 혼자 → 홈 [로그아웃] → 카드가 이 기기 값, 쓰기는 removeItem(session-hint)뿐(횟수 측정 고정),
 //   (b) 가구 → 홈 [나가기] → 로컬 쓰기는 로그인 확인 결과(session-hint "1")뿐, 서버 쓰기는 POST /api/household/leave 1건.
 // 스파이는 두 갈래: 주입 스파이 Storage(4모드·갈래) + storage prop 없이 jsdom localStorage와 Storage.prototype(1개).
@@ -294,12 +294,10 @@ async function walk(user: User, api: FakePlanApi, mode: Mode, check: Check) {
   check("홈 첫 화면");
 
   if (mode === "pending") {
-    // 확인 중 자리의 [로그아웃]은 숨긴 자리(inert·aria-hidden)라 눌려도 요청·쓰기가 없다
-    const hidden = within(screen.getByRole("main")).getByText("로그아웃", { selector: "button" });
-    expect(hidden.closest("[inert]")).toHaveAttribute("aria-hidden", "true");
-    await user.click(hidden);
+    // 확인 중에는 제목 줄에 [로그아웃]을 그리지 않는다
+    expect(within(screen.getByRole("main")).queryByText("로그아웃")).toBeNull();
     expect(api.callsTo("POST", "/api/auth/logout")).toHaveLength(0);
-    check("확인 중 [로그아웃] 누르기");
+    check("확인 중 [로그아웃] 없음");
   }
   if (mode === "solo") await walkHouseholdSheet(user, check);
 
@@ -393,7 +391,7 @@ describe("AC-0 홈 계정 순회 동안 기존 14개 키는 그대로 (주입 �
   });
 
   it.each<[Mode, string]>([
-    ["pending", "확인 전: 쓰기 0회, 숨긴 [로그아웃]은 눌리지 않는다"],
+    ["pending", "확인 전: 쓰기 0회, [로그아웃]이 아직 없다"],
     ["loggedOut", "로그아웃: removeItem(session-hint)과 대조군 privacy-mode 2회뿐"],
     [
       "solo",

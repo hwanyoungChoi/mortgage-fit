@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// QA 보강: 홈 계정 자리. 주 동작 크기, 확인 뒤 자리 바뀜, 계정 확인 실패라도 로그인한 적 없는 브라우저,
+// QA 보강: 홈 계정 자리. 머리글 버튼 크기, 확인 뒤 자리 바뀜, 계정 확인 실패라도 로그인한 적 없는 브라우저,
 // 상태별 저장소 쓰기(로그아웃 = session-hint 정리만, 로그인 = session-hint 기록만, 확인 중·실패 = 0회).
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -69,20 +69,16 @@ afterEach(() => {
 });
 
 describe("홈 계정 자리 (QA 보강)", () => {
-  it("로그아웃 로그인 링크는 주 동작 크기(isWide)다: 넓은 KakaoLoginLink와 같은 모양", async () => {
+  it("로그아웃 로그인 링크는 머리글 버튼 크기다: 작은 KakaoLoginLink와 같은 모양", async () => {
     renderHub();
     const hub = await findHub();
     const login = await within(hub).findByRole("link", { name: LOGIN });
 
-    const { container } = render(<KakaoLoginLink isWide />);
-    const wide = container.querySelector("a") as HTMLAnchorElement;
-    const { container: small } = render(<KakaoLoginLink />);
-    // 대조: 넓은 것과 작은 것은 실제로 다른 모양이어야 이 비교가 의미 있다
-    expect(wide.className).not.toBe((small.querySelector("a") as HTMLAnchorElement).className);
-    expect(login.className).toBe(wide.className);
+    const { container } = render(<KakaoLoginLink />);
+    expect(login.className).toBe((container.querySelector("a") as HTMLAnchorElement).className);
   });
 
-  it("로그아웃: h1 홈 다음, 카드 목록 앞에 이유 줄 → 로그인 링크 순서다", async () => {
+  it("로그아웃: 제목 줄에 h1 홈 → 로그인 링크, 그 뒤 카드 목록 앞에 이유 줄이다", async () => {
     renderHub();
     const hub = await findHub();
     const login = await within(hub).findByRole("link", { name: LOGIN });
@@ -90,9 +86,10 @@ describe("홈 계정 자리 (QA 보강)", () => {
     const reason = within(hub).getByText(REASON);
     const cards = within(hub).getByRole("list");
 
-    expect(heading.compareDocumentPosition(reason)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(reason.compareDocumentPosition(login)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(login.compareDocumentPosition(cards)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(heading.parentElement).toContainElement(login);
+    expect(heading.compareDocumentPosition(login)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(login.compareDocumentPosition(reason)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(reason.compareDocumentPosition(cards)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(cards).not.toContainElement(login);
   });
 
@@ -154,15 +151,12 @@ describe("홈 계정 자리 (QA 보강)", () => {
     expect(within(hub).queryByText(STATUS)).not.toBeInTheDocument();
   });
 
-  it("확인 중 자리의 로그인 링크는 inert·aria-hidden 안에 있어 포커스·클릭 대상이 아니다", async () => {
+  it("확인 중에는 제목 줄 버튼을 그리지 않는다", async () => {
     renderHub({ respond: (call) => (call.path === "/api/me" ? PENDING : undefined) });
     const hub = await findHub();
 
-    const hiddenLink = within(hub).getByText(LOGIN, { selector: "a" });
-    const wrapper = hiddenLink.closest("[inert]");
-    expect(wrapper).not.toBeNull();
-    expect(wrapper).toHaveAttribute("aria-hidden", "true");
-    expect(within(hub).queryByRole("link", { name: LOGIN })).not.toBeInTheDocument();
+    expect(within(hub).queryByText(LOGIN, { selector: "a" })).not.toBeInTheDocument();
+    expect(within(hub).queryByText("로그아웃")).not.toBeInTheDocument();
   });
 
   it("계정 확인 실패지만 로그인한 적 없는 브라우저(/api/me 500, session-hint 없음)는 로그아웃처럼 로그인이 보인다", async () => {

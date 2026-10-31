@@ -7,6 +7,14 @@
   padding: var(--space-5) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
 }
 
+/* 제목 왼쪽, 계정 버튼 오른쪽 같은 줄(모든 화면 머리글 구조). 제목 줄 높이 = 머리글 버튼 높이 36px */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .title {
   font-size: var(--fs-title);
   font-weight: 700;

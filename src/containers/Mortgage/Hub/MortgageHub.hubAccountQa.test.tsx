@@ -371,7 +371,7 @@ describe("가구에서 홈 [로그아웃] (AC-1·AC-4)", () => {
 
     await user.click(logout);
 
-    const login = await within(hub).findByRole("link", { name: LOGIN });
+    await within(hub).findByRole("link", { name: LOGIN });
     expect(within(hub).queryByText(/함께 쓰는 중/)).toBeNull();
     expect(within(hub).queryByRole("button", { name: LEAVE_NAME })).toBeNull();
     expect(within(hub).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
@@ -380,7 +380,7 @@ describe("가구에서 홈 [로그아웃] (AC-1·AC-4)", () => {
         "저장한 매물 2개",
       ),
     );
-    expect(document.activeElement).toContainElement(login);
+    expect(document.activeElement).toHaveTextContent("로그인하면 저장 목록");
     expect(api.callsTo("POST", LOGOUT_PATH)).toHaveLength(1);
     expect(api.callsTo("POST", LEAVE_PATH)).toHaveLength(0);
   });
