@@ -23,10 +23,10 @@ type LineRowProps = {
   onCheckChange: (check: LineCheck, isChecked: boolean) => void;
 };
 
-/** 줄 오른쪽 체크 두 개(보이는 글자 = 접근 가능한 이름의 끝말) */
-const LINE_CHECKS: { check: LineCheck; label: string }[] = [
-  { check: "confirm", label: "확정" },
-  { check: "done", label: "완료" },
+/** 줄 오른쪽 체크 두 개. 화면에는 원 안의 한 글자(`glyph`)이고, 보조기기는 `label`을 접근 가능한 이름의 끝말로 읽는다 */
+const LINE_CHECKS: { check: LineCheck; label: string; glyph: string }[] = [
+  { check: "confirm", label: "확정", glyph: "확" },
+  { check: "done", label: "완료", glyph: "완" },
 ];
 
 /** 보조기기가 읽는 역할 이름. 버튼이면서 끌어 옮길 수 있는 줄이다(저장 목록 줄과 같은 말) */
@@ -34,6 +34,7 @@ const ROLE_DESCRIPTION = "순서를 바꿀 수 있는 버튼";
 
 /**
  * 줄 하나: [여는 버튼(세부내용 · 일정 / 업체 · 견적)]과 [확정]·[완료] 체크를 형제로 둔다(버튼 안에 체크박스를 넣지 않는다).
+ * 상태는 줄 배경으로도 보인다: 확정은 옅은 코발트, 완료는 회색이다(색만으로 구분하지 않게 원 안 글자의 채움이 함께 바뀐다).
  * [완료](구매 완료)를 켜면 그 견적을 확정도 하고, [확정]을 끄면 완료도 풀린다(`interiorLineWrites`).
  * 비고(항목 메모)와 견적 없는 줄의 "예산 n원"은 목록에 그리지 않는다(줄 시트·표·CSV·인쇄에는 있다, 스펙 interior-tbd-amount 추가 요청).
  * 체크는 저장된 값 그대로이고, 저장 중에는 원래 상태로 비활성이다. 견적 없는 줄의 체크는 숨기지 않고 비활성으로 이유를 붙인다.
@@ -60,6 +61,13 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
   });
   const dragProps = isDraggable ? { ...attributes, ...listeners } : {};
   // 일정 글자를 끌기 안내(dnd-kit의 aria-describedby) 앞에 둔다. 덮어쓰면 끌기 안내가 사라진다
+  const rowClassName = isDragging
+    ? styles.placeholderRow
+    : row.isDone
+      ? styles.doneRow
+      : row.isConfirmed
+        ? styles.confirmedRow
+        : styles.row;
   const describedBy = [
     interiorScheduleTextOf(row.item) === null ? undefined : scheduleId,
     isDraggable ? attributes["aria-describedby"] : undefined,
@@ -70,7 +78,7 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
   return (
     <li
       ref={setNodeRef}
-      className={isDragging ? styles.placeholderRow : styles.row}
+      className={rowClassName}
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
       <button
@@ -85,7 +93,7 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
       >
         <LineSummary row={row} scheduleId={scheduleId} />
       </button>
-      {LINE_CHECKS.map(({ check, label }) => (
+      {LINE_CHECKS.map(({ check, label, glyph }) => (
         <label key={check} className={styles.confirm}>
           <input
             type="checkbox"
@@ -96,7 +104,7 @@ function LineRow({ trade, row, isSaving, isDraggable, onOpen, onCheckChange }: L
             aria-describedby={quote === null ? noQuoteId : undefined}
             onChange={(event) => onCheckChange(check, event.currentTarget.checked)}
           />
-          <span aria-hidden="true">{label}</span>
+          <span aria-hidden="true">{glyph}</span>
         </label>
       ))}
       {quote === null && (

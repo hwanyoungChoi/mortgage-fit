@@ -5,7 +5,7 @@
 .lines {
   --add-fab-size: 56px;
   /* 확정·완료 칸 하나의 폭. 묶음 합계를 줄 금액 열에 맞출 때도 쓴다. */
-  --check-column: 52px;
+  --check-column: 40px;
 
   display: flex;
   flex-direction: column;
@@ -167,6 +167,18 @@
   align-items: stretch;
 }
 
+/* 확정한 줄: 옅은 코발트 면(흐린 글자 대비 5.2:1). 묶음 카드 가장자리까지 채운다. */
+.confirmedRow {
+  composes: row;
+  background: var(--color-accent-soft);
+}
+
+/* 구매 완료한 줄: 회색 면으로 한 걸음 물러난다(흐린 글자 대비 5:1). */
+.doneRow {
+  composes: row;
+  background: var(--color-raised-on-bg);
+}
+
 .openButton {
   display: flex;
   flex: 1;
@@ -294,32 +306,30 @@
   color: var(--color-text-muted);
 }
 
-/* 확정 체크 칸. 누르는 자리(label 전체)는 52×44px 이상 */
+/* 확정·완료 체크 칸. 누르는 자리(label 전체)는 40×44px 이상, 원 안 글자는 칸 가운데에 겹친다. */
 .confirm {
+  position: relative;
   display: flex;
   flex: none;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   width: var(--check-column);
   min-height: 44px;
-  padding: 0 var(--space-2) 0 0;
   color: var(--color-text-muted);
   font-size: var(--fs-tiny);
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
 }
 
 /*
- * 네이티브 체크박스를 22px 원으로 그린다(키보드·보조기기 동작은 체크박스 그대로, 85㎡ 스위치와 같은 방식).
- * 꺼짐 = 회색 테두리 원, 켜짐 = 코발트 채움 + 흰 체크(::before의 꺾인 선).
+ * 네이티브 체크박스를 28px 원으로 그린다(키보드·보조기기 동작은 체크박스 그대로).
+ * 꺼짐 = 회색 테두리 원 + 흐린 글자, 켜짐 = 채움 + 흰 글자. 확정은 코발트, 완료는 예산 막대의 지출 완료와 같은 진한 코발트다.
  */
 .confirm input {
-  position: relative;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   margin: 0;
   border: 1.5px solid var(--color-control);
   border-radius: 50%;
@@ -331,16 +341,9 @@
     border-color 120ms ease-out;
 }
 
-.confirm input::before {
+.confirm span {
   position: absolute;
-  top: 3px;
-  left: 6.5px;
-  width: 6px;
-  height: 10px;
-  border: solid transparent;
-  border-width: 0 2px 2px 0;
-  content: "";
-  transform: rotate(45deg);
+  pointer-events: none;
 }
 
 .confirm input:checked {
@@ -348,8 +351,13 @@
   background: var(--color-primary);
 }
 
-.confirm input:checked::before {
-  border-color: var(--color-on-primary);
+.doneRow .confirm input:checked {
+  border-color: var(--color-accent-ink);
+  background: var(--color-accent-ink);
+}
+
+.confirm input:checked + span {
+  color: var(--color-on-primary);
 }
 
 .confirm input:focus-visible {
@@ -369,10 +377,18 @@
   }
 }
 
-/* 고대비 모드: 채움 대신 체크 표시(::before)가 시스템 색으로 보이게 한다. */
+/* 고대비 모드: 채움을 시스템 강조색으로 그려 켜짐이 보이게 한다. */
 @media (forced-colors: active) {
-  .confirm input:checked::before {
-    border-color: CanvasText;
+  .confirm input:checked,
+  .doneRow .confirm input:checked {
+    border-color: Highlight;
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .confirm input:checked + span {
+    color: HighlightText;
+    forced-color-adjust: none;
   }
 }
 
