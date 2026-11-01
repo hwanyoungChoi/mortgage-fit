@@ -5,8 +5,11 @@ import type { Listing, ListingInput, ListingStatus } from "./listing";
 /**
  * GET /api/me → 200. 로그인 안 했으면 `user`가 null이다. `id`는 내부 id(카카오 회원번호 아님).
  * `household`는 함께 쓰는 목록에 있으면 인원, 혼자 쓰면 null(스펙 shared-list).
+ * `nickname`은 카카오 닉네임이고 제공에 동의하지 않았거나 동의 전에 로그인한 세션이면 키가 없다.
  */
-export type MeResponse = { user: { id: string; household: Household | null } | null };
+export type MeResponse = {
+  user: { id: string; nickname?: string; household: Household | null } | null;
+};
 
 /**
  * 화면 데이터의 출처(저장 목록·우리 집). loading: 로그인 확인·이 기기 데이터 이전이 끝나기 전,

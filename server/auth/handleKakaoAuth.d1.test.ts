@@ -41,7 +41,7 @@ function callbackRequest(cookies: Record<string, string>, origin = ORIGIN): Requ
 const finish = (request: Request) =>
   finishKakaoLogin(request, KEYS, db, { fetch: fetchOk(), now: () => NOW });
 
-/** 302·no-store·Location과 Set-Cookie 셋(state 삭제, 초대 삭제, 세션). 세션 쿠키는 모양으로 본다. */
+/** 302·no-store·Location과 Set-Cookie 넷(state 삭제, 초대 삭제, 세션, 닉네임). 세션 쿠키는 모양으로 본다. */
 async function expectSuccessRedirect(response: Response, location: string) {
   const cookies = response.headers.getSetCookie();
   expect({
@@ -54,7 +54,7 @@ async function expectSuccessRedirect(response: Response, location: string) {
     status: 302,
     cacheControl: "no-store",
     location,
-    cookieCount: 3,
+    cookieCount: 4,
     clearCookies: [CLEAR_STATE_COOKIE, CLEAR_INVITE_COOKIE],
   });
   expect(cookies[2]).toMatch(SESSION_COOKIE_PATTERN);
@@ -100,6 +100,29 @@ describe("finishKakaoLogin 성공", () => {
     const ids = await db.prepare("SELECT id FROM users").all<{ id: string }>();
     expect(ids.results).toEqual([{ id: first?.id }]);
     expect(await countRows(db, "sessions WHERE user_id = ?", first?.id)).toBe(2);
+  });
+
+  it("닉네임에 동의하면 쿠키로 /api/me가 돌려주고 DB에는 남지 않는다. 동의가 없으면 쿠키를 지운다", async () => {
+    const loginWith = (profile: { nickname: string } | undefined) =>
+      finishKakaoLogin(callbackRequest({ mf_oauth_state: STATE }), KEYS, db, {
+        fetch: vi.fn<typeof fetch>(async (input) =>
+          String(input).startsWith("https://kauth.kakao.com/oauth/token")
+            ? Response.json({ access_token: "access-token" })
+            : Response.json({ id: KAKAO_ID, ...(profile && { kakao_account: { profile } }) }),
+        ),
+        now: () => NOW,
+      });
+    const agreed = await loginWith({ nickname: "  코니 님;  " });
+    const session = (agreed.headers.getSetCookie()[2] ?? "").split(";")[0];
+    const nickname = (agreed.headers.getSetCookie()[3] ?? "").split(";")[0];
+    expect(nickname).toBe(`mf_nickname=${encodeURIComponent("코니 님;")}`);
+
+    const me = await callApi(db, "GET", "/api/me", { cookie: `${session}; ${nickname}` });
+    expect(((await me.json()) as { user: { nickname?: string } }).user.nickname).toBe("코니 님;");
+
+    const declined = await loginWith(undefined);
+    expect(declined.headers.getSetCookie()[3]).toContain("mf_nickname=;");
+    expect(declined.headers.getSetCookie()[3]).toContain("Max-Age=0");
   });
 
   it("정상 초대 쿠키 → 초대 화면", async () => {
