@@ -1,6 +1,6 @@
 # 업체 미정 · 우리 집 줄 끌어 옮기기(2단계 배포)
 
-> 상태: 완료 · 마지막 업데이트: 2026-10-30 16:15
+> 상태: 완료 · 마지막 업데이트: 2026-10-31 20:30
 
 ## 태스크
 
@@ -41,7 +41,7 @@
 
 ## PR
 
-[#59](https://github.com/hwanyoungChoi/mortgage-fit/pull/59) · CI 통과 · 머지됨(3b6c4f0)
+[#61](https://github.com/hwanyoungChoi/mortgage-fit/pull/61) · CI 통과 · 머지됨(e2c7516)
 
 <!-- spec: specs/interior-vendor-tbd-line-order.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->
