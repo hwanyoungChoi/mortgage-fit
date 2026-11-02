@@ -87,8 +87,8 @@
   flex: 1;
   min-width: 0;
   padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-1);
-  font-size: var(--fs-body);
-  font-weight: 600;
+  font-size: var(--fs-section);
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
@@ -96,8 +96,8 @@
 .groupTotal {
   flex: none;
   padding: var(--space-2) calc(2 * var(--check-column) + var(--space-1)) var(--space-1) 0;
-  font-size: var(--fs-body);
-  font-weight: 600;
+  font-size: var(--fs-section);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
