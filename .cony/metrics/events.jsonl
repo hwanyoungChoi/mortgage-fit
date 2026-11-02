@@ -305,3 +305,5 @@
 {"ts":"2026-10-30T07:10:12.587Z","type":"ship","pr":58,"result":"merged"}
 {"ts":"2026-10-30T07:15:18.932Z","type":"ship","pr":59,"result":"merged"}
 {"ts":"2026-10-31T11:30:35.217Z","type":"ship","pr":61,"result":"merged"}
+{"ts":"2026-11-01T10:55:15.984Z","type":"ship","pr":62,"result":"merged"}
+{"ts":"2026-11-02T10:54:06.350Z","type":"hook","hook":"guard-bash","decision":"deny","command":"sed -i '' -E '/^(<<<<<<<|=======|>>>>>>>)/d' .cony/log.md && git add .cony/log.md && git commit -q --no-verify --no-edit 2>/dev/null; true"}

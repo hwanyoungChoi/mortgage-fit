@@ -1,4 +1,5 @@
-import { fetchKakaoUserId } from "./kakaoApi";
+import { fetchKakaoUser } from "./kakaoApi";
+import { nicknameCookie } from "./nicknameCookie";
 import { createSession } from "./session";
 import { createRandomId } from "../../src/lib/utils/createRandomId";
 import { randomBase64url } from "../crypto/tokens";
@@ -64,11 +65,12 @@ export function startKakaoLogin(request: Request, env: KakaoEnv): Response {
     : clearInviteCookie;
 
   const state = randomBase64url(STATE_BYTES);
-  // 동의항목 없음(회원번호만): scope·prompt·nonce를 보내지 않는다.
+  // 닉네임 하나만 요청한다. scope가 있어야 이미 로그인한 적 있는 사용자에게도 추가 동의를 받는다.
   const authorizeParams = new URLSearchParams({
     client_id: keys.restApiKey,
     redirect_uri: callbackUrl(origin),
     response_type: "code",
+    scope: "profile_nickname",
     state,
   });
   return redirectResponse(`${AUTHORIZE_URL}?${authorizeParams}`, [
@@ -122,12 +124,17 @@ export async function finishKakaoLogin(
 
   const keys = readKakaoKeys(env);
   if (keys === null) return fail("failed");
-  const kakaoId = await fetchKakaoUserId(deps, keys, code, callbackUrl(url.origin));
-  if (kakaoId === null) return fail("failed");
+  const kakaoUser = await fetchKakaoUser(deps, keys, code, callbackUrl(url.origin));
+  if (kakaoUser === null) return fail("failed");
 
-  const userId = await findOrCreateUserId(db, kakaoId, deps.now);
+  const userId = await findOrCreateUserId(db, kakaoUser.kakaoId, deps.now);
   const sessionCookie = await createSession(db, userId, deps.now);
   const invite = readCookie(request, INVITE_COOKIE);
   const location = isInviteToken(invite) ? inviteUrl(url.origin, invite) : homeUrl(url.origin);
-  return redirectResponse(location, [clearStateCookie, clearInviteCookie, sessionCookie]);
+  return redirectResponse(location, [
+    clearStateCookie,
+    clearInviteCookie,
+    sessionCookie,
+    nicknameCookie(kakaoUser.nickname),
+  ]);
 }

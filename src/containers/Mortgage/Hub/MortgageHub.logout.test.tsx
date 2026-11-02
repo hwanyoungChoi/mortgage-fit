@@ -112,6 +112,17 @@ describe("홈 [로그아웃] (AC-1)", () => {
     expect(logout).toBeEnabled();
   });
 
+  it("닉네임이 있으면 [로그아웃] 옆에 보인다", async () => {
+    renderHub({
+      respond: (call) =>
+        call.path === "/api/me"
+          ? Response.json({ user: { id: USER_ID, nickname: "코니", household: null } })
+          : undefined,
+    });
+    await findLogoutButton();
+    expect(within(screen.getByRole("main")).getByText("코니")).toBeVisible();
+  });
+
   it("204: POST 1건 → 로그인 링크, 카드는 이 기기 값, 포커스는 계정 자리", async () => {
     const user = userEvent.setup();
     const { api, logoutCalls } = renderHub({

@@ -19,8 +19,12 @@ function isMeResponse(value: unknown): value is MeResponse {
   const { user } = value as Record<string, unknown>;
   if (user === null) return true;
   if (typeof user !== "object") return false;
-  const { id, household } = user as Record<string, unknown>;
-  return typeof id === "string" && isHousehold(household);
+  const { id, nickname, household } = user as Record<string, unknown>;
+  return (
+    typeof id === "string" &&
+    (nickname === undefined || typeof nickname === "string") &&
+    isHousehold(household)
+  );
 }
 
 /** 모양이 다른 응답(HTML 등)을 로그아웃으로 읽으면 로그인 사용자의 쓰기가 로컬로 샌다. 실패로 본다. */

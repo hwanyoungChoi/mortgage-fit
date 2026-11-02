@@ -126,6 +126,7 @@ describe("startKakaoLogin: 키가 있으면 카카오 인가 화면", () => {
       client_id: "rest-key",
       redirect_uri: `${ORIGIN}/api/auth/kakao/callback`,
       response_type: "code",
+      scope: "profile_nickname",
       state: stateCookie.value,
     });
     expect(cookies).toHaveLength(2);
