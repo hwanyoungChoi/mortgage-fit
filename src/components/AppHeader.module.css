@@ -9,7 +9,7 @@
   padding: 0 var(--space-2) 0 var(--space-4);
 }
 
-/* 앱 아이콘(집 + 맞음 표시, public/favicon.svg)과 이름 */
+/* 앱 아이콘(집 윤곽 + 아래를 채운 코발트 = 집값 중 대출로 채우는 몫, public/favicon.svg)과 이름 */
 .brand {
   display: flex;
   align-items: center;
@@ -22,7 +22,6 @@
 
 .logo {
   flex: none;
-  border-radius: 6px;
 }
 
 /* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼 */

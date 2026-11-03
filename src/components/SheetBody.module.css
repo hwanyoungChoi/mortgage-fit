@@ -49,7 +49,7 @@
   gap: var(--space-2);
 }
 
-/* 주 동작 = 코발트 채움(반경 14px), 보조 = 채운 면, 위험 = 옅은 오류 면 + 오류색 글자 */
+/* 주 동작 = 먹색 채움(반경 14px), 보조 = 채운 면, 위험 = 옅은 오류 면 + 오류색 글자 */
 .primaryButton,
 .secondaryButton,
 .dangerButton {

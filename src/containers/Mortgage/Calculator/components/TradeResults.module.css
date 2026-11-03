@@ -11,7 +11,7 @@
 }
 
 .sourceLink {
-  color: var(--color-accent);
+  color: var(--color-text);
   text-underline-offset: 3px;
 }
 

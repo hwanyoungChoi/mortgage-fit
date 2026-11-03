@@ -1,9 +1,10 @@
 /* 전역 CSS는 리셋·변수·버튼 눌림 표시와 인쇄 영역 규칙만 둔다. 화면 스타일은 CSS Modules. */
 :root {
   /*
-   * 소비자 금융 앱 팔레트(스펙 ui-refresh, pastel-consumer): 회색 바탕 위 흰 카드, 테두리 대신 면 한 단계, 채운 입력칸,
-   * 코발트 주 동작. 코발트는 주 동작과 주 데이터 한 가지(남은 예산·예상 한도)에만 둔다. 상태색(오류·경고)은 그대로다.
-   * 글자색은 바탕(--color-bg)과 흰 면 모두에서 4.5:1 이상이다(muted 바탕 5.6:1·흰 면 6.1:1, 코발트 위 흰 글자 5.7:1).
+   * 소비자 금융 앱 팔레트(스펙 ui-refresh, pastel-consumer): 회색 바탕 위 흰 카드, 테두리 대신 면 한 단계, 채운 입력칸.
+   * 버튼·탭·고른 칸·링크 같은 조작은 먹색(--color-primary = 글자색)이다. 코발트(--color-accent)는 돈 데이터에만 둔다:
+   * 남은 예산·예상 한도 숫자, 예산 막대, 확정 표시. 상태색(오류·경고)은 그대로다.
+   * 글자색은 바탕(--color-bg)과 흰 면 모두에서 4.5:1 이상이다(muted 바탕 5.6:1·흰 면 6.1:1, 먹색 위 흰 글자 16:1).
    */
   --color-text: #191f28;
   --color-text-muted: #5b636e;
@@ -18,10 +19,10 @@
   --color-border: #e5e8eb;
   --color-rule: #f2f4f6;
   --color-control: #d0d3d8;
-  --color-primary: #1d5fd6;
+  --color-primary: #191f28;
   --color-on-primary: #fff;
   --color-accent: #1d5fd6;
-  /* 선택된 칩·세그먼트: 옅은 코발트 면 + 진한 코발트 글자(9.4:1) */
+  /* 데이터의 옅은 코발트 면(확정한 줄·후보 배지) + 진한 코발트 글자(9.4:1). 고른 칸·눌린 버튼은 먹색 면이다. */
   --color-accent-soft: #e3efff;
   --color-accent-ink: #0a3a80;
   --color-error: #c4242a;

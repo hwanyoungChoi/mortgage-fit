@@ -152,7 +152,7 @@
 }
 
 .basisToggle {
-  color: var(--color-accent);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .sourceLink {
-  color: var(--color-accent);
+  color: var(--color-text);
   text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }

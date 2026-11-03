@@ -347,8 +347,8 @@
 }
 
 .confirm input:checked {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
 }
 
 .doneRow .confirm input:checked {

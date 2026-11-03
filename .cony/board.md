@@ -1,6 +1,6 @@
 # 업체 미정 · 우리 집 줄 끌어 옮기기(2단계 배포)
 
-> 상태: 완료 · 마지막 업데이트: 2026-11-01 19:55
+> 상태: 진행 중 · 마지막 업데이트: 2026-11-03 21:36
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-묶음 통째로 끌어 옮기기 운영 반영(PR #47). 비고 링크는 문제 없음. .cony 기록(log·스펙·보드·metrics)은 main에 커밋 안 됨 → 다음 작업 브랜치에서 커밋
+화면 다듬기 PR 올리는 중
 
 ## 최근 결정
 
@@ -33,7 +33,7 @@
 
 ## 사용자 확인 필요
 
-없음
+- 화면 취향 확인: 버튼·탭·고른 칸 먹색, 홈 한 장 면, 새 로고(PR 화면 비교 참고)
 
 ## 막힌 것
 
@@ -41,7 +41,7 @@
 
 ## PR
 
-[#62](https://github.com/hwanyoungChoi/mortgage-fit/pull/62) · CI 통과 · 머지됨(540b7eb)
+[#64](https://github.com/hwanyoungChoi/mortgage-fit/pull/64) · CI 통과 · 머지됨(4af6d63)
 
 <!-- spec: specs/interior-vendor-tbd-line-order.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->

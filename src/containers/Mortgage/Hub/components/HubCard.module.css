@@ -5,14 +5,12 @@
   gap: var(--space-1);
   min-height: 44px;
   padding: calc(var(--space-4) + var(--space-1));
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
   color: var(--color-text);
   text-decoration: none;
 }
 
 /*
- * 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 22px, 위아래 여백 32px) 둔다. 면은 다른 카드와 같고 크기로만 구분한다.
+ * 대출 계산: 홈의 메인이라 맨 위에서 가장 크게(제목 22px, 위아래 여백 32px) 둔다. 같은 면 안에서 크기로만 구분한다.
  */
 .primaryCard {
   composes: card;
@@ -20,8 +18,9 @@
   padding: calc(var(--space-5) + var(--space-2)) calc(var(--space-4) + var(--space-1));
 }
 
-.primaryCard:focus-visible {
-  outline-offset: 3px;
+/* 줄은 흰 면 안에 있어(면이 넘침을 자른다) 포커스 링을 안쪽에 그린다 */
+.card:focus-visible {
+  outline-offset: -3px;
 }
 
 /* 카드 제목 20px 700(오른쪽 위 chevron 자리를 비운다). 대출 계산 카드는 22px */
