@@ -32,8 +32,9 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-accent);
+  color: var(--color-text);
   font-size: var(--fs-body);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

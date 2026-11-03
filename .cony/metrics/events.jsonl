@@ -307,3 +307,6 @@
 {"ts":"2026-10-31T11:30:35.217Z","type":"ship","pr":61,"result":"merged"}
 {"ts":"2026-11-01T10:55:15.984Z","type":"ship","pr":62,"result":"merged"}
 {"ts":"2026-11-02T10:54:06.350Z","type":"hook","hook":"guard-bash","decision":"deny","command":"sed -i '' -E '/^(<<<<<<<|=======|>>>>>>>)/d' .cony/log.md && git add .cony/log.md && git commit -q --no-verify --no-edit 2>/dev/null; true"}
+{"ts":"2026-11-02T10:58:10.556Z","type":"ship","pr":64,"result":"merged"}
+{"ts":"2026-11-03T10:30:36.892Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/c43f2613-2353-4c04-a3f5-099935e7042e/scratchpad; cd $S/shots && rm -rf node_modules && npm i --no-save --silent playwright-c"}
+{"ts":"2026-11-03T11:47:44.524Z","type":"status","status":"진행 중"}

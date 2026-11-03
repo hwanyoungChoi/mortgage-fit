@@ -95,10 +95,10 @@
   box-shadow: 0 1px 3px rgb(10 10 10 / 12%);
 }
 
-/* 고른 칸: 옅은 코발트 면 + 진한 코발트 글자 600. 크기는 그대로다. */
+/* 고른 칸: 먹색 면 + 흰 글자 600. 크기는 그대로다. */
 .input:checked + .label {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-ink);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 600;
 }
 

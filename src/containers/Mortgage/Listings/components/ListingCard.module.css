@@ -73,7 +73,7 @@
   padding-right: calc(var(--reveal-button-width) + var(--collapse-width));
 }
 
-/* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 선택 표시(옅은 코발트 면)로 채운다. */
+/* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 선택 표시(먹색 면)로 채운다. */
 .revealButton {
   position: absolute;
   top: var(--space-4);
@@ -91,8 +91,8 @@
 }
 
 .revealButton[aria-pressed="true"] {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-ink);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 /*
@@ -156,7 +156,8 @@
 
 .leftNote {
   composes: overNote;
-  color: var(--color-accent);
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .condition {

@@ -27,10 +27,25 @@
   padding: 0 calc(var(--space-4) + var(--space-1));
 }
 
+/*
+ * 기능 세 개는 흰 면 한 장을 구분선으로 나눈 줄이다(같은 모양 카드 세 장을 띄우지 않는다). 줄 하나가 링크 하나이고,
+ * 구분선은 줄 안쪽 여백만큼 들여 긋는다.
+ */
 .cards {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.cards > li + li > a::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: calc(var(--space-4) + var(--space-1));
+  left: calc(var(--space-4) + var(--space-1));
+  border-top: 1px solid var(--color-border);
 }
 
 /* 우리 집 카드의 계획 한 묶음(계획마다 두 줄씩 쌓는다) */

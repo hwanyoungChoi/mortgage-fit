@@ -60,7 +60,7 @@
 }
 
 .meterPlanned {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .meterOver {
@@ -130,7 +130,7 @@
 }
 
 .swatchPlanned {
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .plannedDetail {
