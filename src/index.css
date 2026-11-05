@@ -77,8 +77,14 @@
 
   /* 계산 화면 요약 줄: 위아래 여백 12px×2 + [저장] 52px(또는 20px 금액 두 줄) + 위 구분선 1px */
   --summary-bar-height: 77px;
-  /* 떠 있는 탭 줄(TabNav)에서 safe-area 쪽 여백을 뺀 높이: 위 여백 12 + 알약 52. 글자 크기 설정과 상관없다. */
-  --bottom-tab-height: 64px;
+  /*
+   * 떠 있는 탭 줄(TabNav). 알약 높이는 화면의 동작 버튼([+])이 알약 옆에 같은 높이로 설 때도 쓴다.
+   * 줄 폭은 본문 열(480px)에서 양옆 24px를 뺀 432px까지. 글자 크기 설정과 상관없다.
+   */
+  --bottom-tab-pill-height: 52px;
+  --bottom-tab-row-max: 432px;
+  /* 탭 줄에서 safe-area 쪽 여백을 뺀 높이: 위 여백 12 + 알약 */
+  --bottom-tab-height: calc(12px + var(--bottom-tab-pill-height));
   /*
    * 탭 줄이 화면 아래에서 차지하는 높이(탭 + 아래 여백 12px 또는 safe-area 중 큰 쪽). safe-area(env)는 탭 줄만 가지므로 아래쪽 여백·위치 식은
    * env()를 따로 더하지 않고 이 값 하나를 쓴다(두 번 더하면 iPhone에서 34px 중복).

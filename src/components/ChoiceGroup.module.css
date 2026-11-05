@@ -52,8 +52,8 @@
 }
 
 /*
- * 바탕(--color-bg) 위의 보기 전환([목록|표]): 한 줄 홈 안에 칸을 두고, 고른 칸만 흰 면으로 떠오르는 세그먼트
- * (iOS 세그먼트 컨트롤 관례). 홈 채움은 바탕보다 한 단계 진하다.
+ * 바탕(--color-bg) 위의 보기 전환([목록|표]): 한 줄 알약 홈 안에 칸을 두고, 고른 칸만 흰 알약으로 떠오르는 세그먼트
+ * (iOS 26 세그먼트 컨트롤, 하단 탭 알약과 같은 모양). 홈 채움은 바탕보다 한 단계 진하다.
  */
 .groupOnBackground {
   composes: group;
@@ -72,20 +72,17 @@
 .groupOnBackground .options {
   gap: var(--space-1);
   padding: var(--space-1);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background: var(--color-raised-on-bg);
 }
 
 .groupOnBackground .label {
   min-height: 34px;
   background: none;
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
-  font-weight: 600;
-}
-
-.groupOnBackground .label {
-  border-radius: var(--radius-chip);
   font-size: var(--fs-small);
+  font-weight: 600;
 }
 
 .groupOnBackground .input:checked + .label {
