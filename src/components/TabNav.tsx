@@ -1,14 +1,8 @@
-import Bookmark from "lucide-react/icons/bookmark";
-import Calculator from "lucide-react/icons/calculator";
-import House from "lucide-react/icons/house";
-import PaintRoller from "lucide-react/icons/paint-roller";
-
 import { PATHS } from "@/lib/constants/paths";
 
 import styles from "./TabNav.module.css";
 
 import type { TabName } from "@/lib/types/route";
-import type { LucideIcon } from "lucide-react";
 import type { MouseEvent } from "react";
 
 type TabNavProps = {
@@ -19,12 +13,12 @@ type TabNavProps = {
 };
 
 /** 적은 순서가 화면 순서다. `Record`라 탭(TabName)을 더하고 여기 빠뜨리면 타입 검사에서 걸린다. */
-const TABS: Record<TabName, { label: string; href: string; Icon: LucideIcon }> = {
-  hub: { label: "홈", href: PATHS.hub, Icon: House },
-  calculator: { label: "계산", href: PATHS.calculator, Icon: Calculator },
-  listings: { label: "매물", href: PATHS.listings, Icon: Bookmark },
+const TABS: Record<TabName, { label: string; href: string }> = {
+  hub: { label: "홈", href: PATHS.hub },
+  calculator: { label: "계산", href: PATHS.calculator },
+  listings: { label: "매물", href: PATHS.listings },
   /** 라벨은 "인테리어"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
-  home: { label: "인테리어", href: PATHS.home(), Icon: PaintRoller },
+  home: { label: "인테리어", href: PATHS.home() },
 };
 
 const TAB_ORDER = Object.keys(TABS) as TabName[];
@@ -35,7 +29,7 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 화면 아래 고정 탭 "홈 | 계산 | 매물 | 인테리어". 아이콘과 라벨을 늘 함께 보인다.
+ * 화면 아래에 떠 있는 알약 탭 "홈 | 계산 | 매물 | 인테리어". 아이콘 없이 라벨만 보인다.
  * 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. 현재 화면에 대한 동작([가가] 등)은 두지 않는다.
  */
 function TabNav({ current, onNavigate }: TabNavProps) {
@@ -50,7 +44,7 @@ function TabNav({ current, onNavigate }: TabNavProps) {
     <nav className={styles.nav} aria-label="화면">
       <ul className={styles.tabs}>
         {TAB_ORDER.map((name) => {
-          const { label, href, Icon } = TABS[name];
+          const { label, href } = TABS[name];
           return (
             <li key={name} className={styles.item}>
               <a
@@ -59,9 +53,6 @@ function TabNav({ current, onNavigate }: TabNavProps) {
                 aria-current={name === current ? "page" : undefined}
                 onClick={(event) => handleClick(event, href)}
               >
-                <span className={styles.indicator}>
-                  <Icon size={22} aria-hidden="true" />
-                </span>
                 {label}
               </a>
             </li>

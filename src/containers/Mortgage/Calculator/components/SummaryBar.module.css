@@ -1,5 +1,6 @@
 /*
- * 하단 탭 바로 위에 붙는다(bottom = 탭 + safe-area, safe-area는 탭 줄이 가진다).
+ * 하단 탭 줄 위에 내용이 놓이고, 흰 바탕은 화면 끝까지 내려가 떠 있는 탭 알약 뒤를 채운다
+ * (알약 둘레로 본문이 비치지 않게). 탭 줄 높이(safe-area 포함)는 아래 여백에 더한다.
  * 넓은 화면에서도 내용은 본문 열(480px)에 맞춘다. 바탕 띠만 창 너비로 깔린다.
  */
 .bar {
@@ -7,14 +8,14 @@
 
   position: fixed;
   right: 0;
-  bottom: var(--bottom-tab-offset);
+  bottom: 0;
   left: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-4);
-  min-height: var(--summary-bar-height);
-  padding: var(--space-3) var(--bar-inline);
+  min-height: calc(var(--summary-bar-height) + var(--bottom-tab-offset));
+  padding: var(--space-3) var(--bar-inline) calc(var(--space-3) + var(--bottom-tab-offset));
   border-top: 1px solid var(--color-rule);
   background: var(--color-surface);
 }
