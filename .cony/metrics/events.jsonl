@@ -321,3 +321,8 @@
 {"ts":"2026-11-05T03:07:49.419Z","type":"hook","hook":"skill-update-on-prompt","decision":"notice","from":"0.18.1","to":"0.24.0"}
 {"ts":"2026-11-05T03:07:57.005Z","type":"status","status":"완료"}
 {"ts":"2026-11-05T03:12:44.743Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-05T03:16:09.821Z","type":"ship","pr":67,"result":"merged"}
+{"ts":"2026-11-05T03:16:19.537Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-11-05T03:16:28.451Z","type":"hook","hook":"context-on-stop","decision":"block","context":204758}
+{"ts":"2026-11-05T03:18:31.399Z","type":"status","status":"완료"}
+{"ts":"2026-11-05T03:28:40.412Z","type":"status","status":"진행 중"}
