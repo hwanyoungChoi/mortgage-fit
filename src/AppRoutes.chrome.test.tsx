@@ -106,17 +106,10 @@ describe("하단 탭 (AC-2)", () => {
     );
   });
 
-  it("탭 줄 아이콘(svg)은 정확히 4개이고 모두 aria-hidden=true", async () => {
+  it("떠 있는 알약 탭은 아이콘 없이 라벨만 보인다", async () => {
     renderApp("#/");
     await screen.findByRole("heading", { level: 1, name: "홈" });
-    const icons = Array.from(tabNav().querySelectorAll("svg"));
-    expect(icons).toHaveLength(4);
-    expect(icons.map((icon) => icon.getAttribute("aria-hidden"))).toEqual([
-      "true",
-      "true",
-      "true",
-      "true",
-    ]);
+    expect(tabNav().querySelectorAll("svg")).toHaveLength(0);
   });
 
   it("DOM 순서는 머리 줄 → main → 탭 줄", async () => {

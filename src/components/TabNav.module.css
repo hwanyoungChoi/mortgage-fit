@@ -1,7 +1,8 @@
 /*
- * 화면 아래 고정 탭. 높이는 `--bottom-tab-offset`(탭 56px + safe-area, index.css)이고 safe-area는 이 줄만 가진다.
- * 바탕 띠는 창 너비, 탭은 본문 열(480px) 가운데(SummaryBar와 같은 방식). 시트(z 10)가 이 줄을 덮는다.
- * 키보드가 떠도 따라 올라오지 않는다(요약 줄과 같은 규칙, 스펙 platform-home).
+ * 화면 아래에 떠 있는 알약 탭(iOS 26 이후 떠 있는 탭 막대, 카나나 하단 탭과 같은 모양).
+ * 줄 높이는 `--bottom-tab-offset`(위 여백 12 + 알약 52 + 아래 여백 max(12, safe-area), index.css)이고 safe-area는 이 줄만 가진다.
+ * 줄 자체는 투명해 본문이 알약 뒤로 지나가고, 알약 밖을 누르면 뒤의 본문이 눌린다. 시트(z 10)가 이 줄을 덮는다.
+ * 키보드가 떠도 따라 올라오지 않는다(요약 줄과 같은 규칙, 스펙 platform-home). 글자 크기 설정과 상관없이 높이는 px로 고정한다.
  */
 .nav {
   position: fixed;
@@ -10,16 +11,22 @@
   left: 0;
   z-index: 5;
   height: var(--bottom-tab-offset);
-  padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+  pointer-events: none;
 }
 
 .tabs {
   display: flex;
-  max-width: 480px;
-  height: 100%;
+  max-width: 400px;
+  height: 52px;
   margin: 0 auto;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow:
+    0 0 8px rgb(0 0 0 / 8%),
+    0 4px 40px rgb(0 0 0 / 10%);
+  pointer-events: auto;
 }
 
 .item {
@@ -29,43 +36,32 @@
 }
 
 /*
- * 선택 탭은 먹색 아이콘·라벨 + 굵은 라벨(700)·굵은 아이콘 선. 색만으로 하지 않는다(굵기). 비활성은 muted 500.
+ * 선택 탭은 회색 알약 + 먹색 굵은 라벨, 나머지는 muted 라벨. 알약 바탕만으로는 대비가 약해 글자 색·굵기도 함께 바꾼다.
  * 코발트는 돈 데이터에만 두므로 탭에는 쓰지 않는다.
  */
 .tab {
   display: flex;
   flex: 1;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   min-height: 44px;
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
-  font-weight: 500;
+  font-size: var(--fs-small);
+  font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .tab[aria-current="page"] {
+  background: var(--color-bg);
   color: var(--color-text);
-  font-weight: 700;
-}
-
-.tab[aria-current="page"] svg {
-  stroke-width: 2.4;
+  font-weight: 800;
 }
 
 .tab:focus-visible {
   outline-offset: -2px;
-}
-
-.indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 28px;
 }
 
 @media print {
