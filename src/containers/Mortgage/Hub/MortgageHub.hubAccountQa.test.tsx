@@ -107,6 +107,13 @@ async function findLiveButton(name: string) {
   return button;
 }
 
+/** 함께 쓰는 중: 홈의 [함께 쓰기] 줄을 눌러 시트를 열고 그 안의 [함께 쓰기에서 나가기] */
+async function findLeaveButton() {
+  await userEvent.click(await findLiveButton("함께 쓰기"));
+  const dialog = screen.getByRole("dialog", { name: "함께 쓰기" });
+  return within(dialog).getByRole("button", { name: LEAVE_NAME });
+}
+
 function deferred() {
   let resolve: (response: Response) => void = () => {};
   const promise = new Promise<Response>((done) => {
@@ -145,7 +152,7 @@ describe("홈 결과 줄 수명 (AC-1, A8)", () => {
         return undefined;
       },
     });
-    await user.click(await findLiveButton(LEAVE_NAME));
+    await user.click(await findLeaveButton());
     const hub = screen.getByRole("main");
     expect(await within(hub).findByText(LEFT)).toBeInTheDocument();
 
@@ -172,12 +179,11 @@ describe("홈 결과 줄 수명 (AC-1, A8)", () => {
         return noContent();
       },
     });
-    const leave = await findLiveButton(LEAVE_NAME);
     const hub = screen.getByRole("main");
-    await user.click(leave);
+    await user.click(await findLeaveButton());
     expect(await within(hub).findByText(LEAVE_FAILED)).toBeInTheDocument();
 
-    await user.click(leave);
+    await user.click(await findLeaveButton());
 
     const left = await within(hub).findByText(LEFT);
     expect(within(hub).queryByText(LEAVE_FAILED)).toBeNull();
@@ -195,7 +201,7 @@ describe("홈 결과 줄 수명 (AC-1, A8)", () => {
           ? errorResponse(500, "internal")
           : undefined,
     });
-    await user.click(await findLiveButton(LEAVE_NAME));
+    await user.click(await findLeaveButton());
     const hub = screen.getByRole("main");
     expect(await within(hub).findByText(LEAVE_FAILED)).toBeInTheDocument();
 
@@ -252,7 +258,7 @@ describe("홈 결과 줄 수명 (AC-1, A8)", () => {
         return undefined;
       },
     });
-    await user.click(await findLiveButton(LEAVE_NAME));
+    await user.click(await findLeaveButton());
     expect(await screen.findByText(LEFT)).toBeInTheDocument();
 
     await user.click(tab("매물"));
@@ -278,7 +284,7 @@ describe("홈 결과 줄 수명 (AC-1, A8)", () => {
         return undefined;
       },
     });
-    await user.click(await findLiveButton(LEAVE_NAME));
+    await user.click(await findLeaveButton());
     const hub = screen.getByRole("main");
     expect(await within(hub).findByText(LEFT)).toBeInTheDocument();
     await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
@@ -308,7 +314,7 @@ describe("나가기 성공은 곧바로 둘째 줄을 바꾼다 (AC-4, 시나리
         return undefined;
       },
     });
-    await user.click(await findLiveButton(LEAVE_NAME));
+    await user.click(await findLeaveButton());
     const hub = screen.getByRole("main");
 
     expect(await within(hub).findByText(LEFT)).toBeInTheDocument();

@@ -86,11 +86,11 @@ async function findHouseholdButton() {
   return button;
 }
 
+/** 함께 쓰는 중: 홈의 [함께 쓰기] 줄을 눌러 시트를 열고 그 안의 [함께 쓰기에서 나가기] */
 async function findLeaveButton() {
-  const hub = await findHub();
-  const button = await within(hub).findByRole("button", { name: LEAVE_NAME });
-  expect(button.closest("[inert]")).toBeNull();
-  return button;
+  await userEvent.click(await findHouseholdButton());
+  const dialog = screen.getByRole("dialog", { name: "함께 쓰기" });
+  return within(dialog).getByRole("button", { name: LEAVE_NAME });
 }
 
 function deferred() {
@@ -117,14 +117,15 @@ afterEach(() => {
 });
 
 describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
-  it("로그인·혼자: 상태 줄 옆 [함께 쓰기](aria-haspopup=dialog), '함께 쓰는 중'·[나가기]는 없다", async () => {
+  it("로그인·혼자: 카드 아래 [함께 쓰기] 줄(aria-haspopup=dialog, 초대 안내 설명), '함께 쓰는 중'·[나가기]는 없다", async () => {
     renderHub();
     const button = await findHouseholdButton();
     const hub = screen.getByRole("main");
 
     expect(button).toHaveAttribute("aria-haspopup", "dialog");
-    const status = within(hub).getByText("카카오 계정에 저장 중");
-    expect(status.compareDocumentPosition(button)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(button).toHaveAccessibleDescription(
+      "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다",
+    );
     expect(within(hub).getByRole("list").compareDocumentPosition(button)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
@@ -280,15 +281,18 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
 });
 
 describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
-  it("'2명이 함께 쓰는 중'과 [나가기](aria-label), [함께 쓰기]는 없다", async () => {
+  it("홈 줄은 [함께 쓰기](설명 '2명이 함께 쓰는 중')이고 [나가기]는 시트 안에만 있다", async () => {
     renderHub({ isInHousehold: true });
-    const leave = await findLeaveButton();
+    const button = await findHouseholdButton();
     const hub = screen.getByRole("main");
 
-    expect(leave).toHaveTextContent("나가기");
-    const status = within(hub).getByText("2명이 함께 쓰는 중");
-    expect(status.compareDocumentPosition(leave)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(within(hub).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
+    expect(button).toHaveAccessibleDescription("2명이 함께 쓰는 중");
+    expect(within(hub).queryByRole("button", { name: LEAVE_NAME })).toBeNull();
+
+    await userEvent.click(button);
+    const dialog = screen.getByRole("dialog", { name: "함께 쓰기" });
+    expect(within(dialog).getByText("2명이 함께 쓰는 중입니다")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: LEAVE_NAME })).toBeEnabled();
   });
 
   it("확인 문구에 매물·인테리어 계획 문단, 취소하면 요청 0건", async () => {
@@ -326,9 +330,14 @@ describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
     const planGets = api.callsTo("GET", "/api/interior-plans").length;
 
     await user.click(leave);
-    expect(leave).toBeDisabled();
-    await user.click(leave);
+    // 확인하면 시트를 닫고 요청한다. 요청 중에 다시 열면 [나가기]는 비활성이라 두 번째 요청이 없다
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(api.callsTo("POST", LEAVE_PATH)).toHaveLength(1);
+    const again = await findLeaveButton();
+    expect(again).toBeDisabled();
+    await user.click(again);
+    expect(api.callsTo("POST", LEAVE_PATH)).toHaveLength(1);
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "닫기" }));
 
     pending.resolve(noContent());
 
@@ -372,7 +381,7 @@ describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
     expect(await within(hub).findByRole("button", { name: "함께 쓰기" })).toBeInTheDocument();
   });
 
-  it("500: 실패 줄, [나가기]는 남고 활성. 다시 누르면 실패 줄을 지우고 POST 2번째", async () => {
+  it("500: 실패 줄, 포커스는 [함께 쓰기] 줄. 시트를 다시 열면 [나가기]는 활성이고 누르면 POST 2번째", async () => {
     const user = userEvent.setup();
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const retry = deferred();
@@ -392,12 +401,13 @@ describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
 
     expect(await within(hub).findByText(LEAVE_FAILED)).toBeInTheDocument();
     expect(within(hub).queryByText(LEFT)).toBeNull();
-    expect(leave).toBeInTheDocument();
-    expect(leave).toBeEnabled();
-    expect(leave).toHaveFocus();
-    expect(within(hub).getByText("2명이 함께 쓰는 중")).toBeInTheDocument();
+    const householdButton = within(hub).getByRole("button", { name: "함께 쓰기" });
+    expect(householdButton).toHaveFocus();
+    expect(householdButton).toHaveAccessibleDescription("2명이 함께 쓰는 중");
 
-    await user.click(leave);
+    const again = await findLeaveButton();
+    expect(again).toBeEnabled();
+    await user.click(again);
 
     expect(api.callsTo("POST", LEAVE_PATH)).toHaveLength(2);
     expect(within(hub).queryByText(LEAVE_FAILED)).toBeNull();
@@ -429,7 +439,7 @@ describe("홈 둘째 줄: 로그아웃·확인 중 (AC-4·AC-1)", () => {
     await within(hub).findByRole("link", { name: "카카오로 로그인" });
     await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
 
-    expect(within(hub).queryByText("함께 쓰기", { selector: "button" })).toBeNull();
+    expect(within(hub).queryByText("함께 쓰기")).toBeNull();
     expect(within(hub).queryByRole("button", { name: LEAVE_NAME })).toBeNull();
     expect(within(hub).queryByText(/함께 쓰는 중/)).toBeNull();
   });
@@ -439,10 +449,10 @@ describe("홈 둘째 줄: 로그아웃·확인 중 (AC-4·AC-1)", () => {
     renderHub({ respond: (call) => (call.path === "/api/me" ? PENDING : undefined) });
     const hub = await findHub();
 
-    const hidden = within(hub).getByText("함께 쓰기", { selector: "button" });
-    expect(hidden.closest("[inert]")).toHaveAttribute("aria-hidden", "true");
+    const hidden = within(hub).getByText("함께 쓰기").closest("button");
+    expect(hidden?.closest("[inert]")).toHaveAttribute("aria-hidden", "true");
     expect(within(hub).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
-    await user.click(hidden);
+    await user.click(hidden as HTMLButtonElement);
 
     expect(screen.queryByRole("dialog")).toBeNull();
   });

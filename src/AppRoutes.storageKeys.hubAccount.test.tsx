@@ -544,7 +544,9 @@ describe("AC-0 (b) 홈 [나가기]: 로컬 원문 그대로, 서버 쓰기는 �
     window.location.hash = "#/";
     render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
     const main = screen.getByRole("main");
-    const leave = await within(main).findByRole("button", { name: "함께 쓰기에서 나가기" });
+    // 홈 [함께 쓰기] 줄 → 시트 안 [함께 쓰기에서 나가기]
+    await user.click(await within(main).findByRole("button", { name: "함께 쓰기" }));
+    const leave = screen.getByRole("button", { name: "함께 쓰기에서 나가기" });
     await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
     const spies = spyOn(storage);
 

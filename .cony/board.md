@@ -1,6 +1,6 @@
 # 업체 미정 · 우리 집 줄 끌어 옮기기(2단계 배포)
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-11-05 12:28
+> 상태: 진행 중 · 마지막 업데이트: 2026-11-05 14:34
 
 ## 태스크
 
@@ -27,7 +27,7 @@
 
 ## 지금 하는 일
 
-README 화면 사진·글 갱신
+홈 함께 쓰기 줄을 따로 한 장 흰 면으로, [나가기]는 시트 안으로(사용자 A 선택)
 
 ## 최근 결정
 
@@ -43,7 +43,7 @@ README 화면 사진·글 갱신
 
 ## PR
 
-none
+[#68](https://github.com/hwanyoungChoi/mortgage-fit/pull/68) · CI 통과 · 머지됨(bc1f80b)
 
 <!-- spec: specs/interior-vendor-tbd-line-order.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->

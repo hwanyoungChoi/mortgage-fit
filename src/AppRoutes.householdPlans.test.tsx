@@ -69,7 +69,9 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
       localPlans: [devicePlan()],
       hash: "#/",
     });
-    const leaveButton = await screen.findByRole("button", { name: "함께 쓰기에서 나가기" });
+    // 홈 [함께 쓰기] 줄 → 시트 안 [함께 쓰기에서 나가기]
+    await user.click(await screen.findByRole("button", { name: "함께 쓰기" }));
+    const leaveButton = screen.getByRole("button", { name: "함께 쓰기에서 나가기" });
     // 가구 중에는 보내지 않는다
     expect(planImports()).toHaveLength(0);
     expect(storage.getItem(INTERIOR_PLAN_IMPORTS_STORAGE_KEY)).toBeNull();
@@ -110,7 +112,8 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
       localPlans: [devicePlan()],
       hash: "#/",
     });
-    await user.click(await screen.findByRole("button", { name: "함께 쓰기에서 나가기" }));
+    await user.click(await screen.findByRole("button", { name: "함께 쓰기" }));
+    await user.click(screen.getByRole("button", { name: "함께 쓰기에서 나가기" }));
     expect(api.callsTo("POST", "/api/household/leave")).toHaveLength(0);
     expect(planImports()).toHaveLength(0);
   });

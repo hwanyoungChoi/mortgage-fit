@@ -24,7 +24,7 @@ const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
 const REASON =
   "로그인하면 저장 목록·인테리어 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요";
-const STATUS = "카카오 계정에 저장 중";
+const STATUS = "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다";
 
 /** 이 기기 데이터 이전이 이 사용자로 끝난 로그인 브라우저 */
 const LOGGED_IN_SEED = {
