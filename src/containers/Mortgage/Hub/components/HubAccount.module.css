@@ -1,12 +1,9 @@
+/* 면 없는 글자 줄(로그인 이유·계정 확인 실패)은 카드 안 글자와 같은 선에서 시작한다 */
 .reason {
+  padding: 0 calc(var(--space-4) + var(--space-1));
   color: var(--color-text-muted);
   font-size: var(--fs-small);
   line-height: 1.5;
-}
-
-.status {
-  color: var(--color-text-muted);
-  font-size: var(--fs-body);
 }
 
 /* 계정 확인 중: 자리만 차지하고 보이지 않는다(보조기기·포커스에서도 빠진다, aria-hidden·inert). */
@@ -14,7 +11,20 @@
   visibility: hidden;
 }
 
-/* 상태 한 줄 + 작은 버튼. 글자가 커져 한 줄에 다 들어가지 않으면 버튼이 다음 줄로 내려간다. */
+/*
+ * 함께 쓰기 줄: 기능 카드와 같은 흰 면·여백·제목·chevron을 쓰되 기능 카드 묶음과는 떨어진 한 장이다(설정 칸).
+ */
+.householdCard {
+  composes: card from "./HubCard.module.css";
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font: inherit;
+  text-align: left;
+}
+
+/* 계정 확인 실패 한 줄 + 작은 버튼. 글자가 커져 한 줄에 다 들어가지 않으면 버튼이 다음 줄로 내려간다. */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -22,6 +32,7 @@
   justify-content: space-between;
   gap: var(--space-2);
   min-height: 36px;
+  padding: 0 calc(var(--space-4) + var(--space-1));
 }
 
 .error {

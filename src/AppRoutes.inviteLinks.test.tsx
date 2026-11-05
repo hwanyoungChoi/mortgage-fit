@@ -38,12 +38,12 @@ afterEach(() => {
 });
 
 describe("초대 화면 문구·링크는 홈 기준 (AC-3)", () => {
-  it("이미 함께 쓰는 중: 홈에서 [나가기]로 나가라고 안내하고 링크는 홈", async () => {
+  it("이미 함께 쓰는 중: 홈 [함께 쓰기]에서 나가라고 안내하고 링크는 홈", async () => {
     renderInvite(true);
 
     expect(await screen.findByText("이미 함께 쓰는 목록이 있습니다")).toBeInTheDocument();
     expect(
-      screen.getByText(/홈에서 \[나가기\]로 나간 뒤 이 링크를 다시 열어 주세요/),
+      screen.getByText(/홈 \[함께 쓰기\]에서 나간 뒤 이 링크를 다시 열어 주세요/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/저장 목록에서 \[나가기\]/)).toBeNull();
     expect(screen.getByRole("link", { name: "홈으로 가기" })).toHaveAttribute("href", "#/");

@@ -21,7 +21,7 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
-const STATUS = "카카오 계정에 저장 중";
+const STATUS = "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다";
 const LOGOUT_DESCRIPTION = "로그아웃하면 이 기기에 있던 저장 목록·인테리어 계획으로 돌아갑니다";
 const LOGOUT_FAILED = "로그아웃하지 못했습니다. 연결을 확인하고 다시 시도해 주세요";
 const SESSION_EXPIRED = "로그인이 끝났습니다. 다시 로그인해 주세요";

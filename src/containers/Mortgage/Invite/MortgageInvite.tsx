@@ -170,7 +170,7 @@ function InviteView({
     return (
       <StatusPanel
         title="이미 함께 쓰는 목록이 있습니다"
-        description="홈에서 [나가기]로 나간 뒤 이 링크를 다시 열어 주세요"
+        description="홈 [함께 쓰기]에서 나간 뒤 이 링크를 다시 열어 주세요"
       >
         <a className={styles.primaryLink} href={PATHS.hub}>
           홈으로 가기

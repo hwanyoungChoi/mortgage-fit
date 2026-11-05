@@ -171,11 +171,13 @@ function MortgageHub({
   };
 
   /**
-   * 나가면 목록·예산·순서·계획이 각자 것으로 돌아간다(훅이 다시 조회한다). 성공하면 [나가기]가 사라지므로 결과 줄로 포커스를 옮기고,
-   * 401은 세션 만료 줄, 그 밖의 실패는 실패 줄이다([나가기]가 남는다).
+   * 시트의 [함께 쓰기에서 나가기]. 확인하면 시트를 닫고(포커스는 함께 쓰기 줄로) 요청한다. 결과는 홈 안내 줄에 보인다.
+   * 나가면 목록·예산·순서·계획이 각자 것으로 돌아간다(훅이 다시 조회한다). 성공하면 결과 줄로 포커스를 옮기고,
+   * 401은 세션 만료 줄, 그 밖의 실패는 실패 줄이다(시트를 다시 열어 나갈 수 있다).
    */
   const handleLeave = () => {
     if (!window.confirm(LEAVE_CONFIRM_MESSAGE)) return;
+    sheet.close();
     setResult(null);
     leaveHousehold.mutate(undefined, {
       onSuccess: () => {
@@ -280,7 +282,8 @@ function MortgageHub({
           </li>
         </ul>
         {/* 버튼이 사라졌는데 안내 줄이 없을 때 포커스를 받는 자리 */}
-        <div ref={accountRef} className={styles.account} tabIndex={-1}>
+        {/* 기능 카드 아래 계정 자리(로그인 이유·함께 쓰기 줄). 안쪽 여백은 HubAccount가 정한다 */}
+        <div ref={accountRef} tabIndex={-1}>
           <HubAccount
             status={status}
             hasSessionHint={sessionHintStore.has()}
@@ -288,8 +291,6 @@ function MortgageHub({
             isAccountRetrying={listingSource.isRetrying}
             household={listingSource.household}
             onHouseholdOpen={handleHouseholdOpen}
-            onLeave={handleLeave}
-            isLeaving={leaveHousehold.isPending}
           />
         </div>
       </div>
@@ -299,6 +300,8 @@ function MortgageHub({
           household={listingSource.household}
           onUnauthorized={listingSource.expireSession}
           onClose={handleSheetClose}
+          onLeave={handleLeave}
+          isLeaving={leaveHousehold.isPending}
         />
       )}
     </>

@@ -17,6 +17,10 @@ type HouseholdSheetProps = {
   /** 초대를 만들다 401이면 홈과 같은 세션 만료 처리 */
   onUnauthorized: () => void;
   onClose: () => void;
+  /** 함께 쓰는 중일 때 [함께 쓰기에서 나가기]. 확인·요청·결과는 홈이 맡는다 */
+  onLeave: () => void;
+  /** 나가기 요청 중(한 건만 보낸다) */
+  isLeaving: boolean;
 };
 
 const FULL_MESSAGE = "이미 2명이 함께 쓰고 있습니다";
@@ -30,10 +34,18 @@ function describeCreateError(error: Error): string {
 }
 
 /**
- * 함께 쓰기 시트: 열어 둔 동안 세션이 끝나면 로그인 안내, 로그인·혼자면 초대 링크 만들기 → 복사·공유하기·끊기(공유 시트와 같은 모양).
+ * 함께 쓰기 시트: 열어 둔 동안 세션이 끝나면 로그인 안내, 로그인·혼자면 초대 링크 만들기 → 복사·공유하기·끊기(공유 시트와 같은 모양),
+ * 함께 쓰는 중이면 인원과 [함께 쓰기에서 나가기].
  * 닫았다 다시 열면 새로 만들기부터다(시트가 새로 그려진다).
  */
-function HouseholdSheet({ status, household, onUnauthorized, onClose }: HouseholdSheetProps) {
+function HouseholdSheet({
+  status,
+  household,
+  onUnauthorized,
+  onClose,
+  onLeave,
+  isLeaving,
+}: HouseholdSheetProps) {
   const createInvite = useCreateHouseholdInvite();
 
   const handleCreate = () => {
@@ -58,7 +70,23 @@ function HouseholdSheet({ status, household, onUnauthorized, onClose }: Househol
       );
     }
     if (household !== null) {
-      return <p className={styles.notice}>{FULL_MESSAGE}</p>;
+      return (
+        <>
+          <p className={styles.notice}>{household.memberCount}명이 함께 쓰는 중입니다</p>
+          <p className={styles.hint}>
+            저장 목록과 인테리어 계획을 둘 다 보고 고치고 지울 수 있습니다. 함께 쓰는 사람은
+            2명까지라 더 초대할 수 없습니다.
+          </p>
+          <button
+            type="button"
+            className={styles.dangerButton}
+            disabled={isLeaving}
+            onClick={onLeave}
+          >
+            함께 쓰기에서 나가기
+          </button>
+        </>
+      );
     }
     if (createInvite.data !== undefined) {
       return <HouseholdInviteResult invite={createInvite.data} />;

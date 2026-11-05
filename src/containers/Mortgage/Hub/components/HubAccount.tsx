@@ -1,4 +1,8 @@
+import ChevronRight from "lucide-react/icons/chevron-right";
+import { useId } from "react";
+
 import styles from "./HubAccount.module.css";
+import cardStyles from "./HubCard.module.css";
 
 import type { Household } from "@/lib/types/household";
 import type { ListingSourceStatus } from "@/lib/types/listing";
@@ -14,9 +18,6 @@ type HubAccountProps = {
   household: Household | null;
   /** 누른 버튼을 넘긴다. 시트를 닫으면 그 버튼으로 포커스가 돌아온다 */
   onHouseholdOpen: (button: HTMLButtonElement) => void;
-  onLeave: () => void;
-  /** 나가기 요청 중(한 건만 보낸다) */
-  isLeaving: boolean;
 };
 
 function LoginPrompt() {
@@ -30,45 +31,35 @@ function LoginPrompt() {
 type HouseholdRowProps = {
   household: Household | null;
   onHouseholdOpen?: (button: HTMLButtonElement) => void;
-  onLeave?: () => void;
-  isLeaving?: boolean;
 };
 
-/** 계정 줄: 혼자면 저장 상태와 [함께 쓰기](시트), 함께 쓰는 중이면 인원과 [나가기]. 두 모양 모두 한 행(36px)이다. */
-function HouseholdRow({
-  household,
-  onHouseholdOpen,
-  onLeave,
-  isLeaving = false,
-}: HouseholdRowProps) {
-  if (household === null) {
-    return (
-      <div className={styles.row}>
-        <p className={styles.status}>카카오 계정에 저장 중</p>
-        <button
-          type="button"
-          className={styles.button}
-          aria-haspopup="dialog"
-          onClick={(event) => onHouseholdOpen?.(event.currentTarget)}
-        >
-          함께 쓰기
-        </button>
-      </div>
-    );
-  }
+/**
+ * 함께 쓰기 줄: 기능 카드 아래 따로 놓은 흰 면 한 줄(iOS 설정의 따로 묶인 칸). 누르면 함께 쓰기 시트가 열린다.
+ * 혼자면 초대 안내, 함께 쓰는 중이면 인원이 설명 줄에 보이고, [나가기]는 시트 안에 있다.
+ * 이름은 제목("함께 쓰기")만이고 설명 줄은 aria-describedby로 읽힌다(기능 카드와 같은 규칙).
+ */
+function HouseholdRow({ household, onHouseholdOpen }: HouseholdRowProps) {
+  const titleId = useId();
+  const descriptionId = useId();
   return (
-    <div className={styles.row}>
-      <p className={styles.status}>{household.memberCount}명이 함께 쓰는 중</p>
-      <button
-        type="button"
-        className={styles.button}
-        aria-label="함께 쓰기에서 나가기"
-        disabled={isLeaving}
-        onClick={onLeave}
-      >
-        나가기
-      </button>
-    </div>
+    <button
+      type="button"
+      className={styles.householdCard}
+      aria-haspopup="dialog"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+      onClick={(event) => onHouseholdOpen?.(event.currentTarget)}
+    >
+      <span id={titleId} className={cardStyles.title}>
+        함께 쓰기
+      </span>
+      <ChevronRight className={cardStyles.chevron} size={20} aria-hidden="true" />
+      <span id={descriptionId} className={cardStyles.description}>
+        {household === null
+          ? "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다"
+          : `${household.memberCount}명이 함께 쓰는 중`}
+      </span>
+    </button>
   );
 }
 
@@ -78,13 +69,8 @@ function HouseholdRow({
  */
 const ACCOUNT_AREA: Record<ListingSourceStatus, (props: HubAccountProps) => ReactNode> = {
   loggedOut: () => <LoginPrompt />,
-  loggedIn: ({ household, onHouseholdOpen, onLeave, isLeaving }) => (
-    <HouseholdRow
-      household={household}
-      onHouseholdOpen={onHouseholdOpen}
-      onLeave={onLeave}
-      isLeaving={isLeaving}
-    />
+  loggedIn: ({ household, onHouseholdOpen }) => (
+    <HouseholdRow household={household} onHouseholdOpen={onHouseholdOpen} />
   ),
   loading: ({ hasSessionHint }) => (
     <div className={styles.placeholder} aria-hidden="true" inert>
@@ -109,7 +95,7 @@ const ACCOUNT_AREA: Record<ListingSourceStatus, (props: HubAccountProps) => Reac
 };
 
 /**
- * 홈의 계정 자리(카드 아래). 로그아웃이면 로그인하는 이유를, 로그인이면 저장 상태와 함께 쓰기 줄을 둔다. 계정 확인에
+ * 홈의 계정 자리(카드 아래). 로그아웃이면 로그인하는 이유를, 로그인이면 함께 쓰기 줄(흰 면)을 둔다. 계정 확인에
  * 실패하면(로그인했던 브라우저) 이유와 [다시 시도]를 둔다. 로그인·[로그아웃] 버튼은 제목 줄에 있다(HubAccountAction).
  */
 function HubAccount(props: HubAccountProps) {
