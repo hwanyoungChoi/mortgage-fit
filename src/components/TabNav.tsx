@@ -42,23 +42,25 @@ function TabNav({ current, onNavigate }: TabNavProps) {
 
   return (
     <nav className={styles.nav} aria-label="화면">
-      <ul className={styles.tabs}>
-        {TAB_ORDER.map((name) => {
-          const { label, href } = TABS[name];
-          return (
-            <li key={name} className={styles.item}>
-              <a
-                className={styles.tab}
-                href={href}
-                aria-current={name === current ? "page" : undefined}
-                onClick={(event) => handleClick(event, href)}
-              >
-                {label}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
+      <div className={styles.row}>
+        <ul className={styles.tabs}>
+          {TAB_ORDER.map((name) => {
+            const { label, href } = TABS[name];
+            return (
+              <li key={name} className={styles.item}>
+                <a
+                  className={styles.tab}
+                  href={href}
+                  aria-current={name === current ? "page" : undefined}
+                  onClick={(event) => handleClick(event, href)}
+                >
+                  {label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }

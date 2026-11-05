@@ -79,7 +79,7 @@ function findGroup(groups: readonly InteriorPlanRowGroup[], id: UniqueIdentifier
 
 /**
  * 목록 보기: (상한이면 안내) → 안내 한 줄(확정 저장 결과·순서 저장 실패) → 공정(구분)별 묶음 + 떠 있는 [+](줄 추가).
- * [+]는 화면 오른쪽 아래, 하단 탭 줄 바로 위에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있다.
+ * [+]는 하단 탭 알약 오른쪽 옆에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있다.
  * 시트가 열리면 이 화면과 함께 inert다.
  * 줄 DOM은 key `item.id:quote.id`로 유지돼 저장·폴링 뒤에도 다시 마운트되지 않는다(스크롤 위치 유지).
  * 줄을 꾹 눌러(키보드는 스페이스) 같은 묶음 안에서 옮기고, 묶음 제목을 꾹 눌러 묶음을 통째로 옮긴다. 든 동안에는 든 순간의 묶음을 그린다(재조회로 줄이 바뀌어도
@@ -297,10 +297,11 @@ function PlanLines({
         className={styles.addFab}
         aria-label="줄 추가"
         aria-haspopup="dialog"
+        data-tab-accessory
         disabled={!canAddLine}
         onClick={(event) => onLineAdd(null, event.currentTarget)}
       >
-        <Plus size={28} aria-hidden="true" />
+        <Plus size={26} aria-hidden="true" />
       </button>
     </div>
   );
