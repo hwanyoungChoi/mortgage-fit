@@ -234,7 +234,7 @@
   - `rowNoteOf` 비고 조각, `buildInteriorPlanTable` 계 비고(`tbdExclusionNote` 뒤에 " · "로 잇기), `interiorPlanTableHeading` 조각, 문구 상수
   - CSV는 표 모델만 따라가면 된다(`interiorPlanTableToCsvRows` 변경 없음 예상)
   - 홈 카드는 값만 바뀌는지 확인
-- [ ] 3. **검증** (담당: qa)
+- [x] 3. **검증** (담당: qa)
   - AC-1~AC-8. 세 출처, 360px 화면 확인
   - 가벼운 테스트 원칙(메모리)대로 핵심 AC와 화면 확인 위주
 
