@@ -343,3 +343,6 @@
 {"ts":"2026-11-06T02:09:15.634Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
 {"ts":"2026-11-06T02:09:15.670Z","type":"task","task":3,"from":"review","to":"done","owner":null}
 {"ts":"2026-11-06T02:13:03.530Z","type":"ship","pr":70,"result":"merged"}
+{"ts":"2026-11-06T02:20:54.864Z","type":"ship","pr":71,"result":"merged"}
+{"ts":"2026-11-06T02:20:58.924Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-11-06T02:38:50.287Z","type":"status","status":"완료"}
