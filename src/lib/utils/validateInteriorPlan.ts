@@ -141,6 +141,17 @@ function parseOptional<T>(
   return isValid(value) ? value : null;
 }
 
+/**
+ * 예산 외 표시(ADR-038): `true`면 true, 키 없음·undefined·`false`면 undefined(키를 쓰지 않는다), 그 밖은 null.
+ * `false`를 받아 키를 빼는 것은 빈 문자열·빈 배열 규칙(ADR-012)과 같다. `parseOptional`은 `false`를 거부해 따로 둔다
+ */
+function parseOffBudget(record: UnknownRecord): true | undefined | null {
+  if (!hasValue(record, "isOffBudget")) return undefined;
+  const value = record.isOffBudget;
+  if (value === true) return true;
+  return value === false ? undefined : null;
+}
+
 function hasUniqueIds(entries: { id: string }[]): boolean {
   return new Set(entries.map((entry) => entry.id)).size === entries.length;
 }
@@ -303,6 +314,7 @@ export function validateInteriorItemFields(value: unknown): InteriorItemInput | 
   const startDate = parseOptional(value, "startDate", isCalendarDate);
   const endDate = parseOptional(value, "endDate", isCalendarDate);
   const memo = parseOptionalText(value, "memo", INTERIOR_ITEM_MEMO_MAX_LENGTH);
+  const isOffBudget = parseOffBudget(value);
   if (
     trade === null ||
     budget === null ||
@@ -311,7 +323,8 @@ export function validateInteriorItemFields(value: unknown): InteriorItemInput | 
     payments === null ||
     startDate === null ||
     endDate === null ||
-    memo === null
+    memo === null ||
+    isOffBudget === null
   ) {
     return null;
   }
@@ -331,6 +344,7 @@ export function validateInteriorItemFields(value: unknown): InteriorItemInput | 
     ...(startDate !== undefined && { startDate }),
     ...(endDate !== undefined && { endDate }),
     ...(memo !== undefined && { memo }),
+    ...(isOffBudget && { isOffBudget }),
   };
 }
 

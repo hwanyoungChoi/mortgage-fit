@@ -20,7 +20,7 @@ export type HubListingsValue = { count: number; isHousehold: boolean };
 
 /**
  * 계획 하나의 줄. `plannedTotalWon`은 지출 예정(원, 확정이고 완료가 아닌 줄의 견적 합),
- * `doneTotalWon`은 지출 완료(원), `tbdCount`는 둘에서 빠진 확정 미정 줄 수
+ * `doneTotalWon`은 지출 완료(원), `tbdCount`는 둘에서 빠진 확정 미정 줄 수. 셋 다 예산 외 줄은 세지 않는다(요약과 같은 값, U5)
  */
 export type HubPlanLine = {
   id: string;

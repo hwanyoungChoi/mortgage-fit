@@ -79,6 +79,8 @@ describe("예시 V — 목록 묶음·요약 (AC-1)", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 1,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 1_700_000,
     });
   });
@@ -91,6 +93,8 @@ describe("예시 V — 목록 묶음·요약 (AC-1)", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 2,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 });
@@ -170,6 +174,7 @@ describe("1단계 시트 채우기 (AC-1)", () => {
       endDate: "",
       note: "",
       isConfirmed: false,
+      isOnBudget: true,
     });
   });
 
@@ -183,6 +188,7 @@ describe("1단계 시트 채우기 (AC-1)", () => {
       endDate: "",
       note: "",
       isConfirmed: true,
+      isOnBudget: true,
     });
   });
 
@@ -197,6 +203,7 @@ describe("1단계 쓰기가 업체 미정 견적을 보존한다 (AC-0(d), 코�
     trade: "조명",
     vendor: "빛나라조명",
     isConfirmed: false,
+    isOnBudget: true,
     ...overrides,
   });
 

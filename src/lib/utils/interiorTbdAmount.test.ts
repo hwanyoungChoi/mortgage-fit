@@ -76,6 +76,8 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 2,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 
@@ -87,6 +89,8 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 
@@ -96,6 +100,8 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 1,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 
@@ -105,6 +111,8 @@ describe("buildInteriorPlanRows — 지출 예정·미정 건수", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 
@@ -125,6 +133,8 @@ describe("summarizeInteriorPlan — 남은 예산도 미정 줄을 더하지 않
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 1,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon,
     });
   });
@@ -236,6 +246,7 @@ describe("시트 입력 — 미정·0원 채우기 (AC-2, 2단계)", () => {
       endDate: "",
       note: "",
       isConfirmed: true,
+      isOnBudget: true,
     });
   });
 

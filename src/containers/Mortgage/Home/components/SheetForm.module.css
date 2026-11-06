@@ -138,6 +138,12 @@
 }
 
 /* 한 줄 체크(만들기의 "추가 비용 인테리어 n줄 가져오기"). 누르는 자리는 줄 전체 */
+/* 붙어 있는 체크 칸 묶음([확정]·[예산에 반영]): 칸마다 48px 터치 영역이 이미 있어 칸 사이 간격을 더하지 않는다 */
+.checks {
+  display: flex;
+  flex-direction: column;
+}
+
 .checkLabel {
   display: flex;
   align-items: center;

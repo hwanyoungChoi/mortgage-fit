@@ -77,6 +77,8 @@ describe("예시 M(ADR-034 조건 8): 요약·표·표 머리·CSV가 같은 숫
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 1,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: -469_500,
     });
     const table = buildInteriorPlanTable(buildInteriorPlanRows(plan));
@@ -104,6 +106,8 @@ describe("예시 M(ADR-034 조건 8): 요약·표·표 머리·CSV가 같은 숫
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 1,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 1_530_500,
     });
     expect(
@@ -143,6 +147,8 @@ describe("0원과 미정(qa Q1·Q10)", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 1,
     });
     expect(csvLinesOf(zeroPlan).slice(1)).toEqual(["도배,a,,0,0,", "도배,b,,0,0,", "계,,,,0,"]);

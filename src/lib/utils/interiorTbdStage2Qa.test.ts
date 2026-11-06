@@ -101,6 +101,7 @@ describe("줄 수정 행렬: 고친 견적만 amountWon(비우면 두 키 없음
       ...(item.endDate !== undefined && { endDate: item.endDate }),
       ...(item.memo !== undefined && { note: item.memo }),
       isConfirmed: item.confirmedQuoteId === quoteId,
+      isOnBudget: true,
     };
     const input = editLineInput(item, quoteId, values, () => "unused");
 
@@ -150,6 +151,7 @@ describe("[줄 추가] (AC-2 2단계)", () => {
     endDate: "",
     note: "",
     isConfirmed: true,
+    isOnBudget: true,
     ...patch,
   });
 
