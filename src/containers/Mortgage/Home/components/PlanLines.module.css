@@ -12,6 +12,7 @@
  * 떠 있는 [+](줄 추가). 하단 탭 알약 오른쪽 옆, 알약과 같은 높이·같은 아랫선에 선다(iOS 26 탭 막대 옆 동그란 버튼).
  * `data-tab-accessory`가 있으면 TabNav가 그 자리를 비우고 알약을 줄인다. 위치 식은 TabNav의 줄(양옆 24px,
  * 최대 폭 --bottom-tab-row-max, 아래 여백 max(12px, safe-area))과 같다. 시트(z 10)가 이 버튼을 덮는다.
+ * 면은 알약(TabNav .tabs)과 같다: 흰 면 + 같은 그림자, 아이콘은 선택 탭 라벨과 같은 먹색. 눌림·포커스는 전역 규칙(index.css)을 따른다.
  */
 .addFab {
   position: fixed;
@@ -26,9 +27,9 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  box-shadow: var(--shadow-lifted);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-floating);
 }
 
 .addFab:disabled {
