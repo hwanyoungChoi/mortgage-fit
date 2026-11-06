@@ -1,3 +1,4 @@
+import { INTERIOR_PLAN_OFF_BUDGET_LABEL } from "@/lib/constants/interiorPlanTable";
 import { formatWon } from "@/lib/utils/amount";
 import { tbdExclusionNote } from "@/lib/utils/interiorPlanRows";
 
@@ -13,13 +14,15 @@ type PlanSummaryProps = {
 
 /**
  * 요약 줄(U6). 남은 예산(코발트)을 화면에서 가장 크게 두고, 그 아래 예산 막대와 지출 예정·지출 완료·총 예산을 둔다.
- * 지출 예정 = 확정이고 완료가 아닌 줄의 견적 합, 지출 완료 = [완료] 줄의 견적 합, 남은 예산 = 총 예산 − 둘.
- * 지출 완료는 [완료] 줄이 있을 때만 보인다.
+ * 지출 예정 = 확정이고 완료가 아닌 줄의 견적 합, 지출 완료 = [완료] 줄의 견적 합, 남은 예산 = 총 예산 − 둘. 셋 다 예산 외 줄은 뺀다.
+ * 지출 완료는 그 합이 0보다 클 때만 보인다(홈 카드 꼬리와 같다, budget-exclude U8).
+ * 예산 외 확정 줄(금액 있음)이 있으면 맨 아래 "예산 외 n원" 한 줄이다(총 예산이 없어도, 막대에는 없음, U5).
  * 금액은 원("1,234,500원"). 남은 예산이 음수면 "예산 초과 n원"(0은 "0원"), 총 예산이 없으면 그 자리에 [총 예산 입력]이다.
  * 확정한 미정 줄이 있으면 지출 예정 아래 "금액 미정 n건 제외"다.
  */
 function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
   const tbdNote = tbdExclusionNote(summary.tbdCount);
+  const hasOffBudget = summary.offBudgetCount > 0;
 
   const renderRemaining = () => {
     if (summary.remainingWon === null) {
@@ -85,7 +88,7 @@ function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
             <dt>총 예산</dt>
             <dd>{summary.budgetWon === null ? "—" : formatWon(summary.budgetWon)}</dd>
           </div>
-          {summary.doneCount > 0 && (
+          {summary.doneTotalWon > 0 && (
             <div className={styles.detail}>
               <dt>
                 {hasBudget && <span className={styles.swatchDone} aria-hidden="true" />}
@@ -95,6 +98,11 @@ function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
             </div>
           )}
         </dl>
+        {hasOffBudget && (
+          <p className={styles.offBudgetNote}>
+            {INTERIOR_PLAN_OFF_BUDGET_LABEL} {formatWon(summary.offBudgetTotalWon)}
+          </p>
+        )}
       </div>
     </section>
   );

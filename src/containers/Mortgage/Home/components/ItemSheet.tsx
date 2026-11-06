@@ -8,6 +8,7 @@ import {
   INTERIOR_TRADE_MAX_LENGTH,
   INTERIOR_VENDOR_MAX_LENGTH,
 } from "@/lib/constants/interiorPlan";
+import { INTERIOR_PLAN_OFF_BUDGET_LABEL } from "@/lib/constants/interiorPlanTable";
 import { formatThousands } from "@/lib/utils/amount";
 import {
   createInteriorLineDraft,
@@ -59,6 +60,7 @@ type ItemSheetProps = {
 
 const DISCARD_CONFIRM_MESSAGE = "고친 내용을 버리고 닫을까요?";
 const DELETE_CONFIRM_MESSAGE = "이 줄을 지울까요?";
+const ON_BUDGET_NOTE = `끄면 남은 예산·지출 합계에서 빠지고 따로 '${INTERIOR_PLAN_OFF_BUDGET_LABEL}'로 보입니다`;
 
 /** 칸 id. 첫 오류로 포커스를 옮길 때 오류의 칸 이름에서 찾는다 */
 const fieldInputId = (field: InteriorLineDraftField) => `interior-line-${field}`;
@@ -188,13 +190,14 @@ function DateField({ field, label, value, min, error, onChange, onBlur }: DateFi
 }
 
 /**
- * 줄 시트: 구분(기존 구분 제안) · 세부내용 · 업체 · 견적 · 일정(시작일·끝나는 날) · 비고 · [확정] · [저장] · (기존 줄) [삭제].
+ * 줄 시트: 구분(기존 구분 제안) · 세부내용 · 업체 · 견적 · 일정(시작일·끝나는 날) · 비고 · [확정] · [예산에 반영] · [저장] ·
+ * (기존 줄) [삭제]. [예산에 반영]은 확정과 상관없이 언제나 바꿀 수 있고, 끄면 예산 외다(ADR-038, U2·U3).
  * 칸 순서는 목록 줄(세부내용 위, 업체 아래)과 같다. 표·CSV 열 순서(구분·업체·세부내용)와는 따로다.
  * 입력은 연 시점의 값에서 시작하고 저장 전에는 다른 곳의 변경(폴링 포함)으로 덮이지 않는다. 그 사이 다른 사람이 같은 항목을
  * 저장했으면 저장하지 않고 알린 뒤 [최신 값 불러오기]를 보인다. 오류는 칸을 벗어난 뒤 그 칸 아래에,
  * 저장을 누르면 모두 보이고 첫 오류 칸으로 간다. 고친 것이 없으면 [저장]이 막히고, 고친 채 닫으면 확인한다.
  * 일정은 항목 칸이라 견적 n≥2 옛 항목의 형제 줄과 같이 쓴다. 끝나는 날은 비워도 되고(하루 일정), 있으면 시작일과 같거나 뒤다.
- * 견적 n≥2 옛 항목의 줄은 구분·일정·비고·확정을 형제 줄과 같이 쓴다는 안내를 붙인다(D2 a).
+ * 견적 n≥2 옛 항목의 줄은 구분·일정·비고·확정·예산 반영을 형제 줄과 같이 쓴다는 안내를 붙인다(D2 a).
  */
 function ItemSheet({
   tradeSuggestions,
@@ -206,6 +209,7 @@ function ItemSheet({
   onClose,
 }: ItemSheetProps) {
   const tradeListId = useId();
+  const onBudgetNoteId = useId();
   const [openedRow] = useState(row);
   const [initialDraft] = useState(() =>
     row === null ? createInteriorLineDraft(initialTrade) : toInteriorLineDraft(row),
@@ -323,10 +327,24 @@ function ItemSheet({
           />
           확정
         </label>
+        <div className={formStyles.field}>
+          <label className={formStyles.checkLabel}>
+            <input
+              type="checkbox"
+              checked={draft.isOnBudget}
+              aria-describedby={onBudgetNoteId}
+              onChange={(event) => update({ isOnBudget: event.currentTarget.checked })}
+            />
+            예산에 반영
+          </label>
+          <p id={onBudgetNoteId} className={formStyles.note}>
+            {ON_BUDGET_NOTE}
+          </p>
+        </div>
 
         {sharedQuoteCount >= 2 && (
           <p className={formStyles.note}>
-            같은 항목의 견적 {sharedQuoteCount}개가 구분·일정·비고·확정을 같이 씁니다
+            같은 항목의 견적 {sharedQuoteCount}개가 구분·일정·비고·확정·예산 반영을 같이 씁니다
           </p>
         )}
         {writeError !== null && (

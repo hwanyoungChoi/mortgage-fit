@@ -83,6 +83,11 @@ export type InteriorItem = {
   endDate?: string;
   /** 1~500자 */
   memo?: string;
+  /**
+   * 예산 외(ADR-038). 키 없음 = 예산에 반영. 검증은 `false`를 받되 키 없음으로 돌려준다(저장 표현은 `true` 하나).
+   * 확정 견적 금액을 남은 예산·지출 합계에 넣지 않는다는 뜻이고, 확정을 끄거나 옮겨도 그대로 둔다
+   */
+  isOffBudget?: true;
   createdAt: string;
   updatedAt: string;
 };

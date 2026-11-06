@@ -107,6 +107,7 @@ describe("AC-0(e) 옛 계획 L을 새 화면의 쓰기로 고친 원문: 옛 번
     vendor: "욕실나라",
     amountWon: 4_000_000,
     isConfirmed: false,
+    isOnBudget: true,
     ...patch,
   });
 

@@ -47,6 +47,7 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       endDate: "",
       note: "",
       isConfirmed: false,
+      isOnBudget: true,
     });
     expect(createInteriorLineDraft("욕실").trade).toBe("욕실");
   });
@@ -61,6 +62,7 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       endDate: "",
       note: "",
       isConfirmed: true,
+      isOnBudget: true,
     });
   });
 
@@ -74,6 +76,7 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       endDate: "2026-11-07",
       note: "폐기물 포함",
       isConfirmed: false,
+      isOnBudget: true,
     });
   });
 
@@ -87,6 +90,7 @@ describe("createInteriorLineDraft / toInteriorLineDraft", () => {
       endDate: "",
       note: "",
       isConfirmed: false,
+      isOnBudget: true,
     });
   });
 
@@ -136,6 +140,7 @@ describe("필수 칸 (AC-2(c))", () => {
         vendor: "육문수",
         detail: "실크 전체",
         isConfirmed: false,
+        isOnBudget: true,
       },
     });
     expect(result.ok && Object.hasOwn(result.values, "amountWon")).toBe(false);
@@ -211,6 +216,7 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
         detail: "실크",
         note: "메모",
         isConfirmed: false,
+        isOnBudget: true,
       },
     });
   });
@@ -220,7 +226,13 @@ describe("validateInteriorLineDraft 값 (trim·빈 선택 칸)", () => {
     expect(interiorLineDraftErrors(draft)).toEqual([]);
     expect(validateInteriorLineDraft(draft)).toStrictEqual({
       ok: true,
-      values: { trade: "도배", vendor: "육문수", amountWon: 1_800_000, isConfirmed: false },
+      values: {
+        trade: "도배",
+        vendor: "육문수",
+        amountWon: 1_800_000,
+        isConfirmed: false,
+        isOnBudget: true,
+      },
     });
   });
 

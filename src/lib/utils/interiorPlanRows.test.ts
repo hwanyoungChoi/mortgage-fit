@@ -90,6 +90,8 @@ describe("buildInteriorPlanRows — 예시 P (AC-1)", () => {
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
     });
   });
 });
@@ -197,6 +199,7 @@ describe("buildInteriorPlanRows — 옛 계획 L (AC-4)", () => {
         quoteWon: undefined,
         isConfirmed: false,
         isDone: false,
+        isOffBudget: false,
         budgetNoteWon: null,
       },
     ]);
@@ -222,6 +225,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 2_000_000,
     });
   });
@@ -243,6 +248,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: null,
     });
   });
@@ -254,6 +261,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 10_000_000,
     });
   });
@@ -265,6 +274,8 @@ describe("summarizeInteriorPlan — 총 예산·지출 예정·남은 예산 (AC
       doneTotalWon: 0,
       doneCount: 0,
       tbdCount: 0,
+      offBudgetTotalWon: 0,
+      offBudgetCount: 0,
       remainingWon: 26_300_000,
     });
   });

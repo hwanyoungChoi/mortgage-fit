@@ -57,6 +57,8 @@ export type InteriorPlanRow = {
   isConfirmed: boolean;
   /** 구매 완료 = 확정 줄이고 항목 상태가 "done". 확정이 아닌 줄은 상태와 상관없이 false다 */
   isDone: boolean;
+  /** 예산 외 = `item.isOffBudget === true`(ADR-038). 확정과 상관없이 표시하고, 합계에서 빼는 것은 확정 줄만이다(U9) */
+  isOffBudget: boolean;
   /** 빈 줄의 비고에 덧붙이는 항목 예산(원). 표시용이라 저장하지 않는다. 그 밖의 줄은 null */
   budgetNoteWon: number | null;
 };
@@ -70,14 +72,21 @@ export type InteriorPlanRowGroup = {
 export type InteriorPlanRows = {
   /** 그 구분의 가장 이른 줄 순, 묶음 안은 항목 순 → 견적 순(U5) */
   groups: InteriorPlanRowGroup[];
-  /** 지출 예정(원) = Σ(확정이고 완료가 아니고 금액이 있는 줄의 견적) */
+  /** 지출 예정(원) = Σ(확정이고 완료가 아니고 예산 외가 아니고 금액이 있는 줄의 견적) */
   plannedTotalWon: number;
-  /** 지출 완료(원) = Σ(완료이고 금액이 있는 줄의 견적) */
+  /** 지출 완료(원) = Σ(완료이고 예산 외가 아니고 금액이 있는 줄의 견적) */
   doneTotalWon: number;
-  /** [완료] 줄 수(금액 미정 포함). 0이면 화면·표·CSV에 지출 완료를 그리지 않는다(완료를 안 쓰는 계획은 그대로) */
+  /**
+   * [완료] 줄 수(금액 미정·예산 외 포함). 0이면 표·CSV에 완료 열을 그리지 않는다(완료를 안 쓰는 계획은 그대로).
+   * 요약의 지출 완료 행은 이 값이 아니라 `doneTotalWon > 0`으로 가른다(U8)
+   */
   doneCount: number;
-  /** 확정이고 금액이 없는(미정) 줄 수(완료 줄 포함). 미확정 미정 줄은 세지 않는다(U2) */
+  /** 확정이고 금액이 없는(미정) 줄 수(완료 줄 포함). 미확정 미정 줄과 예산 외 줄은 세지 않는다(U2, A3) */
   tbdCount: number;
+  /** 예산 외(원) = Σ(확정이고 예산 외이고 금액이 있는 줄의 견적, 완료 포함). 미확정 줄은 들어가지 않는다 */
+  offBudgetTotalWon: number;
+  /** `offBudgetTotalWon`에 더한 줄 수. 0이면 "예산 외 n원"을 그리지 않는다 */
+  offBudgetCount: number;
 };
 
 export type InteriorPlanSummary = {
@@ -91,6 +100,10 @@ export type InteriorPlanSummary = {
   doneCount: number;
   /** 지출 예정·완료에서 빠진 확정 미정 줄 수 */
   tbdCount: number;
+  /** 예산 외(원). 지출 예정·완료·남은 예산에 들어가지 않는다 */
+  offBudgetTotalWon: number;
+  /** 예산 외 확정 금액 줄 수 */
+  offBudgetCount: number;
   /** 총 예산 − 지출 예정 − 지출 완료(원). 음수면 예산 초과, 0이면 남은 예산 0. 총 예산이 없으면 null */
   remainingWon: number | null;
 };
@@ -109,6 +122,7 @@ function rowsOfItem(item: InteriorItem): InteriorPlanRow[] {
         quoteWon: undefined,
         isConfirmed: false,
         isDone: false,
+        isOffBudget: item.isOffBudget === true,
         budgetNoteWon: itemBudgetWonOf(item),
       },
     ];
@@ -122,6 +136,7 @@ function rowsOfItem(item: InteriorItem): InteriorPlanRow[] {
       quoteWon: quoteWonOf(quote),
       isConfirmed,
       isDone: isConfirmed && item.status === "done",
+      isOffBudget: item.isOffBudget === true,
       budgetNoteWon: null,
     };
   });
@@ -152,6 +167,7 @@ function orderByLineOrder(
  * 줄 순서(`lineOrder`)대로 놓고, 묶음은 처음 나온 순이다(묶음 순서 = 그 묶음 줄의 가장 이른 자리). 그래서 새 줄은 그 묶음 끝,
  * 새 구분은 맨 끝 묶음이고(U5), 앞 줄을 지우면 묶음 순서가 바뀔 수 있다. 목록·표·CSV·인쇄·홈이 모두 이 결과를 쓴다.
  * 확정 줄은 "금액이 있는가" 한 가지로 나눈다: 있으면 지출 예정(완료 줄은 지출 완료)에 더하고, 없으면(미정) 건수만 센다(ADR-033).
+ * 예산 외 확정 줄(ADR-038)은 지출 예정·완료·미정 건수에 넣지 않고 금액만 예산 외로 따로 더한다.
  */
 export function buildInteriorPlanRows(
   plan: Pick<InteriorPlanWithItems, "items" | "lineOrder">,
@@ -164,24 +180,30 @@ export function buildInteriorPlanRows(
   const confirmedRows = [...groups.values()]
     .flat()
     .filter((row) => row.isConfirmed && row.quote !== null);
+  const budgetRows = confirmedRows.filter((row) => !row.isOffBudget);
+  const offBudgetWonRows = confirmedRows.filter(
+    (row) => row.isOffBudget && row.quoteWon !== undefined,
+  );
   const totalWonOf = (rows: InteriorPlanRow[]) =>
     rows.reduce((total, row) => total + (row.quoteWon ?? 0), 0);
   return {
     groups: Array.from(groups, ([trade, rows]) => ({ trade, rows })),
-    plannedTotalWon: totalWonOf(confirmedRows.filter((row) => !row.isDone)),
-    doneTotalWon: totalWonOf(confirmedRows.filter((row) => row.isDone)),
+    plannedTotalWon: totalWonOf(budgetRows.filter((row) => !row.isDone)),
+    doneTotalWon: totalWonOf(budgetRows.filter((row) => row.isDone)),
     doneCount: confirmedRows.filter((row) => row.isDone).length,
-    tbdCount: confirmedRows.filter((row) => row.quoteWon === undefined).length,
+    tbdCount: budgetRows.filter((row) => row.quoteWon === undefined).length,
+    offBudgetTotalWon: totalWonOf(offBudgetWonRows),
+    offBudgetCount: offBudgetWonRows.length,
   };
 }
 
 /**
- * 묶음의 확정 합계(원) = Σ(확정이고 금액이 있는 줄의 견적, 완료 줄 포함). 미정 줄은 더하지 않는다.
- * 확정이고 금액이 있는 줄이 없으면 null이라 목록 묶음 제목 오른쪽에 그리지 않는다
+ * 묶음의 확정 합계(원) = Σ(확정이고 예산 외가 아니고 금액이 있는 줄의 견적, 완료 줄 포함). 미정 줄은 더하지 않는다.
+ * 그래서 묶음 합계를 다 더하면 지출 예정 + 지출 완료다(U6). 그런 줄이 없으면 null이라 목록 묶음 제목 오른쪽에 그리지 않는다
  */
 export function groupConfirmedWonOf(group: InteriorPlanRowGroup): number | null {
   const amounts = group.rows
-    .filter((row) => row.isConfirmed && row.quoteWon !== undefined)
+    .filter((row) => row.isConfirmed && !row.isOffBudget && row.quoteWon !== undefined)
     .map((row) => row.quoteWon ?? 0);
   return amounts.length === 0 ? null : amounts.reduce((total, won) => total + won, 0);
 }
@@ -205,11 +227,12 @@ export function rowNoteOf(row: InteriorPlanRow): string {
 }
 
 /**
- * 요약(총 예산·지출 예정·지출 완료·미정 건수·남은 예산). 남은 예산도 미정 줄을 더하지 않는다.
+ * 요약(총 예산·지출 예정·지출 완료·미정 건수·예산 외·남은 예산). 남은 예산도 미정 줄과 예산 외 줄을 더하지 않는다.
  * 저장하지 않고 매번 계산한다(ADR-007). 날짜에 의존하지 않는다
  */
 export function summarizeInteriorPlan(plan: InteriorPlanWithItems): InteriorPlanSummary {
-  const { plannedTotalWon, doneTotalWon, doneCount, tbdCount } = buildInteriorPlanRows(plan);
+  const { plannedTotalWon, doneTotalWon, doneCount, tbdCount, offBudgetTotalWon, offBudgetCount } =
+    buildInteriorPlanRows(plan);
   const budgetWon = planBudgetWonOf(plan) ?? null;
   return {
     budgetWon,
@@ -217,6 +240,8 @@ export function summarizeInteriorPlan(plan: InteriorPlanWithItems): InteriorPlan
     doneTotalWon,
     doneCount,
     tbdCount,
+    offBudgetTotalWon,
+    offBudgetCount,
     remainingWon: budgetWon === null ? null : budgetWon - plannedTotalWon - doneTotalWon,
   };
 }

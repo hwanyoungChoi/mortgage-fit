@@ -1,4 +1,7 @@
-import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
+import {
+  INTERIOR_PLAN_OFF_BUDGET_LABEL,
+  INTERIOR_PLAN_TBD_LABEL,
+} from "@/lib/constants/interiorPlanTable";
 import { formatWon } from "@/lib/utils/amount";
 import { vendorOf } from "@/lib/utils/interiorPlanRows";
 import { interiorScheduleTextOf } from "@/lib/utils/interiorScheduleText";
@@ -19,6 +22,7 @@ function LineAmount({ won }: { won: number | undefined }) {
  * 첫 줄은 세부내용이고 업체가 그 아래다. 세부내용이 없으면 업체가 첫 줄이다. 업체 미정이면 업체 자리에 "업체 미정"이고,
  * 첫 줄이면 흐린 글자(`tbdText`)다. 둘째 줄은 원래 흐린 글자라 글자로만 구별된다(U1).
  * 항목에 일정이 있으면 첫 줄 오른쪽에 "11/3~11/7"처럼 붙인다. `scheduleId`를 주면 그 글자의 id라 여는 버튼이 설명으로 읽는다.
+ * 예산 외 줄은 금액 아래 끝에 흐린 "예산 외"를 붙인다(U4, 확정과 상관없이 U9). 금액 열 폭을 늘리지 않아 360px에서도 금액이 줄지 않는다.
  */
 function LineSummary({ row, scheduleId }: { row: InteriorPlanRow; scheduleId?: string }) {
   const { quote } = row;
@@ -44,7 +48,14 @@ function LineSummary({ row, scheduleId }: { row: InteriorPlanRow; scheduleId?: s
           <span className={styles.secondaryText}>{lineVendorTextOf(quote)}</span>
         )}
       </span>
-      {quote !== null && <LineAmount won={row.quoteWon} />}
+      {(quote !== null || row.isOffBudget) && (
+        <span className={styles.amountColumn}>
+          {quote !== null && <LineAmount won={row.quoteWon} />}
+          {row.isOffBudget && (
+            <span className={styles.offBudgetText}>{INTERIOR_PLAN_OFF_BUDGET_LABEL}</span>
+          )}
+        </span>
+      )}
     </>
   );
 }

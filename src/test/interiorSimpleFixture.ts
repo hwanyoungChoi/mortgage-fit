@@ -327,3 +327,54 @@ export function makePlanV(overrides: Partial<InteriorPlanWithItems> = {}): Inter
     ...overrides,
   });
 }
+
+// 스펙 interior-budget-exclude "수용 기준"의 예시 E·F·G(ADR-038 예산 외 `isOffBudget: true`). 위 fixture는 그대로 두고 더하기만 한다.
+
+/** 예산 외로 바꾼 항목(키 하나만 더한다) */
+const asOffBudget = (item: InteriorItem): InteriorItem => ({ ...item, isOffBudget: true });
+/** [완료]로 바꾼 항목(확정 줄의 구매 완료 = `status: "done"`) */
+const asDone = (item: InteriorItem): InteriorItem => ({ ...item, status: "done" });
+
+/**
+ * 계획 E = P에서 R3 [완료], R5 예산 외 + [완료]. 총 예산 1,000만원.
+ * 지출 예정 1,800,000 · 지출 완료 3,700,000 · 예산 외 2,500,000 · 남은 예산 4,500,000원. 부를 때마다 새 객체다
+ */
+export function makeOffBudgetPlanE(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return makeSimplePlanP({
+    items: [r1(), r2(), asDone(r3()), r4(), asDone(asOffBudget(r5()))],
+    ...overrides,
+  });
+}
+
+/** R10 조명·한빛전기·주방 펜던트·금액 없음 ✓ 예산 외 */
+export const r10 = () => asOffBudget(tbdRow(10, "조명", "한빛전기", "주방 펜던트", true));
+/** R11 도배·벽지나라·안방 포인트·1,000,000원(미확정) 예산 외 */
+export const r11 = () => asOffBudget(simpleRow(11, "도배", "벽지나라", "안방 포인트", 100, false));
+
+/**
+ * 계획 F = P⁺(R1~R7, 확정 미정 R6 포함)에서 R5 예산 외, 그 뒤에 확정 미정 예산 외 R10, 미확정 예산 외 R11.
+ * 지출 예정 5,500,000 · 예산 외 2,500,000(R5만) · 금액 미정 1건(R6만). R10·R11은 어느 합계·건수에도 들어가지 않는다
+ */
+export function makeOffBudgetPlanF(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return makeSimplePlanP({
+    items: [r1(), r2(), r3(), r4(), asOffBudget(r5()), r6(), r7(), r10(), r11()],
+    ...overrides,
+  });
+}
+
+/**
+ * 계획 G = P에서 R5만 예산 외 + [완료](다른 완료 줄 없음).
+ * [완료] 줄 1개지만 지출 완료 0원 · 지출 예정 5,500,000 · 예산 외 2,500,000 · 남은 예산 4,500,000원
+ */
+export function makeOffBudgetPlanG(
+  overrides: Partial<InteriorPlanWithItems> = {},
+): InteriorPlanWithItems {
+  return makeSimplePlanP({
+    items: [r1(), r2(), r3(), r4(), asDone(asOffBudget(r5()))],
+    ...overrides,
+  });
+}

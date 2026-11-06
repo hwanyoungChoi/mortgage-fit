@@ -3,7 +3,7 @@ import type { InteriorItem, InteriorItemInput, InteriorQuote } from "@/lib/types
 
 // 줄 쓰기 → 저장 입력(스펙 interior-simple "쓰기 규칙", ADR-032 조건 2). 저장 형식은 그대로다.
 // 모든 입력은 열어 둔 항목에서 id·시각만 뺀 값에 바꾼 칸만 덮는다. PUT은 항목 전체 교체라 숨은 값(공간·예산·지급·상태·
-// 날짜·연락처)을 빠뜨리면 지워진다. 비운 선택 칸(업체·세부내용·비고·확정)은 빈 문자열이 아니라 키 삭제다.
+// 날짜·연락처)을 빠뜨리면 지워진다. 비운 선택 칸(업체·세부내용·비고·확정)과 켠 [예산에 반영]은 빈 문자열·false가 아니라 키 삭제다.
 // 줄은 항목 전체와 그 견적 id(빈 줄이면 null)로 가리킨다.
 
 /** 열어 둔 항목 그대로(id·시각만 뺀다) */
@@ -17,6 +17,13 @@ function withMemo(input: InteriorItemInput, memo: string | undefined): InteriorI
   const { memo: previous, ...rest } = input;
   void previous;
   return memo === undefined ? rest : { ...rest, memo };
+}
+
+/** 예산 외(ADR-038)는 항목 칸이다. 반영으로 되돌리면 `false`를 남기지 않고 키를 지운다 */
+function withOffBudget(input: InteriorItemInput, isOnBudget: boolean): InteriorItemInput {
+  const { isOffBudget: previous, ...rest } = input;
+  void previous;
+  return isOnBudget ? rest : { ...rest, isOffBudget: true };
 }
 
 /** 일정(시작일·끝나는 날)은 항목 칸이다. 비운 날은 키 삭제다 */
@@ -116,11 +123,12 @@ export function addLineInput(
     ...(values.startDate !== undefined && { startDate: values.startDate }),
     ...(values.endDate !== undefined && { endDate: values.endDate }),
     ...(values.note !== undefined && { memo: values.note }),
+    ...(!values.isOnBudget && { isOffBudget: true }),
   };
 }
 
 /**
- * 줄 수정(시트 저장). 구분·일정·비고는 항목 칸이라 같은 항목의 형제 줄과 공유한다(견적 n≥2 옛 항목, D2 a).
+ * 줄 수정(시트 저장). 구분·일정·비고·예산 반영은 항목 칸이라 같은 항목의 형제 줄과 공유한다(견적 n≥2 옛 항목, D2 a).
  * 견적 없는 줄(`quoteId` null)은 업체·견적·세부내용을 채우거나 확정을 켜면 견적 1개 항목이 되고, 아니면 견적 없는 줄
  * 그대로다(U2). 새 견적 id는 견적을 만들 때만 `createId`로 만든다.
  */
@@ -130,9 +138,9 @@ export function editLineInput(
   values: InteriorLineValues,
   createId: () => string,
 ): InteriorItemInput {
-  const base = withSchedule(
-    withMemo({ ...inputOf(item), trade: values.trade }, values.note),
-    values,
+  const base = withOffBudget(
+    withSchedule(withMemo({ ...inputOf(item), trade: values.trade }, values.note), values),
+    values.isOnBudget,
   );
   if (quoteId === null) {
     if (!createsQuote(values)) return base;

@@ -14,6 +14,7 @@ import {
   makeSimplePlanP,
   r1,
   r4,
+  r5,
   r6,
 } from "@/test/interiorSimpleFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
@@ -24,6 +25,7 @@ import {
   releasesOtherConfirm,
   removeLineWrite,
   toggleLineConfirmInput,
+  toggleLineDoneInput,
 } from "./interiorLineWrites";
 import { createInteriorPlanStore, INTERIOR_PLANS_STORAGE_KEY } from "./interiorPlanStorage";
 import { validateInteriorItemFields } from "./validateInteriorPlan";
@@ -50,6 +52,7 @@ const ITEM_INPUT_KEYS = {
   startDate: true,
   endDate: true,
   memo: true,
+  isOffBudget: true,
 } satisfies Record<keyof InteriorItemInput, true>;
 
 const QUOTE_KEYS = {
@@ -89,20 +92,30 @@ const values = (patch: Partial<InteriorLineValues> = {}): InteriorLineValues => 
   vendor: "새업체",
   amountWon: 9_990_000,
   isConfirmed: false,
+  isOnBudget: true,
   ...patch,
 });
 
 const fixedId = () => "new-quote";
 
+/**
+ * 모든 선택 키가 채워진 항목. 공용 `makeFullItem`은 다른 계산·화면 테스트도 쓰므로 예산 외 키(ADR-038)는 여기서만 더한다.
+ * 그래서 아래 쓰기 입력 표가 모든 쓰기에서 `isOffBudget`이 보존되는지도 본다(스펙 interior-budget-exclude AC-4)
+ */
+const fullItem = (status: InteriorItemStatus): InteriorItem => ({
+  ...makeFullItem(status),
+  isOffBudget: true,
+});
+
 /** 견적 1개(연락처·메모·확정 있음)만 남긴 모든-키 항목 */
 const singleQuoteItem = (status: InteriorItemStatus): InteriorItem => {
-  const full = makeFullItem(status);
+  const full = fullItem(status);
   return { ...full, quotes: [full.quotes![0]] };
 };
 
 /** 견적 0개(확정 없음)인 모든-키 항목 */
 const blankItem = (status: InteriorItemStatus): InteriorItem => {
-  const { quotes, confirmedQuoteId, ...rest } = makeFullItem(status);
+  const { quotes, confirmedQuoteId, ...rest } = fullItem(status);
   void [quotes, confirmedQuoteId];
   return rest;
 };
@@ -126,7 +139,9 @@ const WRITE_CASES: WriteCase[] = [
     name: "줄 수정(견적 1개, 옛 만원 키 fq1): 업체·금액 바꾸고 세부내용·일정·비고·확정 비우기",
     changesConfirm: true,
     item: singleQuoteItem,
-    write: (item) => editLineInput(item, "fq1", values({ trade: "도배" }), fixedId),
+    // 예산 외 항목(`fullItem`)을 연 시트라 [예산에 반영]은 꺼져 있다
+    write: (item) =>
+      editLineInput(item, "fq1", values({ trade: "도배", isOnBudget: false }), fixedId),
     changedKeys: EDIT_KEYS,
     expectChanged: (input, item) => {
       expect(input.trade).toBe("도배");
@@ -141,7 +156,7 @@ const WRITE_CASES: WriteCase[] = [
   },
   {
     name: "줄 수정(견적 n≥2, 연락처가 있는 fq1): 제자리, 형제 견적 그대로",
-    item: makeFullItem,
+    item: fullItem,
     write: (item) =>
       editLineInput(
         item,
@@ -152,6 +167,7 @@ const WRITE_CASES: WriteCase[] = [
           endDate: "2026-11-12",
           note: "새 비고",
           isConfirmed: true,
+          isOnBudget: false,
         }),
         fixedId,
       ),
@@ -179,7 +195,12 @@ const WRITE_CASES: WriteCase[] = [
       editLineInput(
         item,
         null,
-        values({ trade: item.trade, startDate: item.startDate, endDate: item.endDate }),
+        values({
+          trade: item.trade,
+          startDate: item.startDate,
+          endDate: item.endDate,
+          isOnBudget: false,
+        }),
         fixedId,
       ),
     changedKeys: ["trade", "memo", "quotes", "startDate", "endDate"],
@@ -194,7 +215,7 @@ const WRITE_CASES: WriteCase[] = [
   {
     name: "확정 켜기(fq2): 확정만 fq2로",
     changesConfirm: true,
-    item: makeFullItem,
+    item: fullItem,
     write: (item) => toggleLineConfirmInput(item, "fq2", true),
     changedKeys: ["confirmedQuoteId"],
     expectChanged: (input) => expect(input.confirmedQuoteId).toBe("fq2"),
@@ -202,14 +223,14 @@ const WRITE_CASES: WriteCase[] = [
   {
     name: "확정 끄기(fq1): 확정 키 삭제",
     changesConfirm: true,
-    item: makeFullItem,
+    item: fullItem,
     write: (item) => toggleLineConfirmInput(item, "fq1", false),
     changedKeys: ["confirmedQuoteId"],
     expectChanged: (input) => expect("confirmedQuoteId" in input).toBe(false),
   },
   {
     name: "견적 n≥2에서 확정 안 된 fq2 삭제: fq2만 빠지고 확정 fq1 그대로",
-    item: makeFullItem,
+    item: fullItem,
     write: (item) => updateInputOf(removeLineWrite(item, "fq2")),
     changedKeys: ["quotes", "confirmedQuoteId"],
     expectChanged: (input, item) => {
@@ -219,7 +240,7 @@ const WRITE_CASES: WriteCase[] = [
   },
   {
     name: "견적 n≥2에서 확정 견적 fq1 삭제: fq1이 빠지고 확정 키도 없다",
-    item: makeFullItem,
+    item: fullItem,
     write: (item) => updateInputOf(removeLineWrite(item, "fq1")),
     changedKeys: ["quotes", "confirmedQuoteId"],
     expectChanged: (input, item) => {
@@ -236,7 +257,7 @@ function updateInputOf(removal: ReturnType<typeof removeLineWrite>): InteriorIte
 
 describe("c3 모든 선택 키가 채워진 fixture", () => {
   it("항목·견적(두 견적에 나눠)·지급의 모든 키가 있고, 지급함/미지급과 예정일이 모두 있다", () => {
-    const item = makeFullItem("planned");
+    const item = fullItem("planned");
     expect(sortedKeys(fieldsOf(item))).toEqual(sortedKeys(ITEM_INPUT_KEYS));
     // 같은 뜻의 두 키(`amount` 만원·`amountWon` 원)는 한 견적에 함께 있을 수 없어(ADR-034) 견적 둘이 하나씩 나눠 갖는다
     expect([...new Set(item.quotes!.flatMap(sortedKeys))].toSorted()).toEqual(
@@ -355,6 +376,83 @@ describe("확정 토글 (AC-3)", () => {
     expect(releasesOtherConfirm(legacyX(), "q1", true)).toBe(false);
     expect(releasesOtherConfirm(legacyX(), "q1", false)).toBe(false);
     expect(releasesOtherConfirm(r4(), "rq4", true)).toBe(false);
+  });
+});
+
+describe("예산 외 보존: [완료] 켜기·끄기 (interior-budget-exclude AC-4)", () => {
+  it("확정 fq1 완료 켜기·끄기, 다른 견적 fq2로 완료 켜기 → 상태·확정만 바뀌고 isOffBudget: true가 남는다", () => {
+    const item = fullItem("planned");
+    expect(toggleLineDoneInput(item, "fq1", true)).toStrictEqual({
+      ...fieldsOf(item),
+      status: "done",
+    });
+    expect(toggleLineDoneInput(fullItem("done"), "fq1", false)).toStrictEqual({
+      ...fieldsOf(item),
+      status: "planned",
+    });
+    expect(toggleLineDoneInput(item, "fq2", true)).toStrictEqual({
+      ...fieldsOf(item),
+      confirmedQuoteId: "fq2",
+      status: "done",
+    });
+  });
+});
+
+describe("시트 [예산에 반영] 쓰기 (interior-budget-exclude AC-4)", () => {
+  /** R5를 연 시트 그대로의 값(비고만 바꿀 수 있게) */
+  const r5Values = (patch: Partial<InteriorLineValues>) =>
+    values({
+      trade: "욕실",
+      vendor: "하루바스",
+      amountWon: 2_500_000,
+      detail: "타일 덧방 (2)",
+      isConfirmed: true,
+      ...patch,
+    });
+  /** R5의 옛 만원 금액을 원 키로 다시 쓴 견적(시트 저장은 금액을 원으로만 쓴다, ADR-034 조건 4) */
+  const savedR5Quote = {
+    id: "rq5",
+    vendor: "하루바스",
+    amountWon: 2_500_000,
+    memo: "타일 덧방 (2)",
+  };
+
+  it("[예산에 반영]만 끄고 저장 → 기존 입력 + isOffBudget: true", () => {
+    const item = r5();
+    expect(editLineInput(item, "rq5", r5Values({ isOnBudget: false }), fixedId)).toStrictEqual({
+      ...fieldsOf(item),
+      quotes: [savedR5Quote],
+      isOffBudget: true,
+    });
+  });
+
+  it("다시 켜고 저장 → isOffBudget 키가 없다(false도 아니다)", () => {
+    const item: InteriorItem = { ...r5(), isOffBudget: true };
+    const input = editLineInput(item, "rq5", r5Values({ isOnBudget: true }), fixedId);
+    expect(Object.hasOwn(input, "isOffBudget")).toBe(false);
+    expect(input).toStrictEqual({ ...fieldsOf(r5()), quotes: [savedR5Quote] });
+  });
+
+  it("예산 외 항목에서 비고만 고쳐 저장 → isOffBudget: true가 남는다", () => {
+    const item: InteriorItem = { ...r5(), isOffBudget: true };
+    const input = editLineInput(
+      item,
+      "rq5",
+      r5Values({ note: "부모님 지원", isOnBudget: false }),
+      fixedId,
+    );
+    expect(input).toStrictEqual({
+      ...fieldsOf(item),
+      quotes: [savedR5Quote],
+      memo: "부모님 지원",
+    });
+  });
+
+  it("새 줄: 반영이면 키 없음, 끄면 isOffBudget: true", () => {
+    expect(Object.hasOwn(addLineInput("sp-whole", "nq", values()), "isOffBudget")).toBe(false);
+    const input = addLineInput("sp-whole", "nq", values({ isOnBudget: false }));
+    expect(input.isOffBudget).toBe(true);
+    expect(validateInteriorItemFields(input)).toStrictEqual(input);
   });
 });
 
@@ -617,7 +715,13 @@ describe("2단계 업체 비우기 (ADR-036 조건 9, U2)", () => {
     const input = editLineInput(
       r1(),
       "rq1",
-      { trade: "도배", amountWon: 1_800_000, detail: "실크 전체", isConfirmed: true },
+      {
+        trade: "도배",
+        amountWon: 1_800_000,
+        detail: "실크 전체",
+        isConfirmed: true,
+        isOnBudget: true,
+      },
       fixedId,
     );
     expect(input.quotes).toStrictEqual([{ id: "rq1", amountWon: 1_800_000, memo: "실크 전체" }]);
@@ -625,13 +729,21 @@ describe("2단계 업체 비우기 (ADR-036 조건 9, U2)", () => {
   });
 
   it("구분만 적고 확정 끈 채 추가 → quotes 키 없는 항목(견적 없는 줄)", () => {
-    const input = addLineInput("sp-whole", "nq", { trade: "철거", isConfirmed: false });
+    const input = addLineInput("sp-whole", "nq", {
+      trade: "철거",
+      isConfirmed: false,
+      isOnBudget: true,
+    });
     expect(input).toStrictEqual({ spaceId: "sp-whole", trade: "철거", status: "planned" });
     expect(validateInteriorItemFields(input)).toStrictEqual(input);
   });
 
   it("구분만 적고 확정 켠 채 추가 → 견적 { id } 하나로 확정", () => {
-    const input = addLineInput("sp-whole", "nq", { trade: "철거", isConfirmed: true });
+    const input = addLineInput("sp-whole", "nq", {
+      trade: "철거",
+      isConfirmed: true,
+      isOnBudget: true,
+    });
     expect(input).toStrictEqual({
       spaceId: "sp-whole",
       trade: "철거",
@@ -649,7 +761,7 @@ describe("2단계 업체 비우기: 기존 줄 경계 (ADR-036 조건 9, U2)", (
     const memoOnly = editLineInput(
       y,
       null,
-      { trade: y.trade, note: "메모", isConfirmed: false },
+      { trade: y.trade, note: "메모", isConfirmed: false, isOnBudget: true },
       fixedId,
     );
     expect(Object.hasOwn(memoOnly, "quotes")).toBe(false);
@@ -660,14 +772,19 @@ describe("2단계 업체 비우기: 기존 줄 경계 (ADR-036 조건 9, U2)", (
     const vendorOnly = editLineInput(
       y,
       null,
-      { trade: y.trade, vendor: "육문수", isConfirmed: false },
+      { trade: y.trade, vendor: "육문수", isConfirmed: false, isOnBudget: true },
       fixedId,
     );
     expect(vendorOnly.quotes).toStrictEqual([{ id: "new-quote", vendor: "육문수" }]);
   });
 
   it("R1의 업체·견적·세부내용을 모두 지워도 견적 { id }가 남는다(견적 없음 줄이 되지 않음)", () => {
-    const input = editLineInput(r1(), "rq1", { trade: "도배", isConfirmed: true }, fixedId);
+    const input = editLineInput(
+      r1(),
+      "rq1",
+      { trade: "도배", isConfirmed: true, isOnBudget: true },
+      fixedId,
+    );
     expect(input.quotes).toStrictEqual([{ id: "rq1" }]);
     expect(input.confirmedQuoteId).toBe("rq1");
   });

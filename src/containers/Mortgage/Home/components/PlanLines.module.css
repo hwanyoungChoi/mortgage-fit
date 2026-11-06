@@ -287,6 +287,22 @@
   overflow-wrap: anywhere;
 }
 
+/* 금액 열: 금액과 그 아래 "예산 외"를 오른쪽 끝에 맞춘다. 줄지 않는다. */
+.amountColumn {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+/* 예산 외(ADR-038): 둘째 줄과 같은 흐린 14px 글자. 색만이 아니라 글자로 구분한다 */
+.offBudgetText {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+
 /* 금액: 오른쪽 정렬 tabular, 본문보다 한 단계 큰 16px 600 */
 .amount {
   flex: none;

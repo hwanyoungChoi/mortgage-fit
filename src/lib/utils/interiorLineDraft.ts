@@ -23,7 +23,7 @@ const TRADE_REQUIRED_MESSAGE = "구분을 입력하세요";
 const DATE_INVALID_MESSAGE = "날짜를 확인하세요";
 const END_BEFORE_START_MESSAGE = "끝나는 날은 시작일과 같거나 뒤여야 합니다";
 
-/** 새 줄. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분을 채운다. 확정은 꺼진 채 시작한다(U3) */
+/** 새 줄. 묶음 끝 [+ {구분}에 줄 추가]면 그 구분을 채운다. 확정은 꺼진 채, 예산에 반영은 켜진 채 시작한다(U3, budget-exclude U1) */
 export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
   return {
     trade,
@@ -34,6 +34,7 @@ export function createInteriorLineDraft(trade = ""): InteriorLineDraft {
     endDate: "",
     note: "",
     isConfirmed: false,
+    isOnBudget: true,
   };
 }
 
@@ -46,6 +47,7 @@ export function toInteriorLineDraft({
   quote,
   quoteWon,
   isConfirmed,
+  isOffBudget,
 }: InteriorPlanRow): InteriorLineDraft {
   return {
     trade: item.trade,
@@ -59,6 +61,7 @@ export function toInteriorLineDraft({
     endDate: item.endDate ?? "",
     note: item.memo ?? "",
     isConfirmed,
+    isOnBudget: !isOffBudget,
   };
 }
 
@@ -131,6 +134,7 @@ export function validateInteriorLineDraft(
       ...(draft.endDate !== "" && { endDate: draft.endDate }),
       ...(note !== undefined && { note }),
       isConfirmed: draft.isConfirmed,
+      isOnBudget: draft.isOnBudget,
     },
   };
 }

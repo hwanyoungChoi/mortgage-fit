@@ -136,6 +136,7 @@ const values = (overrides: Partial<InteriorLineValues> = {}): InteriorLineValues
   vendor: "새업체",
   amountWon: 9_990_000,
   isConfirmed: false,
+  isOnBudget: true,
   ...overrides,
 });
 

@@ -17,6 +17,8 @@ export type InteriorLineDraft = {
   /** 비고 = 항목 메모 */
   note: string;
   isConfirmed: boolean;
+  /** [예산에 반영] 체크. 끄면 예산 외(ADR-038). 새 줄은 켜져 있다(U1) */
+  isOnBudget: boolean;
 };
 
 /** 오류를 보일 칸(화면 순서) */
@@ -40,4 +42,6 @@ export type InteriorLineValues = {
   endDate?: string;
   note?: string;
   isConfirmed: boolean;
+  /** false면 항목에 `isOffBudget: true`를 쓰고, true면 그 키를 지운다 */
+  isOnBudget: boolean;
 };

@@ -142,8 +142,14 @@
 }
 
 /* 금액 미정 안내: 지출 예정 값 바로 아래 */
-.tbdNote {
+.tbdNote,
+.offBudgetNote {
   color: var(--color-text-muted);
   text-align: right;
   font-size: var(--fs-small);
+}
+
+/* 예산 외 안내: 총 예산·지출 완료 아래. 예산 밖 돈이라 막대에는 그리지 않는다 */
+.offBudgetNote {
+  font-variant-numeric: tabular-nums;
 }

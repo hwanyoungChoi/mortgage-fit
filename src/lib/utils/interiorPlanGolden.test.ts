@@ -104,9 +104,12 @@ describe("AC-0(a) 기존 계획 골든(f5ad2b0)", () => {
     it("요약·표 머리 = 골든", () => {
       const plan = make();
       const summary = summarizeInteriorPlan(plan);
-      // 지출 완료는 f5ad2b0 뒤에 더한 값이다. [완료] 줄이 없는 기존 계획은 0이고 나머지는 골든 그대로
-      const { doneTotalWon, doneCount, ...goldenFields } = summary;
-      expect([doneTotalWon, doneCount]).toStrictEqual([0, 0]);
+      // 지출 완료·예산 외는 f5ad2b0 뒤에 더한 값이다. [완료]·예산 외 줄이 없는 기존 계획은 0이고 나머지는 골든 그대로
+      const { doneTotalWon, doneCount, offBudgetTotalWon, offBudgetCount, ...goldenFields } =
+        summary;
+      expect([doneTotalWon, doneCount, offBudgetTotalWon, offBudgetCount]).toStrictEqual([
+        0, 0, 0, 0,
+      ]);
       expect(toGoldenJson(goldenFields)).toStrictEqual(golden().summary);
       expect(toGoldenJson(interiorPlanTableHeading(plan.name, summary, TODAY))).toStrictEqual(
         golden().tableHeading,
