@@ -329,3 +329,9 @@
 {"ts":"2026-11-05T03:31:50.255Z","type":"ship","pr":68,"result":"merged"}
 {"ts":"2026-11-05T03:31:58.074Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-11-05T05:34:32.213Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-05T05:37:21.015Z","type":"ship","pr":69,"result":"merged"}
+{"ts":"2026-11-05T05:37:25.078Z","type":"status","status":"완료"}
+{"ts":"2026-11-06T01:28:59.001Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-06T01:28:59.003Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-06T01:28:59.003Z","type":"decision","file":"decisions/038-off-budget-item.md"}
+{"ts":"2026-11-06T01:42:25.223Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
