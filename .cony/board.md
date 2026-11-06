@@ -1,6 +1,6 @@
 # 구매 완료 항목 예산 반영/미반영 고르기
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-11-06 11:13
+> 상태: 완료 · 마지막 업데이트: 2026-11-06 11:38
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-#70 머지됨. 인테리어 [+] 색을 알약 탭과 맞추는 중(사용자 요청)
+예산 외(#70)·[+] 색(#71) 머지, 기본값 U1~U9 사용자 확인 완료
 
 ## 최근 결정
 
@@ -26,7 +26,7 @@
 
 ## 사용자 확인 필요
 
-- 예산 외 제품 기본값 U1~U9 확인(제안 기본값으로 진행 중): specs/interior-budget-exclude.md
+없음
 
 ## 막힌 것
 
@@ -34,7 +34,7 @@
 
 ## PR
 
-[#70](https://github.com/hwanyoungChoi/mortgage-fit/pull/70) · CI 통과 · 머지됨(825a452)
+[#71](https://github.com/hwanyoungChoi/mortgage-fit/pull/71) · CI 통과 · 머지됨(c01c820)
 
 <!-- spec: specs/interior-budget-exclude.md -->
 <!-- lead: local_b80120fe-3550-485d-ac70-9f636917eadb -->
