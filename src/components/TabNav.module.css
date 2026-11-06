@@ -39,9 +39,7 @@
   padding: 4px;
   border-radius: var(--radius-pill);
   background: var(--color-surface);
-  box-shadow:
-    0 0 8px rgb(0 0 0 / 8%),
-    0 4px 40px rgb(0 0 0 / 10%);
+  box-shadow: var(--shadow-floating);
   pointer-events: auto;
 }
 
