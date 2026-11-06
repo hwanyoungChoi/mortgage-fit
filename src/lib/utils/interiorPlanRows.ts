@@ -1,5 +1,8 @@
 import { WON_PER_MANWON } from "@/lib/constants/interiorPlan";
-import { INTERIOR_PLAN_TBD_LABEL } from "@/lib/constants/interiorPlanTable";
+import {
+  INTERIOR_PLAN_OFF_BUDGET_LABEL,
+  INTERIOR_PLAN_TBD_LABEL,
+} from "@/lib/constants/interiorPlanTable";
 
 import { formatWon } from "./amount";
 
@@ -213,17 +216,43 @@ export function tbdExclusionNote(tbdCount: number): string {
   return tbdCount === 0 ? "" : `금액 ${INTERIOR_PLAN_TBD_LABEL} ${tbdCount}건 제외`;
 }
 
+/**
+ * "예산 외 n원 제외"(계 비고·CSV 공통 문구, ADR-038 U7). 예산 외 확정 금액 줄이 없으면 ""(금액 0원 줄 하나여도 그린다)
+ */
+function offBudgetExclusionNote({
+  offBudgetCount,
+  offBudgetTotalWon,
+}: Pick<InteriorPlanRows, "offBudgetCount" | "offBudgetTotalWon">): string {
+  return offBudgetCount === 0
+    ? ""
+    : `${INTERIOR_PLAN_OFF_BUDGET_LABEL} ${formatWon(offBudgetTotalWon)} 제외`;
+}
+
 /** 비고 조각을 잇는 구분자(앞뒤 공백 포함 가운뎃점) */
 const NOTE_SEPARATOR = " · ";
 
+/** 빈 조각("")을 빼고 " · "로 잇는다 */
+const joinNotePieces = (pieces: string[]) =>
+  pieces.filter((piece) => piece !== "").join(NOTE_SEPARATOR);
+
 /**
- * 줄의 비고 = 항목 메모 · (빈 줄이면) "예산 2,000,000원". 표·CSV·인쇄가 쓰고 목록은 비고를 그리지 않는다.
+ * 줄의 비고 = 항목 메모 · (빈 줄이면) "예산 2,000,000원" · (예산 외면) "예산 외". 표·CSV·인쇄가 쓰고 목록은 비고를 그리지 않는다.
+ * "예산 외"는 확정과 상관없이 `row.isOffBudget`이면 붙는다(목록 줄과 같은 기준, U9).
  * 표시용이라 저장하지 않는다. 시트의 비고 칸은 `item.memo`만 쓴다(합성 비고 미저장).
  */
 export function rowNoteOf(row: InteriorPlanRow): string {
-  const memo = row.item.memo ?? "";
-  const pieces = [memo, row.budgetNoteWon === null ? "" : `예산 ${formatWon(row.budgetNoteWon)}`];
-  return pieces.filter((piece) => piece !== "").join(NOTE_SEPARATOR);
+  return joinNotePieces([
+    row.item.memo ?? "",
+    row.budgetNoteWon === null ? "" : `예산 ${formatWon(row.budgetNoteWon)}`,
+    row.isOffBudget ? INTERIOR_PLAN_OFF_BUDGET_LABEL : "",
+  ]);
+}
+
+/** "계" 줄 비고 = "금액 미정 n건 제외" · "예산 외 n원 제외"(이 순서, 없는 조각은 뺀다). 둘 다 없으면 "" */
+export function totalNoteOf(
+  rows: Pick<InteriorPlanRows, "tbdCount" | "offBudgetCount" | "offBudgetTotalWon">,
+): string {
+  return joinNotePieces([tbdExclusionNote(rows.tbdCount), offBudgetExclusionNote(rows)]);
 }
 
 /**

@@ -216,7 +216,7 @@
 
 ## 태스크
 
-- [ ] 1. **예산 외 저장·계산·시트·목록·요약(엔드투엔드 최소)**
+- [x] 1. **예산 외 저장·계산·시트·목록·요약(엔드투엔드 최소)**
   - [ ] 1-1. 저장 형식 (담당: be)
     - `types/interiorPlan.ts`에 `isOffBudget?: true`(주석: 키 없음 = 반영, `false`는 키 없음으로 받음)
     - `validateInteriorPlan.ts` `validateInteriorItemFields`에 전용 판정 함수로 키 추가(`parseOptional` 재사용 안 함)

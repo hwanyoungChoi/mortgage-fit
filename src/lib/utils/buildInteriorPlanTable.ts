@@ -3,7 +3,7 @@ import {
   INTERIOR_PLAN_TBD_LABEL,
 } from "@/lib/constants/interiorPlanTable";
 
-import { rowNoteOf, tbdExclusionNote, vendorOf } from "./interiorPlanRows";
+import { rowNoteOf, totalNoteOf, vendorOf } from "./interiorPlanRows";
 
 import type { InteriorPlanRow, InteriorPlanRows } from "./interiorPlanRows";
 import type { InteriorPlanTableColumn } from "@/lib/constants/interiorPlanTable";
@@ -30,20 +30,23 @@ export type InteriorPlanTableRow = {
   confirmedWon: InteriorPlanTableAmount;
   /** 구매 완료 줄의 견적 금액(원, 미정이면 "tbd"). 완료가 아니면 undefined */
   doneWon: InteriorPlanTableAmount;
-  /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산. 없으면 "" */
+  /** 비고 = 항목 메모 · (견적 없는 줄이면) 예산 · (예산 외면) "예산 외". 없으면 "" */
   note: string;
 };
 
 export type InteriorPlanTable = {
   /** 구분 묶음. 목록과 같은 순서, 줄 0개면 [] */
   groups: { trade: string; rows: InteriorPlanTableRow[] }[];
-  /** 확정 칸의 "계"(원) = 지출 예정 + 지출 완료. 견적을 다 더한 값은 뜻이 없어 두지 않는다(U6). 0이어도 0 */
+  /**
+   * 확정 칸의 "계"(원) = 지출 예정 + 지출 완료(예산 외 줄 제외, 그 차이는 계 비고가 알린다). 견적을 다 더한 값은 뜻이 없어
+   * 두지 않는다(U6). 0이어도 0
+   */
   confirmedTotal: number;
-  /** 완료 칸의 "계"(원) = 지출 완료. 0이어도 0 */
+  /** 완료 칸의 "계"(원) = 지출 완료(예산 외 줄 제외). 예산 외 줄만 [완료]여도 0이다 */
   doneTotal: number;
   /** 화면·인쇄·CSV의 열(같은 순서). [완료] 줄이 없으면 완료 열이 없다(완료를 안 쓰는 계획은 그대로) */
   columns: readonly InteriorPlanTableColumn[];
-  /** "계" 줄 비고 "금액 미정 n건 제외". 미정 0건이면 "" */
+  /** "계" 줄 비고 "금액 미정 n건 제외 · 예산 외 n원 제외"(있는 조각만). 둘 다 없으면 "" */
   totalNote: string;
 };
 
@@ -97,13 +100,8 @@ export function tableVendorText(vendor: InteriorPlanTableVendor): string {
  * 공정별 줄(`buildInteriorPlanRows`) → 계획 표. 줄·순서·원 금액은 목록 그대로이고 금액 칸·비고를 여기서만 만든다.
  * 화면·CSV·인쇄가 같은 결과를 쓴다. 날짜에 의존하지 않는다.
  */
-export function buildInteriorPlanTable({
-  groups,
-  plannedTotalWon,
-  doneTotalWon,
-  doneCount,
-  tbdCount,
-}: InteriorPlanRows): InteriorPlanTable {
+export function buildInteriorPlanTable(rows: InteriorPlanRows): InteriorPlanTable {
+  const { groups, plannedTotalWon, doneTotalWon, doneCount } = rows;
   return {
     groups: groups.map((group) => ({ trade: group.trade, rows: group.rows.map(toRow) })),
     confirmedTotal: plannedTotalWon + doneTotalWon,
@@ -112,6 +110,6 @@ export function buildInteriorPlanTable({
       doneCount === 0
         ? INTERIOR_PLAN_TABLE_COLUMNS.filter((column) => column !== "done")
         : INTERIOR_PLAN_TABLE_COLUMNS,
-    totalNote: tbdExclusionNote(tbdCount),
+    totalNote: totalNoteOf(rows),
   };
 }

@@ -48,6 +48,7 @@ export const INTERIOR_PLAN_TABLE_HEADING = {
   budget: (won: string) => `총 예산 ${won}`,
   plannedTotal: (won: string) => `지출 예정 ${won}`,
   doneTotal: (won: string) => `지출 완료 ${won}`,
+  offBudget: (won: string) => `${INTERIOR_PLAN_OFF_BUDGET_LABEL} ${won}`,
   remaining: (won: string) => `남은 예산 ${won}`,
   overBudget: (won: string) => `예산 초과 ${won}`,
 };

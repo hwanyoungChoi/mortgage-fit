@@ -319,15 +319,15 @@ function ItemSheet({
           maxLength={INTERIOR_ITEM_MEMO_MAX_LENGTH}
           isMultiline
         />
-        <label className={formStyles.checkLabel}>
-          <input
-            type="checkbox"
-            checked={draft.isConfirmed}
-            onChange={(event) => update({ isConfirmed: event.currentTarget.checked })}
-          />
-          확정
-        </label>
-        <div className={formStyles.field}>
+        <div className={formStyles.checks}>
+          <label className={formStyles.checkLabel}>
+            <input
+              type="checkbox"
+              checked={draft.isConfirmed}
+              onChange={(event) => update({ isConfirmed: event.currentTarget.checked })}
+            />
+            확정
+          </label>
           <label className={formStyles.checkLabel}>
             <input
               type="checkbox"
