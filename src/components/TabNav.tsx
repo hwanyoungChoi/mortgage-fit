@@ -3,7 +3,7 @@ import { PATHS } from "@/lib/constants/paths";
 import styles from "./TabNav.module.css";
 
 import type { TabName } from "@/lib/types/route";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 
 type TabNavProps = {
   /** null이면 어느 탭도 선택 표시하지 않는다(공유받기·초대 화면) */
@@ -31,6 +31,8 @@ function isModifiedClick(event: MouseEvent) {
 /**
  * 화면 아래에 떠 있는 알약 탭 "홈 | 계산 | 매물 | 인테리어". 아이콘 없이 라벨만 보인다.
  * 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. 현재 화면에 대한 동작([가가] 등)은 두지 않는다.
+ * 선택 표시(회색 알약)는 탭마다 그리지 않고 하나만 두어, 탭을 바꾸면 새 자리로 미끄러져 간다(iOS 탭 막대).
+ * 화면을 바꿔도 이 컴포넌트는 그대로 마운트돼 있어 transition이 이어진다.
  */
 function TabNav({ current, onNavigate }: TabNavProps) {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -39,11 +41,16 @@ function TabNav({ current, onNavigate }: TabNavProps) {
     onNavigate();
     window.location.replace(href);
   };
+  const currentIndex = current === null ? -1 : TAB_ORDER.indexOf(current);
+  const indicatorStyle = {
+    "--tab-count": TAB_ORDER.length,
+    "--tab-index": Math.max(currentIndex, 0),
+  } as CSSProperties;
 
   return (
     <nav className={styles.nav} aria-label="화면">
       <div className={styles.row}>
-        <ul className={styles.tabs}>
+        <ul className={styles.tabs} style={indicatorStyle}>
           {TAB_ORDER.map((name) => {
             const { label, href } = TABS[name];
             return (
@@ -59,6 +66,7 @@ function TabNav({ current, onNavigate }: TabNavProps) {
               </li>
             );
           })}
+          {currentIndex !== -1 && <li className={styles.indicator} aria-hidden="true" />}
         </ul>
       </div>
     </nav>

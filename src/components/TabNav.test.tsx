@@ -11,9 +11,9 @@ import type { TabName } from "@/lib/types/route";
 
 function renderTabNav(current: TabName | null) {
   const onNavigate = vi.fn();
-  render(<TabNav current={current} onNavigate={onNavigate} />);
+  const { rerender } = render(<TabNav current={current} onNavigate={onNavigate} />);
   const nav = screen.getByRole("navigation", { name: "화면" });
-  return { nav, onNavigate };
+  return { nav, onNavigate, rerender };
 }
 
 describe("하단 탭 (AC-1)", () => {
@@ -64,5 +64,20 @@ describe("하단 탭 (AC-1)", () => {
     expect(window.location.hash).toBe("#/home");
     expect(window.history.length).toBe(historyLength);
     window.location.hash = "#/";
+  });
+
+  it("선택 표시는 하나만 두고 현재 탭 자리로 옮긴다(같은 요소라 미끄러져 간다), null이면 없다", () => {
+    const { nav, rerender } = renderTabNav("listings");
+    const tabs = within(nav).getByRole("list");
+    const indicator = nav.querySelector('[aria-hidden="true"]');
+    expect(tabs.style.getPropertyValue("--tab-index")).toBe("2");
+    expect(tabs.style.getPropertyValue("--tab-count")).toBe("4");
+
+    rerender(<TabNav current="home" onNavigate={vi.fn()} />);
+    expect(tabs.style.getPropertyValue("--tab-index")).toBe("3");
+    expect(nav.querySelector('[aria-hidden="true"]')).toBe(indicator);
+
+    rerender(<TabNav current={null} onNavigate={vi.fn()} />);
+    expect(nav.querySelector('[aria-hidden="true"]')).toBeNull();
   });
 });
