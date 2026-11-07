@@ -17,8 +17,8 @@ const TABS: Record<TabName, { label: string; href: string }> = {
   hub: { label: "홈", href: PATHS.hub },
   calculator: { label: "계산", href: PATHS.calculator },
   listings: { label: "매물", href: PATHS.listings },
-  /** 라벨은 "인테리어"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
-  home: { label: "인테리어", href: PATHS.home() },
+  /** 라벨은 "예산"(인테리어 플래너). 라벨 "홈"은 `hub`다(ADR-031 D2). */
+  home: { label: "예산", href: PATHS.home() },
 };
 
 const TAB_ORDER = Object.keys(TABS) as TabName[];
@@ -29,7 +29,7 @@ function isModifiedClick(event: MouseEvent) {
 }
 
 /**
- * 화면 아래에 떠 있는 알약 탭 "홈 | 계산 | 매물 | 인테리어". 아이콘 없이 라벨만 보인다.
+ * 화면 아래에 떠 있는 알약 탭 "홈 | 계산 | 매물 | 예산". 아이콘 없이 라벨만 보인다.
  * 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. 현재 화면에 대한 동작([가가] 등)은 두지 않는다.
  * 선택 표시(회색 알약)는 탭마다 그리지 않고 하나만 두어, 탭을 바꾸면 새 자리로 미끄러져 간다(iOS 탭 막대).
  * 화면을 바꿔도 이 컴포넌트는 그대로 마운트돼 있어 transition이 이어진다.

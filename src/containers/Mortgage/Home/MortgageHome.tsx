@@ -62,7 +62,7 @@ type MortgageHomeProps = {
   onNoticeChange: (notice: string | null) => void;
 };
 
-/** [인테리어] 화면의 시트(한 번에 하나, ADR-017) */
+/** [예산] 화면의 시트(한 번에 하나, ADR-017) */
 type HomeSheet =
   /** `listing`: 매물 카드에서 왔으면 그 매물(이름·추가 비용 인테리어 줄을 채운다) */
   | { name: "create"; listing: Listing | null }
@@ -386,7 +386,7 @@ function MortgageHome({
           }
         >
           <a className={styles.panelLink} href={PATHS.home()}>
-            인테리어로
+            예산으로
           </a>
         </StatusPanel>
       );
@@ -402,7 +402,7 @@ function MortgageHome({
     <>
       <div className={styles.page} inert={sheet.isOpen}>
         {(currentPlan === null || listingId !== undefined) && (
-          <h1 className={styles.title}>인테리어</h1>
+          <h1 className={styles.title}>예산</h1>
         )}
         <HomeNotices
           isSessionExpired={source.isSessionExpired}

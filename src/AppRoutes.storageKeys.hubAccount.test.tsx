@@ -2,11 +2,11 @@
 // 스펙 hub-account AC-0(데이터 보존): 계정·함께 쓰기가 홈으로 오고 가리기가 저장 목록 토글에만 남아도 기존 14개 키는 그대로다.
 // 시드: 14개 키 전부를 들여쓴 JSON 원문으로(앱이 다시 직렬화해 쓰면 ===에서 걸린다), privacy-mode는 켜짐("true").
 // 모드 4개: 확인 중(pending, /api/me 응답 없음) · 로그아웃 · 로그인 혼자(이전 4키 끝남) · 가구.
-// 순회: 홈 → ([함께 쓰기] 시트 열고 [닫기], 다시 열고 뒤로 가기 — 혼자만) → [매물] 저장 목록 [가리기] 끄기·켜기 → [인테리어] 계획
+// 순회: 홈 → ([함께 쓰기] 시트 열고 [닫기], 다시 열고 뒤로 가기 — 혼자만) → [매물] 저장 목록 [가리기] 끄기·켜기 → [예산] 계획
 // → [표] → [홈] → 카드 [대출 계산] → 뒤로 가기. 단계마다
 //   - 허용 쓰기: 로그아웃 확인 뒤 removeItem(session-hint), 로그인 확인 뒤 setItem(session-hint, "1"), 그리고 대조군 하나
 //   - 대조군: 저장 목록 [가리기] 2번 = setItem(privacy-mode,"false") → setItem(privacy-mode,"true") 정확히 이 순서의 2회.
-//     [매물] 단계에서만 일어나고 [인테리어]·표·홈 단계의 privacy-mode 쓰기는 0회(removeItem도 0회)
+//     [매물] 단계에서만 일어나고 [예산]·표·홈 단계의 privacy-mode 쓰기는 0회(removeItem도 0회)
 //   - session-hint 외 13개 키 원문 ===(privacy-mode는 마지막으로 쓴 값, 쓰지 않았으면 시드), 키 집합 불변
 // 확인 중 모드: 홈 단계까지 쓰기 0회이고 [로그아웃]이 아직 없어 요청도 없다.
 // 추가 갈래: (a) 혼자 → 홈 [로그아웃] → 카드가 이 기기 값, 쓰기는 removeItem(session-hint)뿐(횟수 측정 고정),
@@ -320,10 +320,10 @@ async function walk(user: User, api: FakePlanApi, mode: Mode, check: Check) {
     check("저장 목록 [가리기] 켜기", PRIVACY_TOGGLED);
   }
 
-  await user.click(tab("인테리어"));
+  await user.click(tab("예산"));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   await expectHomeSettled(mode);
-  check("탭 [인테리어] 계획", toggled);
+  check("탭 [예산] 계획", toggled);
 
   if (mode !== "pending") {
     await user.click(screen.getByRole("radio", { name: "표" }));
@@ -522,7 +522,7 @@ describe("AC-0 (a) 홈 [로그아웃]: 이 기기 원문은 그대로, 쓰기는
     // 로그아웃한 뒤 저장 목록·우리 집을 열어도 이 기기 원문은 그대로다
     await user.click(tab("매물"));
     expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
-    await user.click(tab("인테리어"));
+    await user.click(tab("예산"));
     expect(await screen.findByRole("button", { name: "샷시 E샷시 열기" })).toBeInTheDocument();
     // 화면마다 로그아웃 확인이 같은 정리를 할 수 있다(기존 규칙: 로그아웃 확인 뒤 removeItem(session-hint) 1종)
     expect(new Set(writesOf(spies))).toEqual(new Set([`removeItem ${SESSION_HINT_STORAGE_KEY}`]));

@@ -1,12 +1,12 @@
 /** 카카오 로그인에서 돌아온 결과(`#/?login=`). 성공은 값 없이 돌아온다. */
 export type LoginResult = "cancelled" | "failed" | "notConfigured";
 
-/** [인테리어] 플랜 화면의 보기: 공정별 목록과 표(ADR-030, ADR-032). 주소에 없으면 목록이다. */
+/** [예산] 플랜 화면의 보기: 공정별 목록과 표(ADR-030, ADR-032). 주소에 없으면 목록이다. */
 export type HomeView = "list" | "table";
 
 export type Route =
   /**
-   * 홈(허브, 첫 화면 `#/`). 화면 라벨은 "홈"이다. 라벨 "인테리어"는 아래 `home`(인테리어 플래너)이다(ADR-031 D2).
+   * 홈(허브, 첫 화면 `#/`). 화면 라벨은 "홈"이다. 라벨 "예산"은 아래 `home`(인테리어 플래너)이다(ADR-031 D2).
    * `login`은 홈이 한 번 잡아 안내한 뒤 주소에서 지운다. 정규화가 먼저 지우지 않도록 라우트에 둔다.
    */
   | { name: "hub"; login?: LoginResult }
