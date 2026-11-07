@@ -18,21 +18,27 @@ import { lineOrderAfterGroupMove, lineOrderAfterMove } from "@/lib/utils/lineOrd
 
 import EmptyItems from "./EmptyItems";
 import GroupHeader from "./GroupHeader";
+import GroupTitle from "./GroupTitle";
 import LineGroup from "./LineGroup";
 import LineSummary from "./LineSummary";
 import styles from "./PlanLines.module.css";
+import { useGroupCollapse } from "../hooks/useGroupCollapse";
 import { useLineConfirmToggle } from "../hooks/useLineConfirmToggle";
 import { dragKindOf, groupDragIdOf, type LineDragKind } from "../lineDrag";
 import { lineNameOf } from "../lineName";
 import { ITEM_LIMIT_MESSAGE, lineOrderFailureMessage } from "../planWriteFailure";
 
 import type { LineCheck, LineNotice } from "../hooks/useLineConfirmToggle";
+import type { InteriorGroupCollapseStore } from "@/lib/types/interiorGroupCollapse";
 import type { InteriorItem } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 import type { InteriorPlanRow, InteriorPlanRowGroup } from "@/lib/utils/interiorPlanRows";
 
 type PlanLinesProps = {
+  planId: string;
   groups: InteriorPlanRowGroup[];
+  /** 이 기기에 기억하는 접힌 묶음(계획별) */
+  groupCollapseStore: InteriorGroupCollapseStore;
   /** 항목 수 상한(100개, 줄 수가 아님) 안이다 */
   canAddLine: boolean;
   /** 줄을 들 수 있다(앞선 순서 저장이 끝났다) */
@@ -82,11 +88,14 @@ function findGroup(groups: readonly InteriorPlanRowGroup[], id: UniqueIdentifier
  * [+]는 하단 탭 알약 오른쪽 옆에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있다.
  * 시트가 열리면 이 화면과 함께 inert다.
  * 줄 DOM은 key `item.id:quote.id`로 유지돼 저장·폴링 뒤에도 다시 마운트되지 않는다(스크롤 위치 유지).
+ * 묶음 제목 줄 오른쪽 끝 화살표로 그 묶음을 접고 편다(이 기기에 계획별로 기억).
  * 줄을 꾹 눌러(키보드는 스페이스) 같은 묶음 안에서 옮기고, 묶음 제목을 꾹 눌러 묶음을 통째로 옮긴다. 든 동안에는 든 순간의 묶음을 그린다(재조회로 줄이 바뀌어도
  * 끄는 줄이 밀리지 않게, 놓은 뒤 반영). 놓을 때 저장 값은 그 스냅샷과 놓는 순간의 묶음으로 만든다(`lineOrderAfterMove`).
  */
 function PlanLines({
+  planId,
   groups,
+  groupCollapseStore,
   canAddLine,
   canReorder,
   onLineAdd,
@@ -100,11 +109,19 @@ function PlanLines({
   const [activeKey, setActiveKey] = useState<UniqueIdentifier | null>(null);
   const [dragKind, setDragKind] = useState<LineDragKind | null>(null);
   const sensors = useLongPressSensors();
+  const { collapsedTrades, toggle: toggleCollapse } = useGroupCollapse(
+    groupCollapseStore,
+    planId,
+    groups.map((group) => group.trade),
+  );
   const shownGroups = draggedGroups ?? groups;
   const activeLine =
     activeKey === null || dragKind !== "line" ? null : findLine(shownGroups, activeKey);
   const activeGroup =
     activeKey === null || dragKind !== "group" ? null : findGroup(shownGroups, activeKey);
+  // 뜬 묶음은 접혀 있으면 제목 줄만 그린다(빈 자리와 같은 크기)
+  const isActiveGroupCollapsed =
+    activeGroup !== null && collapsedTrades.has(activeGroup.group.trade);
 
   const nameOfKey = (key: UniqueIdentifier) => {
     const line = findLine(shownGroups, key);
@@ -261,6 +278,8 @@ function PlanLines({
                   canReorder={canReorder}
                   canMoveGroup={canReorder && shownGroups.length > 1}
                   dragKind={dragKind}
+                  isCollapsed={collapsedTrades.has(group.trade)}
+                  onCollapseToggle={() => toggleCollapse(group.trade)}
                   savingItemIds={savingItemIds}
                   canAddLine={canAddLine}
                   onLineAdd={onLineAdd}
@@ -279,14 +298,22 @@ function PlanLines({
             )}
             {activeGroup !== null && (
               <div className={styles.liftedGroup} aria-hidden="true">
-                <GroupHeader group={activeGroup.group} title={activeGroup.group.trade} as="p" />
-                <ul className={styles.rows}>
-                  {activeGroup.group.rows.map((row) => (
-                    <li key={row.key} className={styles.liftedGroupRow}>
-                      <LineSummary row={row} />
-                    </li>
-                  ))}
-                </ul>
+                <GroupHeader
+                  group={activeGroup.group}
+                  title={
+                    <GroupTitle group={activeGroup.group} isCollapsed={isActiveGroupCollapsed} />
+                  }
+                  as="p"
+                />
+                {!isActiveGroupCollapsed && (
+                  <ul className={styles.rows}>
+                    {activeGroup.group.rows.map((row) => (
+                      <li key={row.key} className={styles.liftedGroupRow}>
+                        <LineSummary row={row} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
           </DragOverlay>

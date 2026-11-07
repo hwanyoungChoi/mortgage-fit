@@ -31,6 +31,7 @@ import { DELETED_IN_HOUSEHOLD_MESSAGE } from "./planWriteFailure";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
+import type { InteriorGroupCollapseStore } from "@/lib/types/interiorGroupCollapse";
 import type { InteriorPlanCreateInput, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type {
   InteriorPlanSourceWriteResult,
@@ -43,6 +44,8 @@ import type { SessionHintStore } from "@/lib/types/sessionHint";
 type MortgageHomeProps = {
   /** 로그아웃 상태의 플랜 원본(새 키 하나만 쓴다). 로그인 중에는 서버가 원본이다 */
   interiorPlanStore: InteriorPlanStore;
+  /** 목록 보기에서 접은 묶음(이 기기, 계획별). 계획 데이터와 따로다 */
+  groupCollapseStore: InteriorGroupCollapseStore;
   sessionHintStore: SessionHintStore;
   /** 로그인 직후 이 기기 계획의 이전. 옮기지 못했으면 화면 위에 이유와 [다시 시도]를 보인다 */
   planImport: InteriorPlanImport;
@@ -100,6 +103,7 @@ function MissingSheet({ message, onClose }: { message: string; onClose: () => vo
  */
 function MortgageHome({
   interiorPlanStore,
+  groupCollapseStore,
   sessionHintStore,
   planImport,
   listingStore,
@@ -238,6 +242,7 @@ function MortgageHome({
     if (openSheet.rowKey !== null && row === null) {
       return <MissingSheet message={missingMessages.item} onClose={sheet.close} />;
     }
+    const trades = groups.map((group) => group.trade);
     const closeIfOk = (result: InteriorPlanSourceWriteResult) => {
       if (result.ok) sheet.close();
       return result;
@@ -247,11 +252,11 @@ function MortgageHome({
     return (
       <ItemSheet
         key={itemSheetVersion}
-        tradeSuggestions={groups.map((group) => group.trade)}
+        tradeSuggestions={trades}
         row={row}
         initialTrade={openSheet.trade}
-        onSave={async (values, openedRow) =>
-          closeIfOk(
+        onSave={async (values, openedRow) => {
+          const result =
             openedRow === null
               ? await source.addItem(
                   plan.id,
@@ -267,9 +272,18 @@ function MortgageHome({
                     createRandomId,
                   ),
                   openedRow.item.updatedAt,
-                ),
-          )
-        }
+                );
+          // 저장한 줄의 묶음이 접혀 있으면 펼친다(방금 저장한 줄이 보이게, U5). 새 줄·고친 줄 같다. 구분은 검증에서 이미 trim됐다.
+          if (result.ok) {
+            groupCollapseStore.setCollapsed({
+              planId: plan.id,
+              trade: values.trade,
+              isCollapsed: false,
+              presentTrades: trades,
+            });
+          }
+          return closeIfOk(result);
+        }}
         onReload={() => setItemSheetVersion((version) => version + 1)}
         onDelete={async (removal, openedItem) =>
           closeIfOk(
@@ -293,6 +307,7 @@ function MortgageHome({
       plan={plan}
       linkedListing={linkedListingOf(plan.listingId, listingSource.list)}
       view={view}
+      groupCollapseStore={groupCollapseStore}
       onViewChange={handleViewChange}
       onSettingsOpen={(button, isBudget) =>
         sheet.open({ name: "settings", planId: plan.id, isBudget }, button)

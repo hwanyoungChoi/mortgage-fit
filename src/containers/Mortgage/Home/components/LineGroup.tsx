@@ -1,7 +1,10 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ChevronDown from "lucide-react/icons/chevron-down";
+import { useId } from "react";
 
 import GroupHeader from "./GroupHeader";
+import GroupTitle from "./GroupTitle";
 import LineRow from "./LineRow";
 import styles from "./PlanLines.module.css";
 import { groupDragIdOf, type LineDragKind } from "../lineDrag";
@@ -17,6 +20,9 @@ type LineGroupProps = {
   canMoveGroup: boolean;
   /** 지금 든 것의 종류. 묶음을 든 동안에는 줄을 끌기에서 뺀다 */
   dragKind: LineDragKind | null;
+  /** 접혀 있다(줄과 [+ {구분}에 줄 추가]를 그리지 않는다) */
+  isCollapsed: boolean;
+  onCollapseToggle: () => void;
   /** 확정을 저장하는 중인 항목 id */
   savingItemIds: ReadonlySet<string>;
   canAddLine: boolean;
@@ -28,8 +34,14 @@ type LineGroupProps = {
 /** 보조기기가 읽는 묶음 제목의 역할 이름 */
 const GROUP_ROLE_DESCRIPTION = "순서를 바꿀 수 있는 묶음";
 
+/** 구분이 빈 글자인 묶음의 접기 버튼 이름에 쓰는 구분(보이는 글자는 그대로) */
+const EMPTY_TRADE_LABEL = "구분 없음";
+
 /**
- * 구분 묶음 하나: 제목(오른쪽 끝 확정 합계) → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
+ * 구분 묶음 하나: 제목(확정 합계, 오른쪽 끝 접기 화살표) → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
+ * 접기·펴기는 제목 줄 오른쪽 끝 화살표 버튼 하나로만 한다(펼침 ∧, 접힘 ∨ — 매물 간단히 보기와 같은 방향). 접으면 줄과
+ * [+ 줄 추가]를 그리지 않고 감싸는 요소만 `hidden`으로 남긴다(`aria-controls`가 가리키는 id 유지).
+ * 화살표 버튼은 끌기 손잡이 밖이라 누르거나 스페이스를 쳐도 묶음이 들리지 않는다.
  * 묶음마다 `SortableContext`를 따로 둬서 든 줄이 없는 묶음의 줄은 밀리지 않는다(줄은 묶음 안에서만 옮긴다).
  * 묶음 제목을 꾹 누르면(키보드는 스페이스) 묶음을 통째로 든다. 묶음을 든 동안 줄은 들 수도 놓을 수도 없다
  * (키보드 이동이 줄 자리로 건너뛰지 않게). 줄을 든 동안 묶음을 놓을 자리에서 빼는 것은 목록의 충돌 판정이 맡는다.
@@ -39,12 +51,15 @@ function LineGroup({
   canReorder,
   canMoveGroup,
   dragKind,
+  isCollapsed,
+  onCollapseToggle,
   savingItemIds,
   canAddLine,
   onLineAdd,
   onLineOpen,
   onCheckChange,
 }: LineGroupProps) {
+  const panelId = useId();
   const keys = group.rows.map((row) => row.key);
   const isDraggable = canReorder && group.rows.length > 1 && dragKind !== "group";
   const {
@@ -61,11 +76,12 @@ function LineGroup({
     disabled: !canMoveGroup,
     attributes: { roleDescription: GROUP_ROLE_DESCRIPTION },
   });
+  const surfaceClassName = isDragging ? styles.placeholderGroup : styles.group;
 
   return (
     <section
       ref={setNodeRef}
-      className={isDragging ? styles.placeholderGroup : styles.group}
+      className={isCollapsed ? `${surfaceClassName} ${styles.collapsedGroup}` : surfaceClassName}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       aria-label={group.trade}
     >
@@ -80,38 +96,60 @@ function LineGroup({
               {...listeners}
               className={styles.groupHandle}
             >
-              {group.trade}
+              <GroupTitle group={group} isCollapsed={isCollapsed} />
             </button>
           ) : (
-            group.trade
+            <GroupTitle group={group} isCollapsed={isCollapsed} />
           )
         }
-      />
-      <SortableContext id={group.trade} items={keys} strategy={verticalListSortingStrategy}>
-        <ul className={styles.rows}>
-          {group.rows.map((row) => (
-            <LineRow
-              key={row.key}
-              trade={group.trade}
-              row={row}
-              isSaving={savingItemIds.has(row.item.id)}
-              isDraggable={isDraggable}
-              onOpen={(button) => onLineOpen(row, button)}
-              onCheckChange={(check, isChecked) => onCheckChange(row, check, isChecked)}
+        toggle={
+          <button
+            type="button"
+            className={styles.groupToggle}
+            aria-label={`${group.trade === "" ? EMPTY_TRADE_LABEL : group.trade} 접기/펼치기`}
+            aria-expanded={!isCollapsed}
+            aria-controls={panelId}
+            onClick={onCollapseToggle}
+          >
+            <ChevronDown
+              size={22}
+              aria-hidden="true"
+              className={isCollapsed ? styles.groupChevron : styles.groupChevronOpen}
             />
-          ))}
-        </ul>
-      </SortableContext>
-      <button
-        type="button"
-        className={styles.groupAddButton}
-        aria-haspopup="dialog"
-        disabled={!canAddLine}
-        onClick={(event) => onLineAdd(group.trade, event.currentTarget)}
-      >
-        <span aria-hidden="true">+ </span>
-        {group.trade}에 줄 추가
-      </button>
+          </button>
+        }
+      />
+      <div id={panelId} hidden={isCollapsed}>
+        {!isCollapsed && (
+          <>
+            <SortableContext id={group.trade} items={keys} strategy={verticalListSortingStrategy}>
+              <ul className={styles.rows}>
+                {group.rows.map((row) => (
+                  <LineRow
+                    key={row.key}
+                    trade={group.trade}
+                    row={row}
+                    isSaving={savingItemIds.has(row.item.id)}
+                    isDraggable={isDraggable}
+                    onOpen={(button) => onLineOpen(row, button)}
+                    onCheckChange={(check, isChecked) => onCheckChange(row, check, isChecked)}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+            <button
+              type="button"
+              className={styles.groupAddButton}
+              aria-haspopup="dialog"
+              disabled={!canAddLine}
+              onClick={(event) => onLineAdd(group.trade, event.currentTarget)}
+            >
+              <span aria-hidden="true">+ </span>
+              {group.trade}에 줄 추가
+            </button>
+          </>
+        )}
+      </div>
     </section>
   );
 }

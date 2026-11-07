@@ -22,6 +22,7 @@ import { createBudgetImportStore } from "@/lib/utils/budgetImportStorage";
 import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
+import { createInteriorGroupCollapseStore } from "@/lib/utils/interiorGroupCollapseStorage";
 import { createInteriorPlanImportStore } from "@/lib/utils/interiorPlanImportStorage";
 import { createInteriorPlanStore } from "@/lib/utils/interiorPlanStorage";
 import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportStorage";
@@ -66,6 +67,7 @@ function createStores(storage: Storage) {
       now: () => new Date().toISOString(),
     }),
     interiorPlanImportStore: createInteriorPlanImportStore({ storage }),
+    interiorGroupCollapseStore: createInteriorGroupCollapseStore({ storage }),
   };
 }
 
@@ -87,6 +89,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       textSizeStore,
       interiorPlanStore,
       interiorPlanImportStore,
+      interiorGroupCollapseStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -176,6 +179,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
         <MortgageHome
           key={route.planId ?? ""}
           interiorPlanStore={interiorPlanStore}
+          groupCollapseStore={interiorGroupCollapseStore}
           sessionHintStore={sessionHintStore}
           planImport={planImport}
           listingStore={listingStore}
