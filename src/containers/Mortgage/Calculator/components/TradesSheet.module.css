@@ -92,3 +92,10 @@ select.control {
   background-size: 18px;
   appearance: none;
 }
+
+/* 다크 모드: 꺾쇠를 muted 글자색(--color-text-muted 다크 값)으로. 배경 그림은 CSS 변수를 못 써 값을 다시 적는다. */
+@media screen and (prefers-color-scheme: dark) {
+  select.control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ea4ad' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+}
