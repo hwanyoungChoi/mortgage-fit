@@ -16,16 +16,16 @@ type AppHeaderProps = {
 /**
  * 모든 화면 맨 위의 머리 줄(고정하지 않아 스크롤과 함께 올라간다, ADR-031 D3).
  * 왼쪽은 서비스 이름(제목이 아닌 글자, 화면 제목은 각 화면의 h1), 오른쪽은 화면 모드 토글(라이트면 달, 다크면 해 = 누르면 바뀔 모드)과 [가가](글자 크기 시트).
- * 화면 안에도 `<header>`가 있어 이름으로 구분한다(`banner "모기지핏"`).
+ * 화면 안에도 `<header>`가 있어 이름으로 구분한다(`banner "집사자"`).
  */
 function AppHeader({ theme, onThemeToggle, onTextSizeOpen }: AppHeaderProps) {
   const isDark = theme === "dark";
   return (
-    <header className={styles.header} aria-label="모기지핏">
+    <header className={styles.header} aria-label="집사자">
       <div className={styles.bar}>
         <span className={styles.brand}>
           <img className={styles.logo} src="/favicon.svg" alt="" width={22} height={22} />
-          모기지핏
+          집사자
         </span>
         <div className={styles.tools}>
           <button
