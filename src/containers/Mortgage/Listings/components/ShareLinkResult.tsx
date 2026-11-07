@@ -34,7 +34,7 @@ function ShareLinkResult({ share, sentShareStore }: ShareLinkResultProps) {
 
   return (
     <>
-      <LinkCopyActions url={share.url} label="공유 링크" shareTitle="모기지핏 매물 공유" />
+      <LinkCopyActions url={share.url} label="공유 링크" shareTitle="집사자 매물 공유" />
       <p className={styles.hint}>
         30일 동안 열 수 있습니다. 받은 사람 목록에 복사본으로 들어가며, 이후 내가 고쳐도 바뀌지
         않습니다.

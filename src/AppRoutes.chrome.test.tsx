@@ -47,7 +47,7 @@ function renderApp(hash: string) {
 }
 
 const tabNav = () => screen.getByRole("navigation", { name: "화면" });
-const appHeader = () => screen.getByRole("banner", { name: "모기지핏" });
+const appHeader = () => screen.getByRole("banner", { name: "집사자" });
 const main = () => screen.getByRole("main");
 
 afterEach(() => {
@@ -146,7 +146,7 @@ describe("[가가]는 모든 화면에서 전역 머리 줄에 하나 (AC-4)", (
     }
 
     // 이름 있는 전역 머리 줄은 하나이고 main 바깥
-    expect(screen.getAllByRole("banner", { name: "모기지핏" })).toHaveLength(1);
+    expect(screen.getAllByRole("banner", { name: "집사자" })).toHaveLength(1);
     expect(appHeader().closest("main")).toBeNull();
     expect(main().contains(appHeader())).toBe(false);
     if (hasInnerHeader) {
