@@ -1,8 +1,8 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 
 import AppHeader from "@/components/AppHeader";
-import DisplaySheet from "@/components/DisplaySheet";
 import TabNav from "@/components/TabNav";
+import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
 import MortgageHome from "@/containers/Mortgage/Home/MortgageHome";
 import MortgageHub from "@/containers/Mortgage/Hub/MortgageHub";
@@ -98,7 +98,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   const route = useHashRoute();
   const textSize = useSyncExternalStore(textSizeStore.subscribe, textSizeStore.getSnapshot);
   const theme = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot);
-  // 화면 설정(화면 모드·글자 크기) 시트는 모든 화면 위에 뜬다. 열린 동안 머리 줄·화면·탭은 inert다(aria-modal이 약속하는 동작).
+  // 글자 크기 시트는 모든 화면 위에 뜬다. 열린 동안 머리 줄·화면·탭은 inert다(aria-modal이 약속하는 동작).
   const textSizeSheet = useOpenSheet<"textSize">();
   // 저장 시트 이름 제안. 목록의 "복사"가 채우고 계산 화면이 쓰므로 두 화면 위에 둔다.
   const [suggestedName, setSuggestedName] = useState("");
@@ -235,7 +235,11 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   return (
     <>
       <div inert={textSizeSheet.isOpen}>
-        <AppHeader onTextSizeOpen={(button) => textSizeSheet.open("textSize", button)} />
+        <AppHeader
+          theme={theme}
+          onThemeToggle={() => themeStore.set(theme === "dark" ? "light" : "dark")}
+          onTextSizeOpen={(button) => textSizeSheet.open("textSize", button)}
+        />
         <main>{renderScreen()}</main>
         <TabNav
           current={route.name === "share" || route.name === "invite" ? null : route.name}
@@ -243,11 +247,9 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
         />
       </div>
       {textSizeSheet.isOpen && (
-        <DisplaySheet
-          theme={theme}
-          onThemeSelect={themeStore.set}
-          textSize={textSize}
-          onTextSizeSelect={textSizeStore.set}
+        <TextSizeSheet
+          value={textSize}
+          onSelect={textSizeStore.set}
           onClose={textSizeSheet.close}
         />
       )}

@@ -156,7 +156,7 @@ describe("[가가]는 모든 화면에서 전역 머리 줄에 하나 (AC-4)", (
     }
 
     // [가가]는 화면 전체에 하나, 머리 줄 안, 탭 줄 밖
-    const buttons = screen.getAllByRole("button", { name: "화면 설정" });
+    const buttons = screen.getAllByRole("button", { name: "글자 크기" });
     expect(buttons).toHaveLength(1);
     const [button] = buttons;
     expect(appHeader()).toContainElement(button);
@@ -164,7 +164,7 @@ describe("[가가]는 모든 화면에서 전역 머리 줄에 하나 (AC-4)", (
     expect(button).toHaveAttribute("aria-haspopup", "dialog");
 
     await user.click(button);
-    const dialog = screen.getByRole("dialog", { name: "화면 설정" });
+    const dialog = screen.getByRole("dialog", { name: "글자 크기" });
     expect(appHeader().closest("[inert]")).not.toBeNull();
     expect(main().closest("[inert]")).not.toBeNull();
     expect(tabNav().closest("[inert]")).not.toBeNull();
@@ -175,23 +175,24 @@ describe("[가가]는 모든 화면에서 전역 머리 줄에 하나 (AC-4)", (
     await user.click(within(dialog).getByRole("button", { name: "더 작게" }));
     expect(setItem.mock.calls).toEqual([[TEXT_SIZE_STORAGE_KEY, "smallest"]]);
 
-    // 화면 모드: 처음은 기기 설정, 다크를 고르면 theme 키에만 쓰고 <html data-theme="dark">
-    expect(within(dialog).getByRole("button", { name: /^기기 설정/ })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    setItem.mockClear();
-    await user.click(within(dialog).getByRole("button", { name: "다크" }));
-    expect(setItem.mock.calls).toEqual([[THEME_STORAGE_KEY, "dark"]]);
-    expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(within(dialog).getByRole("button", { name: /^다크/ })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-
     await user.click(within(dialog).getByRole("button", { name: "닫기" }));
-    expect(screen.queryByRole("dialog", { name: "화면 설정" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "글자 크기" })).not.toBeInTheDocument();
     expect(button).toHaveFocus();
     expect(appHeader().closest("[inert]")).toBeNull();
+
+    // 화면 모드 토글: [가가]와 따로 머리 줄에 있고, 누를 때마다 라이트 ↔ 다크를 theme 키에 저장한다
+    const themeToggle = within(appHeader()).getByRole("button", { name: "다크 모드" });
+    expect(themeToggle).toHaveAttribute("aria-pressed", "false");
+    setItem.mockClear();
+    await user.click(themeToggle);
+    expect(themeToggle).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    await user.click(themeToggle);
+    expect(themeToggle).toHaveAttribute("aria-pressed", "false");
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(setItem.mock.calls).toEqual([
+      [THEME_STORAGE_KEY, "dark"],
+      [THEME_STORAGE_KEY, "light"],
+    ]);
   });
 });
