@@ -1,6 +1,6 @@
 # 인테리어 묶음(카테고리) 접기·펴기, 상태는 이 기기에 기억
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-11-07 19:39
+> 상태: 완료 · 마지막 업데이트: 2026-11-07 19:42
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-모두 접기·펴기 PR 올리는 중
+모두 접기·펴기 머지됨
 
 ## 최근 결정
 
@@ -34,7 +34,7 @@
 
 ## PR
 
-[#73](https://github.com/hwanyoungChoi/mortgage-fit/pull/73) · CI 통과 · 머지됨(8a83dc9)
+[#74](https://github.com/hwanyoungChoi/mortgage-fit/pull/74) · CI 통과 · 머지됨(7dafbc7)
 
 <!-- spec: specs/interior-group-collapse.md -->
 <!-- lead: local_b80120fe-3550-485d-ac70-9f636917eadb -->
