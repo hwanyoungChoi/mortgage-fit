@@ -1,5 +1,6 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ChevronDown from "lucide-react/icons/chevron-down";
 import { useId } from "react";
 
 import GroupHeader from "./GroupHeader";
@@ -33,13 +34,14 @@ type LineGroupProps = {
 /** 보조기기가 읽는 묶음 제목의 역할 이름 */
 const GROUP_ROLE_DESCRIPTION = "순서를 바꿀 수 있는 묶음";
 
-/** 구분이 빈 글자인 묶음의 제목 버튼 이름(보이는 글자는 그대로) */
+/** 구분이 빈 글자인 묶음의 접기 버튼 이름에 쓰는 구분(보이는 글자는 그대로) */
 const EMPTY_TRADE_LABEL = "구분 없음";
 
 /**
- * 구분 묶음 하나: 제목(오른쪽 끝 확정 합계) → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
- * 제목은 언제나 접기 버튼이다(짧게 누르기·엔터, APG 아코디언). 접으면 줄과 [+ 줄 추가]를 그리지 않고 감싸는 요소만
- * `hidden`으로 남긴다(`aria-controls`가 가리키는 id 유지). 묶음이 2개 이상이면 스페이스는 들기다(ADR-026).
+ * 구분 묶음 하나: 제목(확정 합계, 오른쪽 끝 접기 화살표) → 줄들(이 묶음만의 `SortableContext`) → [+ {구분}에 줄 추가].
+ * 접기·펴기는 제목 줄 오른쪽 끝 화살표 버튼 하나로만 한다(펼침 ∧, 접힘 ∨ — 매물 간단히 보기와 같은 방향). 접으면 줄과
+ * [+ 줄 추가]를 그리지 않고 감싸는 요소만 `hidden`으로 남긴다(`aria-controls`가 가리키는 id 유지).
+ * 화살표 버튼은 끌기 손잡이 밖이라 누르거나 스페이스를 쳐도 묶음이 들리지 않는다.
  * 묶음마다 `SortableContext`를 따로 둬서 든 줄이 없는 묶음의 줄은 밀리지 않는다(줄은 묶음 안에서만 옮긴다).
  * 묶음 제목을 꾹 누르면(키보드는 스페이스) 묶음을 통째로 든다. 묶음을 든 동안 줄은 들 수도 놓을 수도 없다
  * (키보드 이동이 줄 자리로 건너뛰지 않게). 줄을 든 동안 묶음을 놓을 자리에서 빼는 것은 목록의 충돌 판정이 맡는다.
@@ -74,8 +76,6 @@ function LineGroup({
     disabled: !canMoveGroup,
     attributes: { roleDescription: GROUP_ROLE_DESCRIPTION },
   });
-  // 들 수 없을 때(묶음 1개·순서 저장 중)는 끌기 속성(aria-disabled 등)을 붙이지 않는다. 접기 버튼으로는 계속 쓴다.
-  const dragProps = canMoveGroup ? { ...attributes, ...listeners } : {};
   const surfaceClassName = isDragging ? styles.placeholderGroup : styles.group;
 
   return (
@@ -88,17 +88,34 @@ function LineGroup({
       <GroupHeader
         group={group}
         title={
+          canMoveGroup ? (
+            <button
+              ref={setActivatorNodeRef}
+              type="button"
+              {...attributes}
+              {...listeners}
+              className={styles.groupHandle}
+            >
+              <GroupTitle group={group} isCollapsed={isCollapsed} />
+            </button>
+          ) : (
+            <GroupTitle group={group} isCollapsed={isCollapsed} />
+          )
+        }
+        toggle={
           <button
-            ref={setActivatorNodeRef}
             type="button"
-            {...dragProps}
-            className={styles.groupHandle}
-            aria-label={group.trade === "" ? EMPTY_TRADE_LABEL : undefined}
+            className={styles.groupToggle}
+            aria-label={`${group.trade === "" ? EMPTY_TRADE_LABEL : group.trade} 접기/펼치기`}
             aria-expanded={!isCollapsed}
             aria-controls={panelId}
             onClick={onCollapseToggle}
           >
-            <GroupTitle group={group} isCollapsed={isCollapsed} />
+            <ChevronDown
+              size={22}
+              aria-hidden="true"
+              className={isCollapsed ? styles.groupChevron : styles.groupChevronOpen}
+            />
           </button>
         }
       />

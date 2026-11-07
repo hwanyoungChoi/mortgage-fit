@@ -88,7 +88,7 @@ function findGroup(groups: readonly InteriorPlanRowGroup[], id: UniqueIdentifier
  * [+]는 하단 탭 알약 오른쪽 옆에 고정이라 줄 수·스크롤과 상관없이 같은 자리다. 목록 보기에만 있다.
  * 시트가 열리면 이 화면과 함께 inert다.
  * 줄 DOM은 key `item.id:quote.id`로 유지돼 저장·폴링 뒤에도 다시 마운트되지 않는다(스크롤 위치 유지).
- * 묶음 제목을 짧게 누르면(엔터) 그 묶음을 접고 편다(이 기기에 계획별로 기억).
+ * 묶음 제목 줄 오른쪽 끝 화살표로 그 묶음을 접고 편다(이 기기에 계획별로 기억).
  * 줄을 꾹 눌러(키보드는 스페이스) 같은 묶음 안에서 옮기고, 묶음 제목을 꾹 눌러 묶음을 통째로 옮긴다. 든 동안에는 든 순간의 묶음을 그린다(재조회로 줄이 바뀌어도
  * 끄는 줄이 밀리지 않게, 놓은 뒤 반영). 놓을 때 저장 값은 그 스냅샷과 놓는 순간의 묶음으로 만든다(`lineOrderAfterMove`).
  */
@@ -119,7 +119,7 @@ function PlanLines({
     activeKey === null || dragKind !== "line" ? null : findLine(shownGroups, activeKey);
   const activeGroup =
     activeKey === null || dragKind !== "group" ? null : findGroup(shownGroups, activeKey);
-  // 뜬 묶음은 접혀 있으면 제목 줄만 그린다(빈 자리와 같은 크기). 든 동안에는 click이 없어 접힘이 바뀌지 않는다
+  // 뜬 묶음은 접혀 있으면 제목 줄만 그린다(빈 자리와 같은 크기)
   const isActiveGroupCollapsed =
     activeGroup !== null && collapsedTrades.has(activeGroup.group.trade);
 

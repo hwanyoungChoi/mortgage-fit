@@ -242,6 +242,7 @@ function MortgageHome({
     if (openSheet.rowKey !== null && row === null) {
       return <MissingSheet message={missingMessages.item} onClose={sheet.close} />;
     }
+    const trades = groups.map((group) => group.trade);
     const closeIfOk = (result: InteriorPlanSourceWriteResult) => {
       if (result.ok) sheet.close();
       return result;
@@ -251,11 +252,11 @@ function MortgageHome({
     return (
       <ItemSheet
         key={itemSheetVersion}
-        tradeSuggestions={groups.map((group) => group.trade)}
+        tradeSuggestions={trades}
         row={row}
         initialTrade={openSheet.trade}
-        onSave={async (values, openedRow) =>
-          closeIfOk(
+        onSave={async (values, openedRow) => {
+          const result =
             openedRow === null
               ? await source.addItem(
                   plan.id,
@@ -271,9 +272,18 @@ function MortgageHome({
                     createRandomId,
                   ),
                   openedRow.item.updatedAt,
-                ),
-          )
-        }
+                );
+          // 저장한 줄의 묶음이 접혀 있으면 펼친다(방금 저장한 줄이 보이게, U5). 새 줄·고친 줄 같다. 구분은 검증에서 이미 trim됐다.
+          if (result.ok) {
+            groupCollapseStore.setCollapsed({
+              planId: plan.id,
+              trade: values.trade,
+              isCollapsed: false,
+              presentTrades: trades,
+            });
+          }
+          return closeIfOk(result);
+        }}
         onReload={() => setItemSheetVersion((version) => version + 1)}
         onDelete={async (removal, openedItem) =>
           closeIfOk(

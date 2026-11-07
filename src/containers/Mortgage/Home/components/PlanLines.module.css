@@ -2,6 +2,8 @@
 .lines {
   /* 확정·완료 칸 하나의 폭. 묶음 합계를 줄 금액 열에 맞출 때도 쓴다. */
   --check-column: 40px;
+  /* 묶음 제목 줄 오른쪽 끝 접기 화살표 버튼의 폭(누를 자리 48px) */
+  --group-toggle-width: 48px;
 
   display: flex;
   flex-direction: column;
@@ -74,10 +76,15 @@
   background: var(--color-surface);
 }
 
-/* 묶음 머리: 제목이 남는 너비를 갖고 확정 합계는 오른쪽 끝에 붙는다(제목 칸 = 손잡이 누를 자리는 그대로). */
+/*
+ * 묶음 머리: 제목이 남는 너비를 갖고 확정 합계는 오른쪽에 붙는다(제목 칸 = 손잡이 누를 자리는 그대로).
+ * 오른쪽 끝은 접기 화살표 자리다. 화살표가 없는 뜬 묶음도 자리를 비워 합계가 같은 곳에 선다.
+ */
 .groupHeader {
+  position: relative;
   display: flex;
   align-items: baseline;
+  padding-right: var(--group-toggle-width);
 }
 
 .groupTitle {
@@ -89,10 +96,11 @@
   overflow-wrap: anywhere;
 }
 
-/* 확정 합계: 줄 금액과 같은 숫자 모양. 확정·완료 두 칸만큼 비워 줄 금액 열과 자리를 맞춘다. */
+/* 확정 합계: 줄 금액과 같은 숫자 모양. 확정·완료 두 칸만큼(화살표 자리 포함) 비워 줄 금액 열과 자리를 맞춘다. */
 .groupTotal {
   flex: none;
-  padding: var(--space-2) calc(2 * var(--check-column) + var(--space-1)) var(--space-1) 0;
+  padding: var(--space-2) calc(2 * var(--check-column) + var(--space-1) - var(--group-toggle-width))
+    var(--space-1) 0;
   font-size: var(--fs-section);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -105,9 +113,8 @@
 }
 
 /*
- * 묶음 제목 버튼. 짧게 누르면(엔터) 접고 펴고, 묶음 2개 이상이면 꾹 눌러(스페이스) 묶음을 든다.
- * 제목 칸 전체가 누를 자리가 되도록 제목의 여백을 버튼이 가져간다.
- * 길게 누를 때 글자 선택·iOS 메뉴가 뜨지 않게 한다(줄 여는 버튼과 같은 설정).
+ * 묶음을 드는 손잡이(묶음 2개 이상). 제목 칸 전체가 누를 자리가 되도록 제목의 여백을 버튼이 가져간다.
+ * 길게 누를 때 글자 선택·iOS 메뉴가 뜨지 않게 한다(줄 여는 버튼과 같은 설정). 짧게 누르면 아무 일도 없다.
  */
 .groupHandle {
   display: block;
@@ -135,19 +142,44 @@
   color: var(--color-text-muted);
   font-size: var(--fs-small);
   font-weight: 500;
+  white-space: nowrap;
 }
 
-/* 제목 글자 뒤 꺾쇠(저장 목록 간단히 보기와 같은 모양). 펼침 = 아래, 접힘 = 오른쪽 */
-.groupChevron {
-  margin-left: var(--space-1);
+/*
+ * 접기 화살표: 제목 줄 오른쪽 끝, 카드 위 끝부터 제목 줄 아래까지(최소 44px)가 누를 자리다.
+ * 제목이 여러 줄로 감겨도 오른쪽 끝 자리는 그대로다.
+ */
+.groupToggle {
+  position: absolute;
+  top: calc(-1 * var(--space-2));
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--group-toggle-width);
+  height: calc(100% + var(--space-2));
+  min-height: 44px;
+  /* 카드 위 여백만큼 내려 화살표가 제목 글자 높이에 오게 한다 */
+  padding: var(--space-2) 0 0;
+  border: 0;
+  background: none;
   color: var(--color-text-muted);
-  vertical-align: -3px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.groupToggle:focus-visible {
+  outline-offset: -2px;
+}
+
+/* 매물 간단히 보기와 같은 방향: 접힘 = 아래(∨), 펼침 = 위(∧) */
+.groupChevron {
   transition: transform 0.15s;
 }
 
-.groupChevronCollapsed {
+.groupChevronOpen {
   composes: groupChevron;
-  transform: rotate(-90deg);
+  transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {

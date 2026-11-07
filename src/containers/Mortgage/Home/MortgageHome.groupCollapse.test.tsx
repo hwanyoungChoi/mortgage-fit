@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-// 스펙 interior-group-collapse 태스크 1-3: 접고 펴기(AC-1)·스페이스 들기→놓기 뒤 aria-expanded 불변과 접힌 묶음 옮기기(AC-2)·
-// 다시 마운트 복원(AC-3)·손상 원문(AC-4)·다른 키와 API 무변화(AC-7).
-// 꾹 눌러 끈 뒤 click 억제·VoiceOver 낭독·360px 모양은 사람 확인이다(합성 이벤트로 못 본다).
-import { act, render, screen, waitFor } from "@testing-library/react";
+// 스펙 interior-group-collapse: 오른쪽 끝 화살표로 접고 펴기(AC-1)·제목 스페이스 들기→놓기 뒤 접힘 불변과 접힌 묶음 옮기기(AC-2)·
+// 다시 마운트 복원(AC-3)·손상 원문(AC-4)·다른 키와 API 무변화(AC-7)·줄 저장 뒤 자동 펼침(AC-5·AC-6).
+// 화살표를 꾹 눌러도 묶음이 들리지 않는지·VoiceOver 낭독·360px 모양은 사람 확인이다(합성 이벤트로 못 본다).
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,7 +13,7 @@ import { PRIVACY_MODE_STORAGE_KEY } from "@/lib/utils/privacyModeStorage";
 import { TEXT_SIZE_STORAGE_KEY } from "@/lib/utils/textSizeStorage";
 import { createFakePlanApi } from "@/test/fakePlanApi";
 import { toStoredPlans } from "@/test/interiorPlanFixture";
-import { makeSimplePlanP } from "@/test/interiorSimpleFixture";
+import { makeSimplePlanP, r1, r3, r4, r5 } from "@/test/interiorSimpleFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
 import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 
@@ -77,9 +77,13 @@ const seedPlanP = (extra: Record<string, string> = {}) =>
     ...extra,
   });
 
-/** 묶음 제목 버튼(접히면 이름 뒤에 "· n줄"이 붙는다) */
-const groupButton = (trade: string) =>
+/** 묶음 제목 = 묶음 끌기 손잡이(접히면 이름 뒤에 "· n줄"이 붙는다) */
+const groupHandle = (trade: string) =>
   screen.getByRole("button", { name: new RegExp(`^${trade}( · \\d+줄)?$`) });
+
+/** 제목 줄 오른쪽 끝 접기 화살표 */
+const toggleButton = (trade: string) =>
+  screen.getByRole("button", { name: `${trade} 접기/펼치기` });
 
 const loanCalculatorKeys = (storage: Storage) => {
   const entries: [string, string | null][] = [];
@@ -111,68 +115,73 @@ afterEach(() => {
 });
 
 describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
-  it("AC-1·AC-3: 클릭·엔터로 접고 펴고, 원문 {plan:[도배]}, 다시 마운트·[표]→[목록] 뒤에도 접혀 있다", async () => {
+  it("AC-1·AC-3: 제목을 눌러도 그대로, 화살표 클릭·엔터로 접고 펴고, 원문 {plan:[도배]}, 다시 마운트·[표]→[목록] 뒤에도 접혀 있다", async () => {
     const user = userEvent.setup();
     const storage = seedPlanP();
     const { unmount } = await renderLoggedOut(storage);
 
-    await user.click(groupButton("도배"));
-    const doBae = groupButton("도배");
+    await user.click(groupHandle("도배"));
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(toggleButton("도배"));
+    const doBae = toggleButton("도배");
     expect(doBae).toHaveAttribute("aria-expanded", "false");
-    expect(doBae).toHaveAccessibleName("도배 · 2줄");
+    expect(groupHandle("도배")).toHaveAccessibleName("도배 · 2줄");
     expect(document.getElementById(doBae.getAttribute("aria-controls") ?? "")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: R1 })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /도배에 줄 추가/ })).not.toBeInTheDocument();
-    expect(groupButton("욕실")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "true");
     expect(storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY)).toBe('{"plan-simple":["도배"]}');
 
     await user.click(screen.getByRole("radio", { name: "표" }));
     await user.click(screen.getByRole("radio", { name: "목록" }));
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
 
     unmount();
     await renderLoggedOut(storage);
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
 
-    groupButton("도배").focus();
+    toggleButton("도배").focus();
     await user.keyboard("{Enter}");
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("button", { name: R1 })).toBeInTheDocument();
     expect(storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY)).toBe("{}");
   });
 
-  it("AC-2: 제목에서 스페이스 들기 → 스페이스 놓기 뒤 aria-expanded가 그대로다(펼침·접힘 모두)", async () => {
+  it("AC-2: 제목에서 스페이스 들기 → 놓기 뒤 접힘이 그대로고, 화살표에서 스페이스는 들지 않고 접는다", async () => {
     const user = userEvent.setup();
     const storage = seedPlanP();
     await renderLoggedOut(storage);
 
-    groupButton("도배").focus();
+    groupHandle("도배").focus();
     await user.keyboard(" ");
-    expect(groupButton("도배")).toHaveAttribute("aria-pressed", "true");
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "true");
+    expect(groupHandle("도배")).toHaveAttribute("aria-pressed", "true");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
     await user.keyboard(" ");
-    await waitFor(() => expect(groupButton("도배")).not.toHaveAttribute("aria-pressed", "true"));
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => expect(groupHandle("도배")).not.toHaveAttribute("aria-pressed", "true"));
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
 
-    await user.click(groupButton("욕실"));
-    groupButton("욕실").focus();
+    toggleButton("욕실").focus();
     await user.keyboard(" ");
-    expect(groupButton("욕실")).toHaveAttribute("aria-pressed", "true");
-    expect(groupButton("욕실")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "false");
+    expect(groupHandle("욕실")).not.toHaveAttribute("aria-pressed", "true");
+    groupHandle("욕실").focus();
     await user.keyboard(" ");
-    await waitFor(() => expect(groupButton("욕실")).not.toHaveAttribute("aria-pressed", "true"));
-    expect(groupButton("욕실")).toHaveAttribute("aria-expanded", "false");
+    expect(groupHandle("욕실")).toHaveAttribute("aria-pressed", "true");
+    await user.keyboard(" ");
+    await waitFor(() => expect(groupHandle("욕실")).not.toHaveAttribute("aria-pressed", "true"));
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "false");
   });
 
   it("AC-2: 접힌 욕실을 들면 뜬 묶음에 줄 글자가 없고, 위로 옮겨 놓으면 순서가 저장되고 접힘은 그대로다", async () => {
     const user = userEvent.setup();
     const storage = seedPlanP();
     await renderLoggedOut(storage);
-    await user.click(groupButton("욕실"));
+    await user.click(toggleButton("욕실"));
 
-    groupButton("욕실").focus();
+    groupHandle("욕실").focus();
     await user.keyboard(" ");
-    expect(groupButton("욕실")).toHaveAttribute("aria-pressed", "true");
+    expect(groupHandle("욕실")).toHaveAttribute("aria-pressed", "true");
     const lifted = document.querySelector('[class*="liftedGroup"]');
     expect(lifted).toHaveTextContent("욕실 · 3줄");
     expect(lifted).not.toHaveTextContent("하루바스");
@@ -191,12 +200,12 @@ describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
         "r2:rq2",
       ]),
     );
-    const titles = screen.getAllByRole("button", { name: /^(도배|욕실)( · \d+줄)?$/ });
-    expect(titles.map((title) => title.getAttribute("aria-expanded"))).toStrictEqual([
+    const toggles = screen.getAllByRole("button", { name: /접기\/펼치기$/ });
+    expect(toggles.map((toggle) => toggle.getAttribute("aria-expanded"))).toStrictEqual([
       "false",
       "true",
     ]);
-    expect(titles[0]).toHaveAccessibleName("욕실 · 3줄");
+    expect(toggles[0]).toHaveAccessibleName("욕실 접기/펼치기");
   });
 
   it("AC-4: 원문 {plan:[1,도배]}는 도배만 접힘이고 console.error가 없다", async () => {
@@ -204,8 +213,8 @@ describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
     await renderLoggedOut(
       seedPlanP({ [INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY]: '{"plan-simple":[1,"도배"]}' }),
     );
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "false");
-    expect(groupButton("욕실")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "true");
     expect(consoleError).not.toHaveBeenCalled();
   });
 
@@ -224,9 +233,9 @@ describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
 
     const before = loanCalculatorKeys(storage);
     const callCount = api.server.calls.length;
-    await user.click(groupButton("도배"));
-    await user.click(groupButton("욕실"));
-    await user.click(groupButton("도배"));
+    await user.click(toggleButton("도배"));
+    await user.click(toggleButton("욕실"));
+    await user.click(toggleButton("도배"));
 
     expect(api.server.calls).toHaveLength(callCount);
     const after = loanCalculatorKeys(storage);
@@ -237,5 +246,88 @@ describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
     expect(after[INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY]).toBe(
       '{"other-plan":["주방"],"plan-simple":["욕실"]}',
     );
+  });
+});
+
+describe("줄 저장 뒤 자동 펼침 (U5)", () => {
+  const collapsedRaw = (storage: Storage) => storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY);
+  const tradeField = (dialog: HTMLElement) => within(dialog).getByLabelText("구분");
+
+  async function saveAndClose(user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) {
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  }
+
+  it("AC-6: 도배를 접고 떠 있는 [+]로 도배 새 줄 저장 — 실패하면 접힌 그대로, 성공하면 펼쳐지고 새 줄이 보이며 원문에서 빠진다", async () => {
+    const user = userEvent.setup();
+    const storage = seedPlanP();
+    await renderLoggedOut(storage);
+    await user.click(toggleButton("도배"));
+
+    await user.click(screen.getByRole("button", { name: "줄 추가" }));
+    const dialog = screen.getByRole("dialog", { name: "줄 추가" });
+    await user.type(tradeField(dialog), "도배");
+    await user.type(within(dialog).getByLabelText("업체(비우면 미정)"), "가나도배");
+    const setItem = storage.setItem.bind(storage);
+    const failPlanWrite = vi.spyOn(storage, "setItem").mockImplementation((key, value) => {
+      if (key === INTERIOR_PLANS_STORAGE_KEY) throw new Error("QuotaExceededError");
+      setItem(key, value);
+    });
+    await user.click(within(dialog).getByRole("button", { name: "저장" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(/^저장하지 못했습니다/);
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(collapsedRaw(storage)).toBe('{"plan-simple":["도배"]}');
+
+    failPlanWrite.mockRestore();
+    await saveAndClose(user, dialog);
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^도배 가나도배/ })).toBeInTheDocument();
+    expect(collapsedRaw(storage)).toBe("{}");
+  });
+
+  it("AC-6: 고친 줄의 구분을 접힌 묶음(욕실)으로 바꿔 저장하면 욕실이 펼쳐지고 그 줄이 욕실에 보인다", async () => {
+    const user = userEvent.setup();
+    const storage = seedPlanP();
+    await renderLoggedOut(storage);
+    await user.click(toggleButton("욕실"));
+
+    await user.click(screen.getByRole("button", { name: R1 }));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(tradeField(dialog));
+    await user.type(tradeField(dialog), "욕실");
+    await saveAndClose(user, dialog);
+
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "true");
+    expect(
+      within(screen.getByRole("region", { name: "욕실" })).getByRole("button", {
+        name: "욕실 육문수 실크 전체 열기",
+      }),
+    ).toBeInTheDocument();
+    expect(collapsedRaw(storage)).toBe("{}");
+  });
+
+  it("AC-5: 줄 하나뿐인 도배를 벽지로 바꿔 저장하면 벽지는 펼침, 접힌 욕실은 그대로, 다음 접기 때 없는 구분은 원문에서 빠진다", async () => {
+    // 접힌 묶음의 줄은 그려지지 않아 시트로 열 수 없다(U6). 지금 화면에 없는 구분은 원문에 남은 옛 이름(주방)으로 둔다.
+    const user = userEvent.setup();
+    const storage = createMemoryStorage({
+      [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans([
+        makeSimplePlanP({ items: [r1(), r3(), r4(), r5()] }),
+      ]),
+      [INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY]: '{"plan-simple":["주방","욕실"]}',
+    });
+    await renderLoggedOut(storage);
+
+    await user.click(screen.getByRole("button", { name: R1 }));
+    const dialog = screen.getByRole("dialog", { name: "줄" });
+    await user.clear(tradeField(dialog));
+    await user.type(tradeField(dialog), "벽지");
+    await saveAndClose(user, dialog);
+
+    expect(screen.queryByRole("region", { name: "도배" })).not.toBeInTheDocument();
+    expect(toggleButton("벽지")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(toggleButton("벽지"));
+    expect(collapsedRaw(storage)).toBe('{"plan-simple":["욕실","벽지"]}');
   });
 });

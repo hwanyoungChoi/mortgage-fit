@@ -352,3 +352,6 @@
 {"ts":"2026-11-07T07:20:39.460Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"row.key"}
 {"ts":"2026-11-07T07:26:31.749Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
 {"ts":"2026-11-07T07:28:07.485Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
+{"ts":"2026-11-07T07:32:53.355Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-07T07:32:53.380Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-07T07:43:55.412Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}

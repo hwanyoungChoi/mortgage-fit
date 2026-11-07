@@ -4,7 +4,7 @@ export type CollapsedGroupsByPlan = ReadonlyMap<string, readonly string[]>;
 export type InteriorGroupCollapseStore = {
   getSnapshot: () => CollapsedGroupsByPlan;
   subscribe: (listener: () => void) => () => void;
-  /** 그 계획의 한 묶음을 접거나 편다. 쓸 때 `presentTrades`(지금 화면의 묶음)에 없는 구분은 정리한다 */
+  /** 그 계획의 한 묶음을 접거나 편다(이미 그 상태면 아무것도 안 한다). 쓸 때 `presentTrades`(지금 화면의 묶음)에 없는 구분은 정리한다 */
   setCollapsed: (input: {
     planId: string;
     trade: string;

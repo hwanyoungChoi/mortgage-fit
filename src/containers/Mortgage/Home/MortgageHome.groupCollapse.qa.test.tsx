@@ -41,8 +41,9 @@ async function renderPlan(plan: InteriorPlanWithItems, extra: Record<string, str
   return { storage, fetchMock };
 }
 
-const groupButton = (trade: string) =>
-  screen.getByRole("button", { name: new RegExp(`^${trade}( · \\d+줄)?$`) });
+/** 제목 줄 오른쪽 끝 접기 화살표 */
+const toggleButton = (trade: string) =>
+  screen.getByRole("button", { name: `${trade} 접기/펼치기` });
 
 const loanCalculatorKeys = (storage: Storage) => {
   const entries: [string, string | null][] = [];
@@ -72,10 +73,10 @@ describe("묶음 접기 qa 보강", () => {
 
     const before = loanCalculatorKeys(storage);
     const fetchCount = fetchMock.mock.calls.length;
-    await user.click(groupButton("도배"));
-    groupButton("욕실").focus();
+    await user.click(toggleButton("도배"));
+    toggleButton("욕실").focus();
     await user.keyboard("{Enter}");
-    await user.click(groupButton("도배"));
+    await user.click(toggleButton("도배"));
 
     expect(fetchMock).toHaveBeenCalledTimes(fetchCount);
     const after = loanCalculatorKeys(storage);
@@ -92,20 +93,20 @@ describe("묶음 접기 qa 보강", () => {
     expect(screen.getByRole("table").textContent).toBe(tableText);
   });
 
-  it("AC-1(묶음 1개): 제목은 끌기 속성 없는 버튼이고 엔터·스페이스 둘 다로 접고 편다", async () => {
+  it("AC-1(묶음 1개): 제목은 버튼이 아닌 글자이고, 화살표는 엔터·스페이스 둘 다로 접고 편다", async () => {
     const user = userEvent.setup();
     await renderPlan(makeSimplePlanP({ items: [r1(), r2()] }));
 
-    const title = groupButton("도배");
-    expect(title).not.toHaveAttribute("aria-roledescription");
-    expect(title).toHaveAttribute("aria-expanded", "true");
-    title.focus();
+    expect(screen.queryByRole("button", { name: /^도배( · \d+줄)?$/ })).not.toBeInTheDocument();
+    const toggle = toggleButton("도배");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    toggle.focus();
     await user.keyboard(" ");
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "false");
-    expect(groupButton("도배")).toHaveAccessibleName("도배 · 2줄");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("heading", { name: "도배 · 2줄" })).toBeInTheDocument();
     await user.keyboard("{Enter}");
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
     await user.keyboard(" ");
-    expect(groupButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
   });
 });
