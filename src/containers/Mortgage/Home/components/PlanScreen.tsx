@@ -12,6 +12,7 @@ import PlanTableView from "./PlanTableView";
 
 import type { LineCheck } from "../hooks/useLineConfirmToggle";
 import type { LinkedListing } from "../linkedListing";
+import type { InteriorGroupCollapseStore } from "@/lib/types/interiorGroupCollapse";
 import type { InteriorItem, InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { InteriorPlanSourceWriteResult } from "@/lib/types/interiorPlanStore";
 import type { HomeView } from "@/lib/types/route";
@@ -22,6 +23,8 @@ type PlanScreenProps = {
   /** 연결된 매물. 매물 목록이 확정 로드되기 전(unknown)에는 아무것도 보이지 않는다 */
   linkedListing: LinkedListing;
   view: HomeView;
+  /** 목록 보기에서 접은 묶음(이 기기) */
+  groupCollapseStore: InteriorGroupCollapseStore;
   onViewChange: (view: HomeView) => void;
   /** `isBudget`면 [총 예산 입력]으로 열었다(예산 칸에서 시작) */
   onSettingsOpen: (button: HTMLButtonElement, isBudget: boolean) => void;
@@ -68,6 +71,7 @@ function PlanScreen({
   plan,
   linkedListing,
   view,
+  groupCollapseStore,
   onViewChange,
   onSettingsOpen,
   onLineOpen,
@@ -131,7 +135,9 @@ function PlanScreen({
         // 계획을 바꾸면 안내 줄·든 줄을 새로 시작한다
         <PlanLines
           key={plan.id}
+          planId={plan.id}
           groups={rows.groups}
+          groupCollapseStore={groupCollapseStore}
           canAddLine={canAddLine}
           canReorder={pendingLineOrder === null}
           onReorder={handleReorder}

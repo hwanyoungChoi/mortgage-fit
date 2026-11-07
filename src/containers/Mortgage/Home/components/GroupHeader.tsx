@@ -7,7 +7,7 @@ import type { InteriorPlanRowGroup } from "@/lib/utils/interiorPlanRows";
 import type { ReactNode } from "react";
 
 /**
- * 묶음 머리: 왼쪽 제목(`title`, 묶음 손잡이 버튼이거나 구분 글자) + 오른쪽 끝 확정 합계.
+ * 묶음 머리: 왼쪽 제목(`title`, 목록은 접기·끌기 제목 버튼, 뜬 묶음은 버튼 없는 글자) + 오른쪽 끝 확정 합계.
  * 확정이고 금액이 있는 줄이 없으면 합계를 그리지 않는다. 목록 묶음과 끄는 동안 뜬 묶음이 같이 쓴다.
  */
 function GroupHeader({
