@@ -62,6 +62,24 @@
   font-size: var(--fs-body);
 }
 
+/* 목록 위 오른쪽 [모두 접기]/[모두 펴기]: 흐린 글자 버튼, 누를 자리 높이 44px. 아래 묶음 간격을 줄여 목록에 붙인다. */
+.collapseAll {
+  display: inline-flex;
+  align-self: flex-end;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-2));
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .groups {
   display: flex;
   flex-direction: column;

@@ -24,5 +24,10 @@ export function useGroupCollapse(
       presentTrades,
     });
 
-  return { collapsedTrades, toggle };
+  const isAllCollapsed =
+    presentTrades.length > 0 && presentTrades.every((trade) => collapsedTrades.has(trade));
+  const toggleAll = () =>
+    store.setAllCollapsed({ planId, isCollapsed: !isAllCollapsed, presentTrades });
+
+  return { collapsedTrades, toggle, isAllCollapsed, toggleAll };
 }

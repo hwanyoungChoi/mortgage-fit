@@ -50,7 +50,7 @@ function collapsedTradesAfter(
 
 /**
  * 메모리 상태가 원본이고 storage에는 최선으로 기록한다(접근 불가·용량 초과면 이 탭에서만 유지, 안내 없음).
- * 접고 펼 때(줄 저장 뒤 자동 펼침 포함)만 쓴다. 다른 탭의 변경은 다음 마운트 때 읽는다.
+ * 접고 펼 때(모두 접기·펴기, 줄 저장 뒤 자동 펼침 포함)만 쓴다. 다른 탭의 변경은 다음 마운트 때 읽는다.
  */
 export function createInteriorGroupCollapseStore({
   storage,
@@ -59,6 +59,22 @@ export function createInteriorGroupCollapseStore({
 }): InteriorGroupCollapseStore {
   const listeners = new Set<() => void>();
   let collapsedByPlan: CollapsedGroupsByPlan = loadCollapsedGroups(storage);
+
+  const write = (planId: string, trades: readonly string[]) => {
+    const next = new Map(collapsedByPlan);
+    if (trades.length === 0) next.delete(planId);
+    else next.set(planId, trades);
+    collapsedByPlan = next;
+    for (const listener of listeners) listener();
+    try {
+      storage.setItem(
+        INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY,
+        JSON.stringify(Object.fromEntries(next)),
+      );
+    } catch {
+      // 접근 불가·용량 초과: 이 탭에서만 유지한다.
+    }
+  };
 
   return {
     getSnapshot: () => collapsedByPlan,
@@ -72,20 +88,16 @@ export function createInteriorGroupCollapseStore({
       const current = collapsedByPlan.get(planId) ?? [];
       // 이미 그 상태면 쓰지 않는다(펼친 묶음에 줄을 저장해도 원문이 그대로다)
       if (current.includes(trade) === isCollapsed) return;
-      const trades = collapsedTradesAfter(current, trade, isCollapsed, presentTrades);
-      const next = new Map(collapsedByPlan);
-      if (trades.length === 0) next.delete(planId);
-      else next.set(planId, trades);
-      collapsedByPlan = next;
-      for (const listener of listeners) listener();
-      try {
-        storage.setItem(
-          INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY,
-          JSON.stringify(Object.fromEntries(next)),
-        );
-      } catch {
-        // 접근 불가·용량 초과: 이 탭에서만 유지한다.
+      write(planId, collapsedTradesAfter(current, trade, isCollapsed, presentTrades));
+    },
+    setAllCollapsed({ planId, isCollapsed, presentTrades }) {
+      const current = collapsedByPlan.get(planId) ?? [];
+      const trades = isCollapsed ? [...presentTrades] : [];
+      // 이미 그 상태면 쓰지 않는다
+      if (current.length === trades.length && trades.every((trade) => current.includes(trade))) {
+        return;
       }
+      write(planId, trades);
     },
   };
 }

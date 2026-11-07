@@ -11,4 +11,10 @@ export type InteriorGroupCollapseStore = {
     isCollapsed: boolean;
     presentTrades: readonly string[];
   }) => void;
+  /** 그 계획의 묶음을 한꺼번에 접거나 편다. 접으면 `presentTrades`(지금 화면의 묶음) 전부가 접힌다 */
+  setAllCollapsed: (input: {
+    planId: string;
+    isCollapsed: boolean;
+    presentTrades: readonly string[];
+  }) => void;
 };
