@@ -42,7 +42,7 @@ type InteriorPlanListOptions = {
   refetchInterval: number | false;
 };
 
-/** 로그인 상태의 인테리어 계획(서버 원본). 창으로 돌아올 때마다 다시 조회하고, 함께 쓰는 중이면 주기적으로도 조회한다. */
+/** 로그인 상태의 예산 계획(서버 원본). 창으로 돌아올 때마다 다시 조회하고, 함께 쓰는 중이면 주기적으로도 조회한다. */
 export function useInteriorPlanList({ enabled, refetchInterval }: InteriorPlanListOptions) {
   return useQuery({
     queryKey: interiorPlanListQueryKey(),

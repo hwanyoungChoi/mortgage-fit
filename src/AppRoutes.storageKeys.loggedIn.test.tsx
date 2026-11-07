@@ -231,7 +231,7 @@ describe("AC-0(c)(g) 로그인 상태에서도 기존 12개 키는 그대로", (
       expect(api.callsTo("POST", path)).toHaveLength(0);
     }
     expect(confirm).not.toHaveBeenCalled();
-    expect(screen.queryByText("이 기기의 인테리어 계획을 계정으로 옮겼습니다")).toBeNull();
+    expect(screen.queryByText("이 기기의 예산 계획을 계정으로 옮겼습니다")).toBeNull();
     expectOnlySessionHintMark(forbiddenWrites());
     for (const key of LEGACY_KEYS) expect(storage.getItem(key)).toBe(seed[key]);
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(seed[INTERIOR_PLANS_STORAGE_KEY]);

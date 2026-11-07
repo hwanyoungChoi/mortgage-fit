@@ -38,7 +38,7 @@ const storageWith = (plans: InteriorPlanWithItems[]) =>
   createMemoryStorage({ [INTERIOR_PLANS_STORAGE_KEY]: toStoredPlans(plans) });
 
 const waitForPlans = () =>
-  waitFor(() => expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument());
+  waitFor(() => expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument());
 
 async function renderLoggedOut(storage: Storage, hash = P_HASH) {
   stubLoggedOutApi();
@@ -152,7 +152,7 @@ describe("목록 (예시 V, AC-1)", () => {
     render(<AppRoutes storage={createMemoryStorage()} />, { wrapper: api.wrapper });
     await waitForPlans();
     await screen.findByRole("button", { name: `${R9_NAME} 열기` });
-    expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
     expectVList();
     expect(api.writes()).toStrictEqual([]);
   });
@@ -267,8 +267,7 @@ describe("허브 (AC-1)", () => {
     const api = createFakePlanApi({ userId: null, plans: [] });
     window.location.hash = "#/";
     render(<AppRoutes storage={storageWith([makePlanV()])} />, { wrapper: api.wrapper });
-    const card = () =>
-      within(screen.getByRole("main")).getByRole("link", { name: "인테리어 계획" });
+    const card = () => within(screen.getByRole("main")).getByRole("link", { name: "예산 계획" });
     await waitFor(() =>
       expect(card()).toHaveAccessibleDescription("우리 집 · 지출 예정 8,300,000원 · 미정 1건"),
     );

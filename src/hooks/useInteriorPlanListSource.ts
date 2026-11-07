@@ -46,7 +46,7 @@ function isUnauthorized(error: unknown): boolean {
 }
 
 /**
- * 인테리어 계획 목록의 출처(로그아웃: 로컬 스토어 / 로그인: 서버). [예산]과 홈이 같이 쓴다.
+ * 예산 계획 목록의 출처(로그아웃: 로컬 스토어 / 로그인: 서버). [예산]과 홈이 같이 쓴다.
  * 저장소에는 쓰지 않는다. 세션 종료(401)만 `session-hint`를 지운다(기존 예외).
  */
 export function useInteriorPlanListSource({

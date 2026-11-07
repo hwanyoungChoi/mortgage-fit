@@ -116,9 +116,9 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   // [예산]에 한 번 보일 알림. 매물 이전 알림(저장 목록)과 따로 두어 서로 덮지 않는다.
   const [homeNotice, setHomeNotice] = useState<string | null>(null);
   const handleInteriorPlanImported = useCallback(() => {
-    setHomeNotice("이 기기의 인테리어 계획을 계정으로 옮겼습니다");
+    setHomeNotice("이 기기의 예산 계획을 계정으로 옮겼습니다");
   }, []);
-  // 로그인 확인 직후 이 기기의 인테리어 계획을 계정으로 옮긴다. 매물 이전과 같은 자리(화면들 위)에서 한 번만 한다.
+  // 로그인 확인 직후 이 기기의 예산 계획을 계정으로 옮긴다. 매물 이전과 같은 자리(화면들 위)에서 한 번만 한다.
   const planImport = useInteriorPlanImport({
     interiorPlanStore,
     interiorPlanImportStore,

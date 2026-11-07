@@ -95,12 +95,12 @@ async function expandCard(user: User, name: string) {
   await user.click(
     await within(list).findByRole("button", { name: new RegExp(`^${name}`), expanded: false }),
   );
-  return screen.findByRole("link", { name: `${name} 인테리어 계획` });
+  return screen.findByRole("link", { name: `${name} 예산 계획` });
 }
 
 async function createFromCard(user: User, api: FakePlanApi, { keepImport = true } = {}) {
   await user.click(await expandCard(user, "래미안 84"));
-  const sheet = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+  const sheet = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
   if (!keepImport) {
     await user.click(
       within(sheet).getByRole("checkbox", { name: "추가 비용 인테리어 2줄 가져오기" }),
@@ -126,7 +126,7 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     window.location.hash = "#/";
   });
 
-  it("카드 단독: 렌더·[인테리어 계획] 클릭 동안 fetch 0회(계획 쿼리 없음)", async () => {
+  it("카드 단독: 렌더·[예산 계획] 클릭 동안 fetch 0회(계획 쿼리 없음)", async () => {
     const user = userEvent.setup();
     const { api } = setUp();
     window.location.hash = "#/listings";
@@ -149,7 +149,7 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
       />,
       { wrapper: api.wrapper },
     );
-    const link = screen.getByRole("link", { name: "래미안 84 인테리어 계획" });
+    const link = screen.getByRole("link", { name: "래미안 84 예산 계획" });
     await user.click(link);
     await waitFor(() => expect(window.location.hash).toBe(`#/home?listing=${RAEMIAN_ID}`));
     expect(api.fetchMock).not.toHaveBeenCalled();
@@ -166,7 +166,7 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     expect(planListGets(api)).toHaveLength(0);
 
     await user.click(link);
-    expect(await screen.findByRole("dialog", { name: "인테리어 계획 만들기" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "예산 계획 만들기" })).toBeInTheDocument();
     expect(planListGets(api)).toHaveLength(1);
     expect(window.location.hash).toBe("#/home");
   });
@@ -249,7 +249,7 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     expect(screen.queryByRole("button", { name: "계획 만들기" })).not.toBeInTheDocument();
 
     listings.resolve(jsonResponse(200, { listings: [raemian, xi] }));
-    const sheet = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+    const sheet = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
     expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");
     await waitFor(() => expect(window.location.hash).toBe("#/home"));
   });

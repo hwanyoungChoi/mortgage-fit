@@ -1,4 +1,4 @@
-// 인테리어 계획 클라이언트 테스트(스펙 interior-planner 태스크 2-3)용 가짜 `/api/*`. 서버처럼 import는 같은 id면
+// 예산 계획 클라이언트 테스트(스펙 interior-planner 태스크 2-3)용 가짜 `/api/*`. 서버처럼 import는 같은 id면
 // `imported: 0`, 가구 구성원이면 409 `inHousehold`로 답하고, 받은 요청을 기록한다. 쓰기는 서버처럼 id·시각을 정한다.
 // `respond`로 특정 요청에 다른 응답(401·404·400·연결 실패)을 끼워 넣는다.
 import { QueryClientProvider } from "@tanstack/react-query";

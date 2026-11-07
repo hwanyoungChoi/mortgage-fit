@@ -153,14 +153,14 @@ async function walkThroughTabs(user: User, mode: FetchMode) {
   await user.click(screen.getByRole("link", { name: "예산" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home"));
   if (mode === "pending") {
-    expect(screen.getByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
+    expect(screen.getByText("예산 계획을 불러오는 중")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "계획 만들기" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "계산" }));
     expect(await screen.findByLabelText("매매가")).toBeInTheDocument();
     return;
   }
   await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-  const createSheet = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+  const createSheet = screen.getByRole("dialog", { name: "예산 계획 만들기" });
   await user.type(within(createSheet).getByRole("textbox", { name: "계획 이름" }), "우리 집");
   await user.click(within(createSheet).getByRole("button", { name: "만들기" }));
   await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));

@@ -162,7 +162,7 @@ describe("다른 시트도 같게 동작한다", () => {
     const storage = createMemoryStorage();
     await renderAppFromHub(storage, "#/home");
     await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-    const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
     await user.type(within(dialog).getByLabelText("계획 이름"), "새 집");
     await user.click(within(dialog).getByRole("button", { name: "만들기" }));
     await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/[0-9a-f]{32}$/));

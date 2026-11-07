@@ -59,7 +59,7 @@ async function renderLoggedOut(storage: Storage, hash = M_HASH) {
   window.location.hash = hash;
   const result = renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return result;
 }
@@ -157,7 +157,7 @@ describe("표 보기·CSV (예시 M, 기기 날짜 2026-10-27)", () => {
   it("칸·계·표 머리가 목록·요약과 같은 숫자, CSV는 PLAN_M_CSV_LINES", async () => {
     const user = userEvent.setup();
     await renderLoggedOut(storageWith([makePlanM()]), M_TABLE_HASH);
-    const table = screen.getByRole("table", { name: "섞인 집 인테리어 계획" });
+    const table = screen.getByRole("table", { name: "섞인 집 예산 계획" });
     expect(tableText(table)).toEqual([
       ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
       ["도배", "육문수", "", "8,000,000", "8,000,000", ""],

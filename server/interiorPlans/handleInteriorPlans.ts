@@ -74,14 +74,14 @@ const toItem = (row: Omit<ItemRow, "plan_user_id" | "plan_id">): InteriorItem =>
 });
 
 const invalidParams = (message: string) => errorResponse(400, "invalidParams", message);
-const invalidPlanId = () => invalidParams("인테리어 계획 id 형식이 올바르지 않습니다");
+const invalidPlanId = () => invalidParams("예산 계획 id 형식이 올바르지 않습니다");
 const invalidItemId = () => invalidParams("항목 id 형식이 올바르지 않습니다");
 const planLimitExceeded = () =>
-  invalidParams(`인테리어 계획은 ${INTERIOR_PLAN_MAX_COUNT}개까지 만들 수 있습니다`);
+  invalidParams(`예산 계획은 ${INTERIOR_PLAN_MAX_COUNT}개까지 만들 수 있습니다`);
 const itemLimitExceeded = () =>
   invalidParams(`계획 하나에 항목은 ${INTERIOR_ITEM_MAX_COUNT}개까지 넣을 수 있습니다`);
 const planNotFound = () =>
-  errorResponse(404, "notFound", "없거나 다른 기기에서 삭제된 인테리어 계획입니다");
+  errorResponse(404, "notFound", "없거나 다른 기기에서 삭제된 예산 계획입니다");
 const itemNotFound = () => errorResponse(404, "notFound", "없거나 다른 기기에서 삭제된 항목입니다");
 
 /**
@@ -273,7 +273,7 @@ export async function importInteriorPlan(
       return errorResponse(
         409,
         "inHousehold",
-        "함께 쓰는 중에는 이 기기의 인테리어 계획을 계정으로 옮기지 않습니다",
+        "함께 쓰는 중에는 이 기기의 예산 계획을 계정으로 옮기지 않습니다",
       );
     }
     if (reason?.isPlanInScope !== 1 && reason?.isOverLimit === 1) return planLimitExceeded();

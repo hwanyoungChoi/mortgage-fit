@@ -23,7 +23,7 @@ type HubAccountProps = {
 function LoginPrompt() {
   return (
     <p className={styles.reason}>
-      로그인하면 저장 목록·인테리어 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요
+      로그인하면 저장 목록·예산 계획을 여러 기기에서 보고, 다른 사람과 함께 쓸 수 있어요
     </p>
   );
 }
@@ -56,7 +56,7 @@ function HouseholdRow({ household, onHouseholdOpen }: HouseholdRowProps) {
       <ChevronRight className={cardStyles.chevron} size={20} aria-hidden="true" />
       <span id={descriptionId} className={cardStyles.description}>
         {household === null
-          ? "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다"
+          ? "초대한 사람과 저장 목록·예산 계획을 함께 씁니다"
           : `${household.memberCount}명이 함께 쓰는 중`}
       </span>
     </button>

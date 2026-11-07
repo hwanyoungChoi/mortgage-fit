@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 스펙 interior-planner AC-6(로그아웃, 로컬 출처): 저장 목록 카드 [인테리어 계획] → `#/home?listing={id}` →
+// 스펙 interior-planner AC-6(로그아웃, 로컬 출처): 저장 목록 카드 [예산 계획] → `#/home?listing={id}` →
 // 만들기 시트(이름·총 예산·"추가 비용 인테리어 n줄 가져오기") → 플랜(전체/도배 300·전체/샷시 1,200·listingId) →
 // 같은 카드는 `#/home/{planId}`로 replace. 매물 원문은 전후 같고, 매물을 지우면 "연결된 매물이 삭제되었습니다".
 import { screen, waitFor, within } from "@testing-library/react";
@@ -83,16 +83,16 @@ async function expandCard(user: User, name: string) {
   await user.click(
     within(list).getByRole("button", { name: new RegExp(`^${name}`), expanded: false }),
   );
-  const link = await screen.findByRole("link", { name: `${name} 인테리어 계획` });
+  const link = await screen.findByRole("link", { name: `${name} 예산 계획` });
   return link.closest("article") as HTMLElement;
 }
 
 async function clickInteriorLink(user: User, name: string) {
   await expandCard(user, name);
-  await user.click(screen.getByRole("link", { name: `${name} 인테리어 계획` }));
+  await user.click(screen.getByRole("link", { name: `${name} 예산 계획` }));
 }
 
-const createSheet = () => screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+const createSheet = () => screen.findByRole("dialog", { name: "예산 계획 만들기" });
 
 /** 요약 줄의 작은 값(총 예산 등) */
 const detailValue = (label: string) =>
@@ -112,14 +112,14 @@ describe("AC-6 매물 카드 → [예산] (로그아웃)", () => {
     window.location.hash = "#/";
   });
 
-  it("카드 링크: 버튼 줄(수정·복사·메모·공유·삭제) 아래 전체 폭 한 줄, href #/home?listing={id}, 접근 이름 '{이름} 인테리어 계획'", async () => {
+  it("카드 링크: 버튼 줄(수정·복사·메모·공유·삭제) 아래 전체 폭 한 줄, href #/home?listing={id}, 접근 이름 '{이름} 예산 계획'", async () => {
     const user = userEvent.setup();
     renderApp(storageWith(), "#/listings");
     const card = await expandCard(user, "래미안 84");
 
-    const link = within(card).getByRole("link", { name: "래미안 84 인테리어 계획" });
+    const link = within(card).getByRole("link", { name: "래미안 84 예산 계획" });
     expect(link).toHaveAttribute("href", `#/home?listing=${RAEMIAN_ID}`);
-    expect(link).toHaveTextContent("인테리어 계획");
+    expect(link).toHaveTextContent("예산 계획");
 
     const deleteButton = within(card).getByRole("button", { name: "래미안 84 삭제" });
     const actionRow = deleteButton.parentElement as HTMLElement;
@@ -346,7 +346,7 @@ describe("AC-6 매물 카드 → [예산] (로그아웃)", () => {
       vi.fn(() => new Promise<Response>(() => {})),
     );
     renderApp(storage, `#/home?listing=${RAEMIAN_ID}`);
-    expect(await screen.findByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
+    expect(await screen.findByText("예산 계획을 불러오는 중")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /A 계획/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.location.hash).toBe(`#/home?listing=${RAEMIAN_ID}`);
@@ -431,7 +431,7 @@ describe("AC-6 매물 카드 → [예산] (로그아웃)", () => {
     expect(screen.getByText("연결된 매물 · 래미안 84")).toBeInTheDocument();
   });
 
-  it("공유 화면의 매물 줄에는 [인테리어 계획] 링크가 없다", async () => {
+  it("공유 화면의 매물 줄에는 [예산 계획] 링크가 없다", async () => {
     const { id: _id, createdAt: _c, updatedAt: _u, ...shared } = raemian;
     void _id;
     void _c;
@@ -462,7 +462,7 @@ describe("AC-6 매물 카드 → [예산] (로그아웃)", () => {
     );
     renderApp(createMemoryStorage(), "#/share/AbCdEfGhIjKlMnOpQrStUv");
     expect(await screen.findByText("래미안 84", { selector: "strong" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /인테리어 계획/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /예산 계획/ })).not.toBeInTheDocument();
     expect(document.querySelector('a[href^="#/home?listing"]')).toBeNull();
   });
 });

@@ -43,7 +43,7 @@ function HubAccountAction({ status, onLogout, isLoggingOut }: HubAccountActionPr
       </button>
       {/* 화면에는 두지 않고 보조기기에만 버튼 설명으로 읽힌다. */}
       <span id={LOGOUT_DESCRIPTION_ID} className={styles.visuallyHidden}>
-        로그아웃하면 이 기기에 있던 저장 목록·인테리어 계획으로 돌아갑니다
+        로그아웃하면 이 기기에 있던 저장 목록·예산 계획으로 돌아갑니다
       </span>
     </div>
   );

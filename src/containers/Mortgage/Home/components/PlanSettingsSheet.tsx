@@ -116,7 +116,7 @@ function PlanSettingsSheet({
 
   const handleUnlink = async () => {
     const message =
-      "매물 연결을 해제할까요? 계획과 항목은 그대로 남고, 매물 카드의 [인테리어 계획]은 새 계획 만들기로 열립니다.";
+      "매물 연결을 해제할까요? 계획과 항목은 그대로 남고, 매물 카드의 [예산 계획]은 새 계획 만들기로 열립니다.";
     if (!window.confirm(message)) return;
     const result = await onUnlinkListing();
     setIsUnlinked(result.ok);

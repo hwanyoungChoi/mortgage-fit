@@ -293,7 +293,7 @@
   border-top: 1px solid var(--color-rule);
 }
 
-/* [인테리어 계획]: 버튼 줄 아래 전체 폭 한 줄(U11). 버튼 줄과 같은 높이·바탕이라 같은 묶음으로 읽힌다. */
+/* [예산 계획]: 버튼 줄 아래 전체 폭 한 줄(U11). 버튼 줄과 같은 높이·바탕이라 같은 묶음으로 읽힌다. */
 .interiorLink {
   display: flex;
   align-items: center;

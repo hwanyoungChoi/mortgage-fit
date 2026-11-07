@@ -62,8 +62,8 @@ function HouseholdSheet({
         <>
           <p className={styles.notice}>카카오로 로그인하면 함께 쓸 수 있어요</p>
           <p className={styles.hint}>
-            초대받은 사람이 수락하면 저장 목록과 인테리어 계획을 함께 씁니다.
-            매물·메모·예산·순서·인테리어 계획이 둘 다에게 같게 보입니다.
+            초대받은 사람이 수락하면 저장 목록과 예산 계획을 함께 씁니다. 매물·메모·예산·순서와 예산
+            계획이 둘 다에게 같게 보입니다.
           </p>
           <KakaoLoginLink isWide />
         </>
@@ -74,8 +74,8 @@ function HouseholdSheet({
         <>
           <p className={styles.notice}>{household.memberCount}명이 함께 쓰는 중입니다</p>
           <p className={styles.hint}>
-            저장 목록과 인테리어 계획을 둘 다 보고 고치고 지울 수 있습니다. 함께 쓰는 사람은
-            2명까지라 더 초대할 수 없습니다.
+            저장 목록과 예산 계획을 둘 다 보고 고치고 지울 수 있습니다. 함께 쓰는 사람은 2명까지라
+            더 초대할 수 없습니다.
           </p>
           <button
             type="button"
@@ -96,12 +96,11 @@ function HouseholdSheet({
     return (
       <>
         <p className={styles.notice}>
-          초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록과 인테리어 계획을 함께
-          씁니다.
+          초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록과 예산 계획을 함께 씁니다.
         </p>
         <p className={styles.hint}>
-          받은 사람의 원래 목록·인테리어 계획은 숨겨지고 내 목록·예산·순서·인테리어 계획을 함께
-          씁니다. 둘 다 보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.
+          받은 사람의 원래 목록·예산 계획은 숨겨지고 내 목록·예산·순서와 예산 계획을 함께 씁니다. 둘
+          다 보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.
         </p>
         {createInvite.isError && !isUnauthorized && (
           <p role="alert" className={styles.error}>
