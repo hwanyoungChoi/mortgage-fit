@@ -1,6 +1,6 @@
-<img src="public/apple-touch-icon.png" width="64" alt="모기지핏 앱 아이콘" />
+<img src="public/apple-touch-icon.png" width="64" alt="집사자 앱 아이콘" />
 
-# 모기지핏 (mortgage-fit)
+# 집사자 (mortgage-fit)
 
 집을 고르는 단계부터 인테리어까지 돈 계산을 한곳에서 하는 휴대폰용 웹앱입니다.
 

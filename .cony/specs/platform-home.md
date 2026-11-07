@@ -93,11 +93,11 @@ export type TabName = Exclude<Route["name"], "share" | "invite">; // hub | calcu
 
 ### 전체 틀 (`AppRoutes`)
 
-DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, `<main>` 바깥) → `<main>`(화면) → `<nav aria-label="화면">`(하단 탭). 글자 크기 시트가 열리면 셋 모두 inert(지금과 같음). 기존 화면 안의 `<header>`(저장 목록·우리 집 계획·공유받기·초대)는 `<div>`로 바꾸지 않는다. 테스트 도구는 `main` 안 `<header>`도 `banner`로 세므로, 전역 머리 줄은 이름으로 질의한다: `getByRole("banner", { name: "모기지핏" })`.
+DOM 순서 = 보이는 순서: `<header aria-label="집사자">`(머리 줄, `<main>` 바깥) → `<main>`(화면) → `<nav aria-label="화면">`(하단 탭). 글자 크기 시트가 열리면 셋 모두 inert(지금과 같음). 기존 화면 안의 `<header>`(저장 목록·우리 집 계획·공유받기·초대)는 `<div>`로 바꾸지 않는다. 테스트 도구는 `main` 안 `<header>`도 `banner`로 세므로, 전역 머리 줄은 이름으로 질의한다: `getByRole("banner", { name: "집사자" })`.
 
 ### 머리 줄 (D3 A)
 
-- 스크롤과 함께 올라간다(고정 아님). 왼쪽 "모기지핏"(제목 아님, 그냥 글자), 오른쪽 [가가](`aria-label="글자 크기"`, `aria-haspopup="dialog"`, 시트를 닫으면 포커스 복귀). 모든 화면(홈·계산·저장 목록·우리 집·공유받기·초대)에서 같은 자리에 하나만 있다. 높이는 [가가]의 누르는 자리(44px 이상)로 정하고 한 곳에만 둔다.
+- 스크롤과 함께 올라간다(고정 아님). 왼쪽 "집사자"(제목 아님, 그냥 글자), 오른쪽 [가가](`aria-label="글자 크기"`, `aria-haspopup="dialog"`, 시트를 닫으면 포커스 복귀). 모든 화면(홈·계산·저장 목록·우리 집·공유받기·초대)에서 같은 자리에 하나만 있다. 높이는 [가가]의 누르는 자리(44px 이상)로 정하고 한 곳에만 둔다.
 - 각 화면의 `h1`은 그대로 화면 이름이다: 홈 "홈", 계산 "대출 계산"(부제 "주담대 한도·자기자금 계산기"), 저장 목록 "저장 목록", 우리 집 "우리 집"/계획 이름(U7).
 
 ### 고정 크롬과 여백 (식을 한 곳에서 정의)
@@ -197,7 +197,7 @@ DOM 순서 = 보이는 순서: `<header aria-label="모기지핏">`(머리 줄, 
   - 매물 카드 [수정]·[복사], 저장 목록 "계산하러 가기", 공유·초대 "계산기로 가기"의 `href`는 `"#/calculator"`, 공유·초대 "취소"는 `"#/"`. 홈 카드 [대출 계산] → `history.back()` → 홈(`#/`), 탭 이동은 이력 불변.
 - [ ] **AC-2 (하단 탭)**: 링크 이름은 정확히 문자열 일치로 질의한다(정규식 금지: 탭 "계산"과 카드 "대출 계산"이 충돌). `navigation "화면"` 안 링크가 순서대로 `[["홈","#/"],["계산","#/calculator"],["매물","#/listings"],["우리 집","#/home"]]`이고 버튼은 없다. 라우트별 `aria-current="page"`는 하나뿐: hub→홈, calculator→계산, listings(`?login=failed` 포함)→매물, home(`#/home/plan-p?view=table` 포함)→우리 집. share·invite는 없음. 계산 화면에서 [우리 집]을 누르면 `onNavigate` 1회 뒤 해시가 `#/home`이고 `history.length`가 그대로다. `nav` 안 `svg`는 정확히 4개이고 모두 `aria-hidden="true"`. `nav`는 DOM에서 `main` 뒤에 있다(`compareDocumentPosition`).
 - [ ] **AC-3 (겹침·인쇄·키보드, 리드 화면 확인 360×780 + 실기기)**: jsdom은 레이아웃을 계산하지 않으므로 리드가 화면에서 측정해 값을 기록한다. 계산 화면에서 요약 줄 bottom === 탭 줄 top(`getBoundingClientRect`), 스크롤 끝에서 [이 지역 실거래가 보기] 버튼 bottom <= 요약 줄 top, `document.documentElement.scrollWidth <= 360`(가로 스크롤 없음). 저장하면 "'{이름}' 저장했습니다" 알림이 요약 줄 위에 뜬다. 저장·스크린샷·실거래가·글자 크기 시트를 열면 배경이 탭 줄을 덮는다. 저장 목록 마지막 카드와 표 보기 "계" 줄이 탭 줄에 가리지 않는다. iPhone(홈 인디케이터 있는 기종)에서 탭 줄 아래 safe-area 여백이 있다. 입력칸을 눌러 키보드가 뜨면 탭·요약 줄이 키보드 뒤에 있고, 키보드를 닫으면 제자리다. 인쇄 미리보기는 계산 화면과 표 보기 **둘 다** 탭 줄·머리 줄이 없다. 최대·최소 글자 크기에서 탭 라벨이 한 줄이다.
-- [ ] **AC-4 ([가가] 새 자리)**: `it.each`로 홈·계산·저장 목록·우리 집·공유받기·초대 각 화면에서 `button "글자 크기"`가 정확히 하나이고, `getByRole("banner", { name: "모기지핏" })`(전역 머리 줄) 안에 있으며 `navigation` 안에는 없다. 화면 안 `<header>`가 있는 화면에서도 이름 있는 전역 머리 줄은 하나이고 `<main>` 바깥이다. 누르면 `dialog "글자 크기"`가 열리고, 그동안 머리 줄·`main`·`nav`는 `closest("[inert]") !== null`, 시트는 null이다. 닫으면 포커스가 그 버튼으로 돌아온다(`toHaveFocus`). 고른 값은 지금처럼 `text-size` 키에만 쓴다.
+- [ ] **AC-4 ([가가] 새 자리)**: `it.each`로 홈·계산·저장 목록·우리 집·공유받기·초대 각 화면에서 `button "글자 크기"`가 정확히 하나이고, `getByRole("banner", { name: "집사자" })`(전역 머리 줄) 안에 있으며 `navigation` 안에는 없다. 화면 안 `<header>`가 있는 화면에서도 이름 있는 전역 머리 줄은 하나이고 `<main>` 바깥이다. 누르면 `dialog "글자 크기"`가 열리고, 그동안 머리 줄·`main`·`nav`는 `closest("[inert]") !== null`, 시트는 null이다. 닫으면 포커스가 그 버튼으로 돌아온다(`toHaveFocus`). 고른 값은 지금처럼 `text-size` 키에만 쓴다.
 - [ ] **AC-5 (홈 — 데이터 없음)**: 빈 저장소, 로그아웃, `#/`. `h1` "홈". 링크가 DOM 순서대로 "대출 계산"(`#/calculator`) → "매물 모으기"(`#/listings`) → "우리 집 인테리어"(`#/home`)이고, 각 카드에 U4 소개 문구가 `aria-describedby`로 읽힌다(`toHaveAccessibleDescription`). 순번·단계 판정식: 홈에 `ol` 없음, 카드 제목 텍스트가 `/^\s*\d+[.)]/`에 걸리지 않음, 홈 텍스트에 `/단계|완료|잠김|준비 중/` 없음(요약의 "3개" 같은 숫자는 허용). 카드 [대출 계산]을 누르면 `history.length` +1, 뒤로 가기로 `#/` 홈. 저장 목록을 스크롤한 적이 있어도 카드 [매물 모으기]로 가면 맨 위에서 시작한다(`scrollTo(0, 0)`). **"대출 계산 카드가 가장 크다"는 jsdom으로 못 보므로 리드가 360×780에서 확인해 수치를 기록한다**: 제목 글자 `--fs-title`(나머지 `--fs-section`), 대출 계산 카드 높이(`getBoundingClientRect().height`)가 나머지 카드보다 크다.
 - [ ] **AC-6 (홈 — 내 현황 요약, 로그아웃)**:
   - 매물 3개(로컬) + 계획 P(`makePlanP`, 이름 "우리 집") + draft `salePrice: "125000"` → "작성 중 · 매매가 12억 5,000만원", "저장한 매물 3개", "우리 집 · 앞으로 낼 돈 1,250만원". 테스트는 탭 이름과 겹치는 "우리 집"을 `within(card)`로 좁혀 질의한다.
@@ -248,7 +248,7 @@ be 없음(서버·DB·API 변경 없음).
 - [x] 1. **하단 탭 + 경로 정리 + [가가] 자리 + 홈 소개 카드(엔드투엔드 최소 버전)** — 배포하면 바로 새 네비와 새 첫 화면이 동작한다
   - [ ] 1-1. (fe) 아래 세 커밋 순서로 나누고, **각 커밋에서 `pnpm test`가 통과**한다. → AC-0·1·2·4·5
     - (a) 경로·테스트 이름 변경: `Route`에 `hub`, `PATHS.hub = "#/"`·`PATHS.calculator = "#/calculator"`, `parseRoute`·`toRoutePath`(알 수 없는 해시 → hub). 공유·초대 "취소"는 `PATHS.hub`로 **직접** 바꾼다(`MortgageShare.tsx`·`MortgageInvite.tsx`). 기존 테스트는 **기계적 이름 변경만** 한다: 시작 해시 `#/` → `PATHS.calculator`, 탭 링크 이름 "저장 목록" → "매물", 해시 단언 `"#/"` → `"#/calculator"`. 단언 삭제·약화(`toBe`→`toBeTruthy` 등) 금지, 삭제된 `expect` 0. 대상: `parseRoute*.test.ts`, `TabNav.test.tsx`, `AppRoutes.test.tsx`, `AppRoutes.storageKeys*.test.tsx`(3개), `AppRoutes.householdPlans.test.tsx`, `MortgageCalculator.test.tsx`, `MortgageHome.*.test.tsx`. 이 커밋 직후 실패 목록을 기록하고, `#/`로 시작하면서 통과하는 부정형 테스트(`queryBy…`·`not.toBe`)는 `grep -n 'queryBy\|not\.toBe'`로 감사해 목록을 남긴다.
-    - (b) 탭·머리 줄·여백 CSS: `TabNav`를 하단 고정 아이콘 탭으로(라벨·아이콘·선택 표시·safe-area·인쇄 숨김, `TABS`에서 순서 파생 유지). 아이콘은 D4대로 `lucide-react` 4개만, `aria-hidden` 명시 prop. 전역 머리 줄(`aria-label="모기지핏"`, [가가], 인쇄 숨김). `AppRoutes`를 header → main → nav로. `--bottom-tab-height`(테두리 포함 56px)·`:root` `scroll-padding-bottom` 한 번, `--tab-nav-height`·`scroll-padding-top` 삭제. 화면 "고정 크롬과 여백"의 식대로 `SummaryBar`·`noticeRegion`·계산 `.page`·`pageWithTallBar`·모든 화면 `.page` 아래 여백(`env()`는 탭 줄만). 화면 안 `<header>`는 그대로 둔다.
+    - (b) 탭·머리 줄·여백 CSS: `TabNav`를 하단 고정 아이콘 탭으로(라벨·아이콘·선택 표시·safe-area·인쇄 숨김, `TABS`에서 순서 파생 유지). 아이콘은 D4대로 `lucide-react` 4개만, `aria-hidden` 명시 prop. 전역 머리 줄(`aria-label="집사자"`, [가가], 인쇄 숨김). `AppRoutes`를 header → main → nav로. `--bottom-tab-height`(테두리 포함 56px)·`:root` `scroll-padding-bottom` 한 번, `--tab-nav-height`·`scroll-padding-top` 삭제. 화면 "고정 크롬과 여백"의 식대로 `SummaryBar`·`noticeRegion`·계산 `.page`·`pageWithTallBar`·모든 화면 `.page` 아래 여백(`env()`는 탭 줄만). 화면 안 `<header>`는 그대로 둔다.
     - (c) 홈 소개 카드: `MortgageHub`(container `Hub/`) 소개 카드 3개, 카드 push, [매물 모으기]에 `onNavigate`. 계산 화면 h1 "대출 계산"(U7).
     - 측정 기록: (b) 전후 `pnpm test` 소요 시간과 `pnpm build` 메인 청크 크기를 기록한다. 눈에 띄게 늘면 `import { House } from "lucide-react"` 배럴 대신 `lucide-react/icons/*` 깊은 경로 import로 바꾼다.
   - [ ] 1-2. (qa) 시작 시 `git diff $(git merge-base main HEAD) -- '*.test.ts' '*.test.tsx'`에서 삭제된 `expect` 줄 수를 센다(0이어야 함. 1-1에서 기계적 변경 밖의 수정은 되돌리고 이유를 요구). `MortgageCalculator.test.tsx`의 "알 수 없는 해시 → 계산" 테스트(AC-8c)는 의미가 뒤집히므로 `AppRoutes` 홈 테스트(AC-1 표)로 옮긴다. `storageKeys.loggedIn`의 `callsTo("GET", "/api/listings")` 대기는 "홈 로딩 끝"을 기다리도록 고친다. 라우트 규칙표·AppRoutes 기존 링크 통합 표·탭·[가가]·홈 소개 카드·스파이 Storage(AC-0 두 갈래·체크포인트) 테스트. **변이 확인**: 알 수 없는 해시 → calculator로 되돌리기, `toRoutePath`의 hub가 `#/calculator`를 돌려줌(replace 루프), `hub`를 `aria-current` 계산에서 빼기, `aria-current` 조건 바꾸기, 탭 순서 뒤섞기, `onNavigate` 미전달, 머리 줄 [가가] 이중 렌더(탭에도 남김), 카드 push → replace, [매물 모으기] 카드의 `onNavigate` 제거(스크롤 초기화 누락), 공유·초대 "취소"를 `PATHS.calculator`로 되돌리기. → AC-0(a)(b)(c)·1·2·4·5
@@ -298,7 +298,7 @@ be 없음(서버·DB·API 변경 없음).
 
 - **D1 경로 구조: A** — 홈 `#/`, 계산 `#/calculator`. 옛 `#/` 북마크는 홈에 도착하고 draft가 남아 홈 카드가 "작성 중"을 보여 준다(AC-0(b)·AC-1).
 - **D2 이름: A** — 허브는 코드 `hub`(container `Mortgage/Hub`), 우리 집은 `home`·`#/home` 그대로. 화면 라벨 "홈"/"우리 집".
-- **D3 [가가] 자리: A** — 전역 머리 줄(스크롤과 함께 올라감) 오른쪽. 머리 줄은 `<main>` 바깥에서 이름("모기지핏")을 가진다(AC-4).
+- **D3 [가가] 자리: A** — 전역 머리 줄(스크롤과 함께 올라감) 오른쪽. 머리 줄은 `<main>` 바깥에서 이름("집사자")을 가진다(AC-4).
 - **D4 아이콘: A** — `lucide-react`, 아이콘 4개만, `aria-hidden` 명시 prop, 1-1 전후 `pnpm test` 시간·메인 청크 크기 기록(늘면 깊은 경로 import).
 - **D5 계획 읽기: B** — 읽기 부분만 `src/hooks/`로 분리. 구조 보장은 계획에만 해당하고 매물은 `useListingSource` + 스파이 테스트로 지킨다(AC-0).
 
@@ -311,7 +311,7 @@ be 없음(서버·DB·API 변경 없음).
 - **U3 탭 아이콘·선택 표시**: 홈=집(`House`), 계산=계산기(`Calculator`), 매물=북마크(`Bookmark`), 우리 집=페인트 롤러(`PaintRoller`). 집 모양은 홈에 쓰므로 우리 집에는 쓰지 않는다. 선택 = 잉크색 아이콘 + 아이콘 뒤 옅은 알약 + 굵은 라벨.
 - **U4 카드 소개 문구**: "매매가와 KB시세로 예상 한도와 필요한 자기자금을 계산합니다" / "본 매물을 저장해 자기자금·추가 비용을 비교합니다" / "계약한 집의 인테리어 예산·견적·지급을 정리합니다".
 - **U5 홈 요약에 넣을 것**: 계산 = 작성 중 매매가만(규제값 계산 결과는 넣지 않음) / 매물 = 저장한 매물 수 / 우리 집 = 계획마다 이름 · 앞으로 낼 돈(최대 3줄).
-- **U6 [가가] 자리**(D3 A): 모든 화면 맨 위 머리 줄 오른쪽. 머리 줄 왼쪽은 "모기지핏".
+- **U6 [가가] 자리**(D3 A): 모든 화면 맨 위 머리 줄 오른쪽. 머리 줄 왼쪽은 "집사자".
 - **U7 화면 제목**: 홈 h1 "홈", 계산 화면 h1 "모기지핏" → "대출 계산"(부제 "주담대 한도·자기자금 계산기" 그대로). 브라우저 탭 제목(`<title>`)은 그대로.
 - **U8 공유받기·초대 화면**: 하단 탭을 보이되 선택 없음. "취소" → 홈, "계산기로 가기" → 계산.
 - **U9 홈 상태 문구**: 로딩 "불러오는 중", 실패 "불러오지 못했습니다", 손상 "저장 데이터를 확인해 주세요".
