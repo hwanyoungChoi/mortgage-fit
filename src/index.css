@@ -5,39 +5,47 @@
    * 버튼·탭·고른 칸·링크 같은 조작은 먹색(--color-primary = 글자색)이다. 코발트(--color-accent)는 돈 데이터에만 둔다:
    * 남은 예산·예상 한도 숫자, 예산 막대, 확정 표시. 상태색(오류·경고)은 그대로다.
    * 글자색은 바탕(--color-bg)과 흰 면 모두에서 4.5:1 이상이다(muted 바탕 5.6:1·흰 면 6.1:1, 먹색 위 흰 글자 16:1).
+   *
+   * 다크 모드: 색은 `light-dark(라이트, 다크)`로 한 줄에 둘 다 적고, `color-scheme`이 고른다. 다크는 바탕이 가장 어둡고
+   * 카드(surface)·채운 칸(raised)이 한 단계씩 밝아 라이트와 같은 층이다. 조작(먹색 = 글자색)은 밝은 면 + 어두운 글자로
+   * 뒤집히고, 코발트·상태색은 어두운 면에서도 4.5:1 이상이 되게 밝혔다(최저 muted/채운 칸 5.6:1).
    */
-  --color-text: #191f28;
-  --color-text-muted: #5b636e;
+  --color-text: light-dark(#191f28, #eceef1);
+  --color-text-muted: light-dark(#5b636e, #9ea4ad);
   /* 바탕: 옅은 회색. 카드는 흰 면으로 한 단계 띄운다(테두리·그림자 없음). */
-  --color-bg: #f3f5f7;
-  --color-surface: #fff;
+  --color-bg: light-dark(#f3f5f7, #0f1013);
+  --color-surface: light-dark(#fff, #1c1d22);
   /* 흰 면 위의 채운 입력칸·보조 버튼·선택 안 된 칩 */
-  --color-raised: #f2f4f6;
+  --color-raised: light-dark(#f2f4f6, #2a2c32);
   /* 바탕(--color-bg) 위의 작은 보조 버튼(화면 머리글) */
-  --color-raised-on-bg: #e8ebef;
+  --color-raised-on-bg: light-dark(#e8ebef, #24262c);
   /* 테두리는 표·구분선에만 쓴다. */
-  --color-border: #e5e8eb;
-  --color-rule: #f2f4f6;
-  --color-control: #d0d3d8;
-  --color-primary: #191f28;
-  --color-on-primary: #fff;
-  --color-accent: #1d5fd6;
+  --color-border: light-dark(#e5e8eb, #34363d);
+  --color-rule: light-dark(#f2f4f6, #2a2c32);
+  --color-control: light-dark(#d0d3d8, #4b4e56);
+  --color-primary: light-dark(#191f28, #eceef1);
+  --color-on-primary: light-dark(#fff, #15161a);
+  --color-accent: light-dark(#1d5fd6, #6aa5ff);
   /* 데이터의 옅은 코발트 면(확정한 줄·후보 배지) + 진한 코발트 글자(9.4:1). 고른 칸·눌린 버튼은 먹색 면이다. */
-  --color-accent-soft: #e3efff;
-  --color-accent-ink: #0a3a80;
-  --color-error: #c4242a;
-  --color-error-bg: #ffedea;
-  --color-error-ink: #831c1e;
-  --color-warning-bg: #fffbeb;
-  --color-warning-text: #92400e;
-  --color-badge-bg: #ededed;
-  --color-badge-text: #3d3d3d;
-  --color-scrim: rgb(10 10 10 / 45%);
+  --color-accent-soft: light-dark(#e3efff, #1b2c4b);
+  --color-accent-ink: light-dark(#0a3a80, #bcd6ff);
+  --color-error: light-dark(#c4242a, #ff7a73);
+  --color-error-bg: light-dark(#ffedea, #3b1a19);
+  --color-error-ink: light-dark(#831c1e, #ffb8b2);
+  --color-warning-bg: light-dark(#fffbeb, #33290f);
+  --color-warning-text: light-dark(#92400e, #f2c46d);
+  --color-badge-bg: light-dark(#ededed, #303238);
+  --color-badge-text: light-dark(#3d3d3d, #d5d8dd);
+  --color-scrim: light-dark(rgb(10 10 10 / 45%), rgb(0 0 0 / 60%));
 
   /* 그림자는 떠 있는 것에만 쓴다. 쉬는 면에는 쓰지 않는다. lifted는 끌고 있는 줄이다. */
-  --shadow-lifted: 0 8px 24px rgb(10 10 10 / 14%), 0 2px 6px rgb(10 10 10 / 10%);
+  --shadow-lifted:
+    0 8px 24px light-dark(rgb(10 10 10 / 14%), rgb(0 0 0 / 50%)),
+    0 2px 6px light-dark(rgb(10 10 10 / 10%), rgb(0 0 0 / 40%));
   /* 화면 아래 떠 있는 탭 알약과 그 옆 동작 버튼([+])이 같은 면으로 보이게 함께 쓴다. */
-  --shadow-floating: 0 0 8px rgb(0 0 0 / 8%), 0 4px 40px rgb(0 0 0 / 10%);
+  --shadow-floating:
+    0 0 8px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 40%)),
+    0 4px 40px light-dark(rgb(0 0 0 / 10%), rgb(0 0 0 / 55%));
 
   /* 시트는 위쪽 모서리에만 쓴다. */
   --radius-sheet: 24px;
@@ -105,7 +113,8 @@
   line-height: 1.5;
   color: var(--color-text);
   background: var(--color-bg);
-  color-scheme: light;
+  /* 기기 설정을 따른다. [화면 설정]에서 고르면 <html data-theme>로 하나로 고정한다(아래). */
+  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -118,41 +127,19 @@
   scroll-padding-bottom: calc(var(--bottom-tab-offset) + var(--summary-bar-height));
 }
 
-/*
- * 다크 모드: 기기 설정(prefers-color-scheme)을 따른다. 같은 역할의 토큰 값만 바꾸고 화면 스타일은 그대로다.
- * 바탕이 가장 어둡고 카드(surface)가 한 단계 밝고, 채운 칸(raised)이 한 단계 더 밝다(라이트의 회색 바탕 + 흰 카드와 같은 단계).
- * 조작(먹색 = 글자색)은 밝은 면 + 어두운 글자로 뒤집힌다. 코발트·상태색은 어두운 면에서 4.5:1 이상이 되게 밝힌다.
- * 인쇄는 종이라 라이트 그대로다(screen에만 적용). 색·그림자 토큰을 더하면 여기도 같이 더한다.
- */
-@media screen and (prefers-color-scheme: dark) {
-  :root {
-    --color-text: #eceef1;
-    --color-text-muted: #9ea4ad;
-    --color-bg: #0f1013;
-    --color-surface: #1c1d22;
-    --color-raised: #2a2c32;
-    --color-raised-on-bg: #24262c;
-    --color-border: #34363d;
-    --color-rule: #2a2c32;
-    --color-control: #4b4e56;
-    --color-primary: #eceef1;
-    --color-on-primary: #15161a;
-    --color-accent: #6aa5ff;
-    --color-accent-soft: #1b2c4b;
-    --color-accent-ink: #bcd6ff;
-    --color-error: #ff7a73;
-    --color-error-bg: #3b1a19;
-    --color-error-ink: #ffb8b2;
-    --color-warning-bg: #33290f;
-    --color-warning-text: #f2c46d;
-    --color-badge-bg: #303238;
-    --color-badge-text: #d5d8dd;
-    --color-scrim: rgb(0 0 0 / 60%);
+/* 화면 설정의 화면 모드(이 기기, `<html data-theme>`). system이면 :root 그대로 기기 설정을 따른다. 인쇄는 종이라 늘 라이트다. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
 
-    --shadow-lifted: 0 8px 24px rgb(0 0 0 / 50%), 0 2px 6px rgb(0 0 0 / 40%);
-    --shadow-floating: 0 0 8px rgb(0 0 0 / 40%), 0 4px 40px rgb(0 0 0 / 55%);
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
 
-    color-scheme: dark;
+@media print {
+  :root,
+  :root[data-theme] {
+    color-scheme: light;
   }
 }
 
