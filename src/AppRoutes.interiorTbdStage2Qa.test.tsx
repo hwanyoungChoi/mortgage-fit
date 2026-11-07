@@ -163,7 +163,7 @@ describe("AC-0(b) 2단계: 원 입력 시트(줄·계획 관리·만들기)를 �
     expect(budget).toHaveAccessibleDescription(expect.stringContaining("1,000만원"));
     // 다른 계획 만들기 시트로 바꿔 열고 닫는다
     await user.click(within(dialog).getByRole("button", { name: "다른 계획 만들기" }));
-    dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+    dialog = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
     expect(within(dialog).getByLabelText(BUDGET)).toHaveValue("");
     await cancel(user, dialog);
     check("계획 관리 → 만들기 시트");
@@ -286,7 +286,7 @@ describe("AC-0 로그인 쓰기 본문 (2단계): 금액 키·예산 키 규칙,
           name: "다른 계획 만들기",
         }),
       );
-      dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+      dialog = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
       await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "새 집");
       await user.type(within(dialog).getByLabelText(BUDGET), "15000000");
       await user.click(within(dialog).getByRole("button", { name: "만들기" }));
@@ -368,7 +368,7 @@ describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로
         name: "다른 계획 만들기",
       }),
     );
-    dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+    dialog = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
     await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "새 집");
     await user.type(within(dialog).getByLabelText(BUDGET), "10000000");
     await user.click(within(dialog).getByRole("button", { name: "만들기" }));
@@ -414,7 +414,7 @@ describe("AC-0(d) 로그아웃 2단계 쓰기 → 로그인 /import 본문 = 로
     expect(api.server.plans).toStrictEqual(rawPlans(raw));
     await waitFor(() =>
       expect(
-        within(screen.getByRole("link", { name: "인테리어 계획" }))
+        within(screen.getByRole("link", { name: "예산 계획" }))
           .queryAllByText(/지출 예정/)
           .map((line) => line.textContent),
       ).toEqual(["옛 계획 · 지출 예정 3,700,000원", "새 집 · 지출 예정 0원 · 미정 1건"]),
@@ -555,14 +555,14 @@ describe("AC-2 2단계 입력 경계 (화면)", () => {
     window.location.hash = "#/home";
     render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
     await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-    const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
     await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "새 집");
     const budget = within(dialog).getByLabelText(BUDGET);
     await user.type(budget, typed);
     await user.click(within(dialog).getByRole("button", { name: "만들기" }));
     expect(budget).toHaveAccessibleDescription(expect.stringContaining(message));
     expect(setItem.mock.calls.filter(([key]) => key === INTERIOR_PLANS_STORAGE_KEY)).toEqual([]);
-    expect(screen.getByRole("dialog", { name: "인테리어 계획 만들기" })).toBe(dialog);
+    expect(screen.getByRole("dialog", { name: "예산 계획 만들기" })).toBe(dialog);
   });
 
   it.each([
@@ -579,7 +579,7 @@ describe("AC-2 2단계 입력 경계 (화면)", () => {
       window.location.hash = "#/home";
       render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
       await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-      const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+      const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
       await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "새 집");
       await user.type(within(dialog).getByLabelText(BUDGET), typed);
       expect(within(dialog).queryByText("원 단위입니다") !== null).toBe(hasNotice);
@@ -600,7 +600,7 @@ describe("AC-2 2단계 입력 경계 (화면)", () => {
     window.location.hash = "#/home";
     render(<AppRoutes storage={storage} />, { wrapper: api.wrapper });
     await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-    const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
     await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "새 집");
     await user.type(within(dialog).getByLabelText(BUDGET), "   ");
     await user.click(within(dialog).getByRole("button", { name: "만들기" }));

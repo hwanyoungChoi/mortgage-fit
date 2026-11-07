@@ -29,7 +29,7 @@ const LEFT = "함께 쓰기에서 나왔습니다";
 const LEAVE_FAILED = "함께 쓰기에서 나가지 못했습니다. 연결을 확인하고 다시 시도해 주세요";
 const SESSION_EXPIRED = "로그인이 끝났습니다. 다시 로그인해 주세요";
 const PLAN_PARAGRAPH =
-  "인테리어 계획: 함께 쓰는 동안 상대가 내 계획에 넣은 항목은 내 계획과 함께 나가고, 내가 상대 계획에 넣은 항목은 그 계획에 남습니다.";
+  "예산 계획: 함께 쓰는 동안 상대가 내 계획에 넣은 항목은 내 계획과 함께 나가고, 내가 상대 계획에 넣은 항목은 그 계획에 남습니다.";
 const INVITE_URL = "https://example.test/#/invite/AbCdEfGhIjKlMnOpQrStUv";
 
 const LOGGED_IN_SEED = {
@@ -123,9 +123,7 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     const hub = screen.getByRole("main");
 
     expect(button).toHaveAttribute("aria-haspopup", "dialog");
-    expect(button).toHaveAccessibleDescription(
-      "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다",
-    );
+    expect(button).toHaveAccessibleDescription("초대한 사람과 저장 목록·예산 계획을 함께 씁니다");
     expect(within(hub).getByRole("list").compareDocumentPosition(button)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
@@ -151,12 +149,12 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     expect(button.closest("[inert]")).not.toBeNull();
     expect(
       within(dialog).getByText(
-        "초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록과 인테리어 계획을 함께 씁니다.",
+        "초대 링크를 받은 사람이 카카오로 로그인해 수락하면 저장 목록과 예산 계획을 함께 씁니다.",
       ),
     ).toBeInTheDocument();
     expect(
       within(dialog).getByText(
-        "받은 사람의 원래 목록·인테리어 계획은 숨겨지고 내 목록·예산·순서·인테리어 계획을 함께 씁니다. 둘 다 보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.",
+        "받은 사람의 원래 목록·예산 계획은 숨겨지고 내 목록·예산·순서와 예산 계획을 함께 씁니다. 둘 다 보고 고치고 지울 수 있습니다. 새로 만들면 전에 만든 초대 링크는 끊깁니다.",
       ),
     ).toBeInTheDocument();
 
@@ -168,7 +166,7 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     expect(api.callsTo("POST", INVITES_PATH)).toHaveLength(1);
     expect(
       within(dialog).getByText(
-        "7일 동안 한 번 쓸 수 있습니다. 받은 사람이 카카오로 로그인해 수락하면 같은 목록과 인테리어 계획을 함께 씁니다. 이 창을 닫으면 링크를 다시 볼 수 없어요.",
+        "7일 동안 한 번 쓸 수 있습니다. 받은 사람이 카카오로 로그인해 수락하면 같은 목록과 예산 계획을 함께 씁니다. 이 창을 닫으면 링크를 다시 볼 수 없어요.",
       ),
     ).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "복사" })).toBeInTheDocument();
@@ -245,7 +243,7 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
     expect(expired).toHaveFocus();
   });
 
-  it("401 뒤 시트의 로그인 안내에도 인테리어 계획이 들어 있다(U8과 같은 표현)", async () => {
+  it("401 뒤 시트의 로그인 안내에도 예산 계획이 들어 있다(U8과 같은 표현)", async () => {
     const user = userEvent.setup();
     renderHub({
       respond: (call) =>
@@ -260,7 +258,7 @@ describe("홈 [함께 쓰기] 시트 (AC-4 혼자)", () => {
 
     expect(
       await within(dialog).findByText(
-        "초대받은 사람이 수락하면 저장 목록과 인테리어 계획을 함께 씁니다. 매물·메모·예산·순서·인테리어 계획이 둘 다에게 같게 보입니다.",
+        "초대받은 사람이 수락하면 저장 목록과 예산 계획을 함께 씁니다. 매물·메모·예산·순서와 예산 계획이 둘 다에게 같게 보입니다.",
       ),
     ).toBeInTheDocument();
   });
@@ -295,7 +293,7 @@ describe("홈 함께 쓰는 중 · [나가기] (AC-4 가구)", () => {
     expect(within(dialog).getByRole("button", { name: LEAVE_NAME })).toBeEnabled();
   });
 
-  it("확인 문구에 매물·인테리어 계획 문단, 취소하면 요청 0건", async () => {
+  it("확인 문구에 매물·예산 계획 문단, 취소하면 요청 0건", async () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     const { api } = renderHub({ isInHousehold: true });

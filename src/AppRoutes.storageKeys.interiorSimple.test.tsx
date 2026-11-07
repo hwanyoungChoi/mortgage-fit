@@ -211,7 +211,7 @@ async function expectHubPlanLines() {
   expect(await screen.findByRole("heading", { level: 1, name: "홈" })).toBeInTheDocument();
   await waitFor(() =>
     expect(
-      within(screen.getByRole("link", { name: "인테리어 계획" }))
+      within(screen.getByRole("link", { name: "예산 계획" }))
         .queryAllByText(/지출 예정/)
         .map((line) => line.textContent),
     ).toEqual(["옛 계획 · 지출 예정 3,700,000원", "우리 집 · 지출 예정 15,300,000원"]),
@@ -262,7 +262,7 @@ async function walk(user: User, api: FakePlanApi, check: Check) {
 
   await user.click(screen.getByRole("radio", { name: "표" }));
   await waitFor(() => expect(window.location.hash).toBe("#/home/plan-l?view=table"));
-  expect(screen.getByRole("table", { name: "옛 계획 인테리어 계획" })).toBeInTheDocument();
+  expect(screen.getByRole("table", { name: "옛 계획 예산 계획" })).toBeInTheDocument();
   check("[표]", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("button", { name: "CSV 내려받기" }));

@@ -17,7 +17,7 @@ import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 const USER_ID = "user-a";
 const PLANS_PATH = "/api/interior-plans";
 const TILE_PUT = `${PLANS_PATH}/plan-p/items/item-tile`;
-const MOVED_NOTICE = "이 기기의 인테리어 계획을 계정으로 옮겼습니다";
+const MOVED_NOTICE = "이 기기의 예산 계획을 계정으로 옮겼습니다";
 
 type RenderOptions = {
   isInHousehold?: boolean;
@@ -75,18 +75,18 @@ describe("로그인 상태 [예산] — 서버 출처", () => {
     expect(api.callsTo("POST", `${PLANS_PATH}/import`)).toHaveLength(0);
   });
 
-  it("조회 실패: '인테리어 계획을 불러오지 못했습니다' + [다시 시도] → 다시 받아 그린다", async () => {
+  it("조회 실패: '예산 계획을 불러오지 못했습니다' + [다시 시도] → 다시 받아 그린다", async () => {
     const user = userEvent.setup();
     const { api } = renderLoggedIn();
     api.server.respond = (call) =>
       call.path === PLANS_PATH && call.method === "GET"
         ? errorResponse(500, "internal")
         : undefined;
-    expect(await screen.findByText("인테리어 계획을 불러오지 못했습니다")).toBeInTheDocument();
+    expect(await screen.findByText("예산 계획을 불러오지 못했습니다")).toBeInTheDocument();
     api.server.respond = undefined;
     await user.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(await screen.findByRole("button", { name: "타일 C타일 열기" })).toBeInTheDocument();
-    expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
   });
 
   it("401: 기존 세션 만료 안내 '로그인이 끝났습니다. 다시 로그인해 주세요'", async () => {
@@ -118,7 +118,7 @@ describe("로그인 상태 [예산] — 서버 출처", () => {
     const { api } = renderLoggedIn({ isInHousehold: true, localPlans: [local] });
     expect(await screen.findByRole("button", { name: "타일 C타일 열기" })).toBeInTheDocument();
     expect(screen.queryByText(MOVED_NOTICE)).not.toBeInTheDocument();
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument();
     expect(api.callsTo("POST", `${PLANS_PATH}/import`)).toHaveLength(0);
   });
 });

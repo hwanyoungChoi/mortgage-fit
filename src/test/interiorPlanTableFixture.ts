@@ -118,4 +118,4 @@ export const Q_CSV_LINES = [
 /** 파일 전체: 맨 앞 BOM(U+FEFF) 하나, 모든 줄 끝(마지막 줄 포함) CRLF */
 export const Q_CSV = "﻿" + Q_CSV_LINES.map((line) => `${line}\r\n`).join("");
 
-export const Q_FILE_NAME = "우리 집-인테리어-2026-10-27.csv";
+export const Q_FILE_NAME = "우리 집-예산-2026-10-27.csv";

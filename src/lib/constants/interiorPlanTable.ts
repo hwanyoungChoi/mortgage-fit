@@ -1,4 +1,4 @@
-// 인테리어 계획 표 내보내기(스펙 interior-planner "표 내보내기", 태스크 5)의 열 제목·문구.
+// 예산 계획 표 내보내기(스펙 interior-planner "표 내보내기", 태스크 5)의 열 제목·문구.
 // 계약 3파일(`interiorPlan.ts` 타입·상수·검증)에는 더하지 않는다(AC-12(f)).
 
 /** 표의 열(화면·인쇄·CSV 같은 순서) */
@@ -43,7 +43,7 @@ export const INTERIOR_PLAN_TABLE_SEPARATOR = " · ";
 
 /** 표 머리(화면·인쇄). 금액 인자는 `formatWon` 글자(예: "1,234,500원")다(U8) */
 export const INTERIOR_PLAN_TABLE_HEADING = {
-  title: (planName: string) => `${planName} 인테리어 계획`,
+  title: (planName: string) => `${planName} 예산 계획`,
   basis: (today: string) => `${today} 기준`,
   budget: (won: string) => `총 예산 ${won}`,
   plannedTotal: (won: string) => `지출 예정 ${won}`,
@@ -53,8 +53,8 @@ export const INTERIOR_PLAN_TABLE_HEADING = {
   overBudget: (won: string) => `예산 초과 ${won}`,
 };
 
-/** 내려받는 파일 이름 `{이름}-인테리어-{YYYY-MM-DD}.csv`의 고정 부분(U20) */
-export const INTERIOR_PLAN_EXPORT_FILE_LABEL = "인테리어";
+/** 내려받는 파일 이름 `{이름}-예산-{YYYY-MM-DD}.csv`의 고정 부분(U20) */
+export const INTERIOR_PLAN_EXPORT_FILE_LABEL = "예산";
 export const INTERIOR_PLAN_EXPORT_FILE_EXTENSION = ".csv";
 
 /** 표 보기 버튼 줄 아래 안내 한 줄(줄 0개면 없음, U21) */

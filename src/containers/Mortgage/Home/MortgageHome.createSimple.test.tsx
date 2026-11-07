@@ -114,7 +114,7 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
       return { ok: true as const };
     });
     render(<CreatePlanSheet onCreate={onCreate} listing={listing} onClose={() => {}} />);
-    return { onCreate, dialog: screen.getByRole("dialog", { name: "인테리어 계획 만들기" }) };
+    return { onCreate, dialog: screen.getByRole("dialog", { name: "예산 계획 만들기" }) };
   }
 
   it("방·욕실 입력이 없다: 칸은 계획 이름·총 예산(선택)뿐, 라디오·그룹·공간 안내 없음", () => {
@@ -184,7 +184,7 @@ describe("AC-7 만들기 시트 (시트 단위: onCreate 입력 전체)", () => 
       expect(nameInput).toHaveFocus();
       expect(onCreate).not.toHaveBeenCalled();
       expect(randomId).not.toHaveBeenCalled();
-      expect(screen.getByRole("dialog", { name: "인테리어 계획 만들기" })).toBe(dialog);
+      expect(screen.getByRole("dialog", { name: "예산 계획 만들기" })).toBe(dialog);
     },
   );
 
@@ -277,7 +277,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
         expanded: false,
       }),
     );
-    await user.click(await screen.findByRole("link", { name: `${LISTING_NAME} 인테리어 계획` }));
+    await user.click(await screen.findByRole("link", { name: `${LISTING_NAME} 예산 계획` }));
   }
 
   it("빈 상태(소개 문구) → [계획 만들기] → '우리 집' → #/home/{id}, 저장된 spaces는 정확히 [{ id: 시트가 만든 id, name: '전체' }], 빈 목록·지출 예정 0", async () => {
@@ -287,7 +287,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
     expect(await screen.findByText(HOME_INTRO)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "계획 만들기" }));
-    const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
     expect(within(dialog).queryByRole("radio")).not.toBeInTheDocument();
     await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "우리 집");
     const issuedBefore = issuedIds().length;
@@ -315,7 +315,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
     const storage = createMemoryStorage();
     renderApp(storage, "#/home");
     await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-    const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
     const nameInput = within(dialog).getByRole("textbox", { name: "계획 이름" });
     fireEvent.change(nameInput, { target: { value: "가".repeat(41) } });
     const setItem = vi.spyOn(storage, "setItem");
@@ -340,7 +340,7 @@ describe("AC-7 로그아웃(로컬 원본): 화면 → 저장소", () => {
     renderApp(storage, "#/listings");
     await openListingCard(user);
 
-    const dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+    const dialog = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
     expect(within(dialog).getByRole("textbox", { name: "계획 이름" })).toHaveValue(LISTING_NAME);
     expect(within(dialog).getByLabelText("총 예산(선택)")).toHaveValue("4,200,000");
     expect(
@@ -421,7 +421,7 @@ describe("AC-7 로그인(혼자·가구): POST 본문의 spaces가 하나", () =
       const user = userEvent.setup();
       const { api, storage } = renderLoggedIn(isInHousehold, "#/home");
       await user.click(await screen.findByRole("button", { name: "계획 만들기" }));
-      const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+      const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
       await user.type(within(dialog).getByRole("textbox", { name: "계획 이름" }), "우리 집");
       await user.click(within(dialog).getByRole("button", { name: "만들기" }));
 
@@ -456,8 +456,8 @@ describe("AC-7 로그인(혼자·가구): POST 본문의 spaces가 하나", () =
           expanded: false,
         }),
       );
-      await user.click(await screen.findByRole("link", { name: `${LISTING_NAME} 인테리어 계획` }));
-      const dialog = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+      await user.click(await screen.findByRole("link", { name: `${LISTING_NAME} 예산 계획` }));
+      const dialog = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
       await user.click(within(dialog).getByRole("button", { name: "만들기" }));
       await waitFor(() => expect(api.callsTo("POST", PLAN_LIST_PATH)).toHaveLength(1));
       await waitFor(() => expect(window.location.hash).toMatch(/^#\/home\/srvplan\d+$/));

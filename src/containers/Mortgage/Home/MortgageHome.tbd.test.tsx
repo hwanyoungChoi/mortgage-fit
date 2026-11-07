@@ -46,7 +46,7 @@ async function renderLoggedOut(storage: Storage, hash = P_HASH) {
   window.location.hash = hash;
   const result = renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return result;
 }
@@ -220,7 +220,7 @@ describe("표 보기 (P⁺, 기기 날짜 2026-10-27)", () => {
 
   it("미정 칸·표 머리·계 비고, 문구는 요약·표 머리·계 비고에 각각 한 번", async () => {
     await renderLoggedOut(storageWith([makeSimplePlanPPlus()]), TABLE_HASH);
-    const table = screen.getByRole("table", { name: "우리 집 인테리어 계획" });
+    const table = screen.getByRole("table", { name: "우리 집 예산 계획" });
     expect(tableText(table)).toEqual([
       ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"],
       ["도배", "육문수", "실크 전체", "1,800,000", "1,800,000", ""],

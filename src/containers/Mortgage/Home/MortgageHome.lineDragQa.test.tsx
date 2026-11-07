@@ -22,7 +22,7 @@ const R2 = "도배 동네도배 합지 열기";
 const FAILURE_TEXT = "순서를 저장하지 못해 원래 순서로 되돌렸습니다";
 
 const waitForPlans = () =>
-  waitFor(() => expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument());
+  waitFor(() => expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument());
 
 async function press(element: Element, code: string) {
   await act(async () => {

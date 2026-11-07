@@ -126,7 +126,7 @@ describe("우리 집 계획 관리 시트에서 뒤로 가기", () => {
         name: "다른 계획 만들기",
       }),
     );
-    expect(screen.getByRole("dialog", { name: "인테리어 계획 만들기" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "예산 계획 만들기" })).toBeInTheDocument();
     expect(window.history.length).toBe(history.length + 1);
 
     window.history.back();

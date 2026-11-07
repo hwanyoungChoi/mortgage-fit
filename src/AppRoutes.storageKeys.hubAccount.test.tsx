@@ -235,9 +235,7 @@ async function expectHubSummary(mode: Mode) {
     expect(within(main).getByRole("link", { name: "매물 모으기" })).toHaveAccessibleDescription(
       listings,
     );
-    expect(within(main).getByRole("link", { name: "인테리어 계획" })).toHaveAccessibleDescription(
-      home,
-    );
+    expect(within(main).getByRole("link", { name: "예산 계획" })).toHaveAccessibleDescription(home);
   });
   // 계산 카드 매매가 원문은 DOM에 없다(가리기는 읽기만 한다)
   expect(main.innerHTML).not.toContain("12억");
@@ -254,7 +252,7 @@ async function expectListingsSettled(mode: Mode) {
 
 async function expectHomeSettled(mode: Mode) {
   if (mode === "pending") {
-    expect(await screen.findByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
+    expect(await screen.findByText("예산 계획을 불러오는 중")).toBeInTheDocument();
     return;
   }
   const title = mode === "household" ? "A 계획" : "우리 집";
@@ -485,7 +483,7 @@ describe("AC-0 (a) 홈 [로그아웃]: 이 기기 원문은 그대로, 쓰기는
     const main = screen.getByRole("main");
     const logout = await within(main).findByRole("button", { name: "로그아웃" });
     await waitFor(() =>
-      expect(within(main).getByRole("link", { name: "인테리어 계획" })).toHaveAccessibleDescription(
+      expect(within(main).getByRole("link", { name: "예산 계획" })).toHaveAccessibleDescription(
         "서버 계획 · 지출 예정 15,300,000원",
       ),
     );
@@ -499,7 +497,7 @@ describe("AC-0 (a) 홈 [로그아웃]: 이 기기 원문은 그대로, 쓰기는
       expect(within(main).getByRole("link", { name: "매물 모으기" })).toHaveAccessibleDescription(
         "저장한 매물 2개",
       );
-      expect(within(main).getByRole("link", { name: "인테리어 계획" })).toHaveAccessibleDescription(
+      expect(within(main).getByRole("link", { name: "예산 계획" })).toHaveAccessibleDescription(
         "우리 집 · 지출 예정 15,300,000원",
       );
     });

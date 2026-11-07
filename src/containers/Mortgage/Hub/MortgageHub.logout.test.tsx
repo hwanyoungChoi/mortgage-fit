@@ -21,8 +21,8 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 const USER_ID = "user-a";
 const LOGIN = "카카오로 로그인";
-const STATUS = "초대한 사람과 저장 목록·인테리어 계획을 함께 씁니다";
-const LOGOUT_DESCRIPTION = "로그아웃하면 이 기기에 있던 저장 목록·인테리어 계획으로 돌아갑니다";
+const STATUS = "초대한 사람과 저장 목록·예산 계획을 함께 씁니다";
+const LOGOUT_DESCRIPTION = "로그아웃하면 이 기기에 있던 저장 목록·예산 계획으로 돌아갑니다";
 const LOGOUT_FAILED = "로그아웃하지 못했습니다. 연결을 확인하고 다시 시도해 주세요";
 const SESSION_EXPIRED = "로그인이 끝났습니다. 다시 로그인해 주세요";
 const ACCOUNT_ERROR = "계정 상태를 확인하지 못했습니다";
@@ -134,7 +134,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     });
     const logout = await findLogoutButton();
     await waitFor(() =>
-      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
+      expect(cardDescription("예산 계획")).toHaveAccessibleDescription(
         "서버 계획 · 지출 예정 15,300,000원",
       ),
     );
@@ -147,7 +147,7 @@ describe("홈 [로그아웃] (AC-1)", () => {
     expect(within(hub).queryByText(STATUS)).not.toBeInTheDocument();
     await waitFor(() => {
       expect(cardDescription("매물 모으기")).toHaveAccessibleDescription("저장한 매물 2개");
-      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
+      expect(cardDescription("예산 계획")).toHaveAccessibleDescription(
         "우리 집 · 지출 예정 15,300,000원",
       );
     });
@@ -362,7 +362,7 @@ describe("홈 안내 줄: 매물 이전 실패·세션 만료 (AC-1)", () => {
 
     expect(await within(hub).findByText(SESSION_EXPIRED)).toBeInTheDocument();
     await waitFor(() =>
-      expect(cardDescription("인테리어 계획")).toHaveAccessibleDescription(
+      expect(cardDescription("예산 계획")).toHaveAccessibleDescription(
         "우리 집 · 지출 예정 15,300,000원",
       ),
     );

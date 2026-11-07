@@ -116,7 +116,7 @@ describe("AC-7 세 출처 — 로그인·함께 쓰기", () => {
     renderLoggedIn({ isInHousehold: true, serverPlans: [makeOffBudgetPlanE()], hash: "#/" });
     await waitFor(() =>
       expect(
-        within(screen.getByRole("main")).getByRole("link", { name: "인테리어 계획" }),
+        within(screen.getByRole("main")).getByRole("link", { name: "예산 계획" }),
       ).toHaveAccessibleDescription("우리 집 · 지출 예정 1,800,000원 · 완료 3,700,000원"),
     );
   });

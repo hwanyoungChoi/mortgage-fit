@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 수락 뒤 인테리어 계획 목록 무효화(스펙 interior-planner AC-9, ADR-029 조건 7).
+// 수락 뒤 예산 계획 목록 무효화(스펙 interior-planner AC-9, ADR-029 조건 7).
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

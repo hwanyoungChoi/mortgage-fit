@@ -35,7 +35,7 @@ function stubLoggedOutApi() {
 }
 
 const waitForPlans = () =>
-  waitFor(() => expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument());
+  waitFor(() => expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument());
 
 async function renderLoggedOut() {
   stubLoggedOutApi();

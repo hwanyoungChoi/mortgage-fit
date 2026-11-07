@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// AC-0(c)(g) · 태스크 3: 매물 카드 [인테리어 계획] 진입·추가 비용 가져오기·재진입(replace)·연결 해제 흐름에서도
+// AC-0(c)(g) · 태스크 3: 매물 카드 [예산 계획] 진입·추가 비용 가져오기·재진입(replace)·연결 해제 흐름에서도
 // 허용 목록(새 키 2개) 밖 키에 setItem·removeItem·clear 0회(예외: 기존 session-hint 정리·표시), 기존 12개 키 원문 ===.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -123,11 +123,11 @@ async function clickCardLink(user: User, name: string) {
   await user.click(
     await within(list).findByRole("button", { name: new RegExp(`^${name}`), expanded: false }),
   );
-  await user.click(await screen.findByRole("link", { name: `${name} 인테리어 계획` }));
+  await user.click(await screen.findByRole("link", { name: `${name} 예산 계획` }));
 }
 
 /**
- * 앱 시작(#/calculator) → 저장 목록 → 카드 [인테리어 계획] → 만들기(가져오기 체크) → 저장 목록 → 같은 카드(replace) →
+ * 앱 시작(#/calculator) → 저장 목록 → 카드 [예산 계획] → 만들기(가져오기 체크) → 저장 목록 → 같은 카드(replace) →
  * ⋯ [매물 연결 해제] → 계산
  */
 async function walkCardEntry(user: User) {
@@ -136,7 +136,7 @@ async function walkCardEntry(user: User) {
   await waitFor(() => expect(window.location.hash).toBe("#/listings"));
 
   await clickCardLink(user, "래미안 84");
-  const sheet = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+  const sheet = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
   expect(
     within(sheet).getByRole("checkbox", { name: "추가 비용 인테리어 2줄 가져오기" }),
   ).toBeChecked();

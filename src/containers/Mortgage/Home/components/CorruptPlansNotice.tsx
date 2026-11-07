@@ -10,7 +10,7 @@ type CorruptPlansNoticeProps = {
 };
 
 const RESET_CONFIRM_MESSAGE =
-  "손상된 인테리어 계획 데이터를 삭제하고 빈 상태로 시작합니다. 되돌릴 수 없으니 원문을 먼저 복사하세요";
+  "손상된 예산 계획 데이터를 삭제하고 빈 상태로 시작합니다. 되돌릴 수 없으니 원문을 먼저 복사하세요";
 
 /**
  * 플랜 저장 원문이 손상됐을 때. 저장 목록의 손상 안내와 같은 규칙이다(ADR-001): 원문을 챙길 수 있게 하고,
@@ -41,7 +41,7 @@ function CorruptPlansNotice({ rawText, onReset }: CorruptPlansNoticeProps) {
   return (
     <section className={styles.notice} aria-labelledby="corrupt-plans-title">
       <h2 id="corrupt-plans-title" className={styles.title}>
-        저장된 인테리어 계획이 손상되어 불러올 수 없습니다
+        저장된 예산 계획이 손상되어 불러올 수 없습니다
       </h2>
       <p className={styles.description}>
         원문을 복사해 보관한 뒤 초기화하세요. 초기화하기 전에는 계획을 만들거나 고칠 수 없습니다.

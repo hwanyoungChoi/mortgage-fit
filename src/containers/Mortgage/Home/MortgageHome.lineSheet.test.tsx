@@ -50,7 +50,7 @@ async function renderApp(storage: Storage, hash = P_HASH) {
   window.location.hash = hash;
   const result = renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return result;
 }

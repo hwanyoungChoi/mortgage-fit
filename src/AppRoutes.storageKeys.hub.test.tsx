@@ -203,16 +203,14 @@ async function expectHubSummary(mode: Mode) {
     expect(within(main).getByRole("link", { name: "매물 모으기" })).toHaveAccessibleDescription(
       listings,
     );
-    expect(within(main).getByRole("link", { name: "인테리어 계획" })).toHaveAccessibleDescription(
-      home,
-    );
+    expect(within(main).getByRole("link", { name: "예산 계획" })).toHaveAccessibleDescription(home);
   });
 }
 
 /** 우리 집 탭이 안정된 화면(계획 1개 → 그 계획). 확인 전에는 "불러오는 중" */
 async function expectHomeSettled(mode: Mode) {
   if (mode === "pending") {
-    expect(await screen.findByText("인테리어 계획을 불러오는 중")).toBeInTheDocument();
+    expect(await screen.findByText("예산 계획을 불러오는 중")).toBeInTheDocument();
     return;
   }
   if (mode === "household") {

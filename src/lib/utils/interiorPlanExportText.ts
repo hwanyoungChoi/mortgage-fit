@@ -11,7 +11,7 @@ import { tbdExclusionNote } from "./interiorPlanRows";
 import type { InteriorPlanSummary } from "./interiorPlanRows";
 
 type InteriorPlanTableHeading = {
-  /** `{플랜 이름} 인테리어 계획`. 표의 접근 가능한 이름이기도 하다 */
+  /** `{플랜 이름} 예산 계획`. 표의 접근 가능한 이름이기도 하다 */
   title: string;
   /**
    * `{today} 기준 · 총 예산 · 지출 예정 · 지출 완료 · 예산 외 · 남은 예산`(있는 조각만 " · "로 잇는다). 지출 예정은 0이어도 있고
@@ -75,8 +75,8 @@ function isUnsafeFileNameChar(char: string): boolean {
 }
 
 /**
- * 내려받는 CSV 이름 `{이름}-인테리어-{today}.csv`(U20). 이름은 ① 금지·제어 문자를 하나씩 `_`로 바꾸고(합치지 않음)
- * ② 앞뒤 공백·마침표를 떼고 ③ 남는 것이 없으면 `인테리어-{today}.csv`로 한다. 길이는 자르지 않는다(이름 상한 40자).
+ * 내려받는 CSV 이름 `{이름}-예산-{today}.csv`(U20). 이름은 ① 금지·제어 문자를 하나씩 `_`로 바꾸고(합치지 않음)
+ * ② 앞뒤 공백·마침표를 떼고 ③ 남는 것이 없으면 `예산-{today}.csv`로 한다. 길이는 자르지 않는다(이름 상한 40자).
  */
 export function interiorPlanExportFileName(planName: string, today: string): string {
   const replaced = Array.from(planName, (char) => (isUnsafeFileNameChar(char) ? "_" : char)).join(

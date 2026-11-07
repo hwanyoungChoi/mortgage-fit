@@ -83,7 +83,7 @@ async function renderLoggedOut(plan: InteriorPlanWithItems, query = "") {
   window.location.hash = `#/home/${plan.id}${query}`;
   renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return { storage, writes };
 }
@@ -143,9 +143,7 @@ describe("AC-0(a) 우리 집 화면 골든(f5ad2b0)", () => {
       const user = userEvent.setup();
       const plan = make();
       const { storage, writes } = await renderLoggedOut(plan, "?view=table");
-      expect(captureTableGolden(`${plan.name} 인테리어 계획`)).toStrictEqual(
-        GOLDEN.plans[name].table,
-      );
+      expect(captureTableGolden(`${plan.name} 예산 계획`)).toStrictEqual(GOLDEN.plans[name].table);
       await user.click(screen.getByRole("button", { name: "CSV 내려받기" }));
       expect(download).toHaveBeenCalledTimes(1);
       const [fileName, text] = download.mock.calls[0];

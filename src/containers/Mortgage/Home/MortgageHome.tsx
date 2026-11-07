@@ -70,8 +70,7 @@ type HomeSheet =
   /** 줄 시트. `rowKey`는 고칠 줄(`item.id:quote.id`), null이면 새 줄이고 `trade`로 구분을 채운다 */
   | { name: "line"; planId: string; rowKey: string | null; trade: string };
 
-const UNAVAILABLE_MESSAGE =
-  "이 브라우저에서는 저장소를 사용할 수 없어 인테리어 계획을 쓸 수 없습니다";
+const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 예산 계획을 쓸 수 없습니다";
 
 /** 열어 둔 시트의 계획·항목이 사라진 곳. expired: 로그인이 끝나(401) 서버 계획이 화면에서 빠졌다 */
 type MissingContext = "local" | "account" | "household" | "expired";
@@ -338,8 +337,8 @@ function MortgageHome({
       return (
         <p className={styles.notice} aria-busy="true">
           {planImport.state?.status === "running"
-            ? "이 기기의 인테리어 계획을 계정으로 옮기는 중"
-            : "인테리어 계획을 불러오는 중"}
+            ? "이 기기의 예산 계획을 계정으로 옮기는 중"
+            : "예산 계획을 불러오는 중"}
         </p>
       );
     }
@@ -348,7 +347,7 @@ function MortgageHome({
     if (list.status === "loadFailed") {
       return (
         <div className={styles.notice}>
-          <p role="alert">인테리어 계획을 불러오지 못했습니다</p>
+          <p role="alert">예산 계획을 불러오지 못했습니다</p>
           <button
             type="button"
             className={styles.retryButton}

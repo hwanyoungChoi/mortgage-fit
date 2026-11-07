@@ -31,7 +31,7 @@ async function renderApp(storage: Storage, hash = "#/home") {
   window.location.hash = hash;
   const result = renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return result;
 }
@@ -71,7 +71,7 @@ describe("우리 집 화면: 만들기·계획 수 상한 (스펙 interior-plann
       expect(screen.getByRole("link", { name: "예산" })).toHaveAttribute("aria-current", "page");
 
       await user.click(screen.getByRole("button", { name: "계획 만들기" }));
-      const dialog = screen.getByRole("dialog", { name: "인테리어 계획 만들기" });
+      const dialog = screen.getByRole("dialog", { name: "예산 계획 만들기" });
       // 방·욕실 수는 고르지 않는다(스펙 interior-simple U11)
       expect(within(dialog).queryByRole("group", { name: "방 수" })).not.toBeInTheDocument();
       expect(within(dialog).queryByRole("group", { name: "욕실 수" })).not.toBeInTheDocument();

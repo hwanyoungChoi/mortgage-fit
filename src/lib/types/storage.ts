@@ -8,7 +8,7 @@ export type UserIdRecordStore = {
   add: (userId: string) => void;
 };
 
-/** 사용자별 id 목록(이 기기에서 그 계정으로 옮긴 매물·인테리어 계획 id). 키 하나에 `Record<userId, id[]>`로 둔다. */
+/** 사용자별 id 목록(이 기기에서 그 계정으로 옮긴 매물·예산 계획 id). 키 하나에 `Record<userId, id[]>`로 둔다. */
 export type IdsByUser = Record<string, string[]>;
 
 export type IdsByUserStore = {

@@ -25,8 +25,7 @@ function renderHub(plans: InteriorPlanWithItems[], extra: Record<string, string>
   return storage;
 }
 
-const homeCard = () =>
-  within(screen.getByRole("main")).getByRole("link", { name: "인테리어 계획" });
+const homeCard = () => within(screen.getByRole("main")).getByRole("link", { name: "예산 계획" });
 
 async function expectHomeDescription(text: string) {
   await waitFor(() => expect(homeCard()).toHaveAccessibleDescription(text));

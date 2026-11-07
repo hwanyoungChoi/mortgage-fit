@@ -1,6 +1,6 @@
 import type { IdsByUserStore } from "./storage";
 
-/** `loan-calculator/interior-plan-imports`: 사용자별로 이 기기에서 그 계정으로 옮긴 인테리어 계획 id */
+/** `loan-calculator/interior-plan-imports`: 사용자별로 이 기기에서 그 계정으로 옮긴 예산 계획 id */
 export type InteriorPlanImportStore = IdsByUserStore;
 
 /**

@@ -36,7 +36,7 @@ vi.mock("@/lib/utils/downloadTextFile", () => ({ downloadTextFile: vi.fn() }));
 
 const download = vi.mocked(downloadTextFile);
 
-const Q_TITLE = "우리 집 인테리어 계획";
+const Q_TITLE = "우리 집 예산 계획";
 const Q_LINE =
   "2026-10-27 기준 · 총 예산 15,000,000원 · 지출 예정 7,500,000원 · 남은 예산 7,500,000원";
 const HEADER_TEXT = ["구분", "업체", "세부내용", "견적(원)", "확정(원)", "비고"];
@@ -67,7 +67,7 @@ async function renderApp(storage: Storage, hash: string) {
   window.location.hash = hash;
   const result = renderWithQueryClient(<AppRoutes storage={storage} />);
   await waitFor(() =>
-    expect(screen.queryByText("인테리어 계획을 불러오는 중")).not.toBeInTheDocument(),
+    expect(screen.queryByText("예산 계획을 불러오는 중")).not.toBeInTheDocument(),
   );
   return result;
 }
@@ -275,7 +275,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
   });
 
   describe("AC-12(a)(c) 내려받기·인쇄", () => {
-    it("[CSV 내려받기] → downloadTextFile(파일 이름 '우리 집-인테리어-2026-10-27.csv', 'Q CSV'와 === 같은 문자열) 1회", async () => {
+    it("[CSV 내려받기] → downloadTextFile(파일 이름 '우리 집-예산-2026-10-27.csv', 'Q CSV'와 === 같은 문자열) 1회", async () => {
       const user = userEvent.setup();
       await renderApp(storageWith([makePlanQ()]), "#/home/plan-q?view=table");
       expect(download).not.toHaveBeenCalled();
@@ -292,14 +292,14 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       const storage = storageWith([makeSimplePlanP(), makePlanL()]);
       const first = await renderApp(storage, "#/home/plan-simple?view=table");
       await user.click(downloadButton());
-      expect(download.mock.calls[0][0]).toBe("우리 집-인테리어-2026-10-27.csv");
+      expect(download.mock.calls[0][0]).toBe("우리 집-예산-2026-10-27.csv");
       expect(download.mock.calls[0][1] === toCsvFile(SIMPLE_P_CSV_LINES)).toBe(true);
       first.unmount();
 
       await renderApp(storage, "#/home/plan-l?view=table");
       await user.click(downloadButton());
       expect(download).toHaveBeenCalledTimes(2);
-      expect(download.mock.calls[1][0]).toBe("옛 계획-인테리어-2026-10-27.csv");
+      expect(download.mock.calls[1][0]).toBe("옛 계획-예산-2026-10-27.csv");
       expect(download.mock.calls[1][1] === toCsvFile(LEGACY_L_CSV_LINES)).toBe(true);
     });
 
@@ -445,7 +445,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       await waitFor(() => expect(window.location.hash).toBe("#/home/plan-q?view=table"));
       expect(screen.getByText(/^2026-10-28 기준 · /)).toBeInTheDocument();
       await user.click(downloadButton());
-      expect(download.mock.calls[0][0]).toBe("우리 집-인테리어-2026-10-28.csv");
+      expect(download.mock.calls[0][0]).toBe("우리 집-예산-2026-10-28.csv");
     });
   });
 
@@ -498,7 +498,7 @@ describe("표 보기 (로그아웃, 기기 날짜 2026-10-27)", () => {
       const storage = createMemoryStorage({ [LISTINGS_STORAGE_KEY]: JSON.stringify([listing]) });
       window.location.hash = "#/home?listing=listing-r&view=table";
       renderWithQueryClient(<AppRoutes storage={storage} />);
-      const sheet = await screen.findByRole("dialog", { name: "인테리어 계획 만들기" });
+      const sheet = await screen.findByRole("dialog", { name: "예산 계획 만들기" });
       expect(within(sheet).getByRole("textbox", { name: "계획 이름" })).toHaveValue("래미안 84");
       await waitFor(() => expect(window.location.hash).toBe("#/home?view=table"));
     });

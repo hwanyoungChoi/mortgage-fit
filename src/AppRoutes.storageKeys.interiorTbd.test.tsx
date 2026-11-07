@@ -175,7 +175,7 @@ const headlineValue = (label: string) =>
   within(summaryRegion()).getByText(label).nextElementSibling?.textContent;
 
 const hubPlanLines = () =>
-  within(screen.getByRole("link", { name: "인테리어 계획" }))
+  within(screen.getByRole("link", { name: "예산 계획" }))
     .queryAllByText(/지출 예정/)
     .map((line) => line.textContent);
 
@@ -229,7 +229,7 @@ async function walk(
   check("R6 시트 닫기", PRIVACY_TOGGLED);
 
   await user.click(screen.getByRole("radio", { name: "표" }));
-  expect(await screen.findByRole("table", { name: "우리 집 인테리어 계획" })).toBeInTheDocument();
+  expect(await screen.findByRole("table", { name: "우리 집 예산 계획" })).toBeInTheDocument();
   check("표", PRIVACY_TOGGLED);
   await user.click(screen.getByRole("button", { name: "CSV 내려받기" }));
   await user.click(screen.getByRole("button", { name: "인쇄·PDF" }));
@@ -310,7 +310,7 @@ describe("AC-0(b) 미정·0원·원 키 계획을 열기만 하면 저장소 쓰
     );
 
     expect(api.writes()).toEqual([]);
-    expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
     if (mode !== "loggedOut") {
       expect(api.callsTo("GET", "/api/interior-plans").length).toBeGreaterThan(0);
       // 서버 원본은 받은 그대로(정규화로 다시 쓰지 않았다)
@@ -367,7 +367,7 @@ describe("AC-0(a) 로그인: 서버가 금액 없는 견적을 PUT·POST 응답�
     // 다음 조회(서버 원본에 금액 없는 견적 2개)도 정상
     await act(() => api.queryClient.refetchQueries());
     expect(within(summaryRegion()).getByText("금액 미정 2건 제외")).toBeInTheDocument();
-    expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
     expect(storage.getItem(INTERIOR_PLANS_STORAGE_KEY)).toBe(raw);
   });
 
@@ -402,7 +402,7 @@ describe("AC-0(a) 로그인: 서버가 금액 없는 견적을 PUT·POST 응답�
 
     expect(api.callsTo("POST", "/api/interior-plans/plan-simple/items")).toHaveLength(1);
     expect(await screen.findByRole("button", { name: "가구 한샘 열기" })).toHaveTextContent("미정");
-    expect(screen.queryByText("인테리어 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
+    expect(screen.queryByText("예산 계획을 불러오지 못했습니다")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
@@ -447,7 +447,7 @@ describe("AC-0(b) 탭 간: 다른 탭이 쓴 원문을 storage 이벤트로 받�
     expect(row).toHaveTextContent(amountText);
     expect(within(summaryRegion()).getByText("금액 미정 1건 제외")).toBeInTheDocument();
     expect(
-      screen.queryByText("저장된 인테리어 계획이 손상되어 불러올 수 없습니다"),
+      screen.queryByText("저장된 예산 계획이 손상되어 불러올 수 없습니다"),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "계획 초기화" })).not.toBeInTheDocument();
     // 읽기만 했다

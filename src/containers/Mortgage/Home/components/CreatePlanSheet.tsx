@@ -92,7 +92,7 @@ function CreatePlanSheet({ onCreate, listing, onClose }: CreatePlanSheetProps) {
   };
 
   return (
-    <Sheet title="인테리어 계획 만들기" onClose={onClose}>
+    <Sheet title="예산 계획 만들기" onClose={onClose}>
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
         <div className={styles.field}>
           <div className={styles.labelRow}>

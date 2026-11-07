@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 함께 쓰기 수락·나가기와 인테리어 계획(스펙 interior-planner AC-9·10, "동기화·이전 규칙", U12).
+// 함께 쓰기 수락·나가기와 예산 계획(스펙 interior-planner AC-9·10, "동기화·이전 규칙", U12).
 // 화면(홈 [나가기]·초대 [함께 쓰기 시작]) → 훅 → 계획 이전 연결을 본다.
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -22,7 +22,7 @@ const USER_ID = "user-b";
 const IMPORT_PATH = "/api/interior-plans/import";
 const TOKEN = "AbCdEfGhIjKlMnOpQrStUv";
 const PLAN_PARAGRAPH =
-  "인테리어 계획: 함께 쓰는 동안 상대가 내 계획에 넣은 항목은 내 계획과 함께 나가고, 내가 상대 계획에 넣은 항목은 그 계획에 남습니다.";
+  "예산 계획: 함께 쓰는 동안 상대가 내 계획에 넣은 항목은 내 계획과 함께 나가고, 내가 상대 계획에 넣은 항목은 그 계획에 남습니다.";
 
 const devicePlan = () => makePlanP({ id: "device-plan", name: "기기 계획", items: [] });
 
@@ -97,7 +97,7 @@ describe("나가기(이 기기에 기록 없는 계획이 있는 B)", () => {
     api.server.plans = api.server.plans.filter((plan) => plan.id !== "plan-pa");
     await user.click(screen.getByRole("link", { name: "예산" }));
     expect(
-      await screen.findByText("이 기기의 인테리어 계획을 계정으로 옮겼습니다"),
+      await screen.findByText("이 기기의 예산 계획을 계정으로 옮겼습니다"),
     ).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "기기 계획" })).toBeInTheDocument();
     expect(screen.queryByText("A 계획")).not.toBeInTheDocument();
