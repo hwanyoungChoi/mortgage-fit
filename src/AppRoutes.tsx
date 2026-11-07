@@ -1,8 +1,8 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 
 import AppHeader from "@/components/AppHeader";
+import DisplaySheet from "@/components/DisplaySheet";
 import TabNav from "@/components/TabNav";
-import TextSizeSheet from "@/components/TextSizeSheet";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
 import MortgageHome from "@/containers/Mortgage/Home/MortgageHome";
 import MortgageHub from "@/containers/Mortgage/Hub/MortgageHub";
@@ -32,6 +32,7 @@ import { createPrivacyModeStore } from "@/lib/utils/privacyModeStorage";
 import { createSentShareStore } from "@/lib/utils/sentShareStorage";
 import { createSessionHintStore } from "@/lib/utils/sessionHintStorage";
 import { createTextSizeStore } from "@/lib/utils/textSizeStorage";
+import { createThemeStore } from "@/lib/utils/themeStorage";
 import { createTradeLookupStore } from "@/lib/utils/tradeLookupStorage";
 
 import type { Regulations } from "@/lib/types/regulation";
@@ -61,6 +62,7 @@ function createStores(storage: Storage) {
     accountImportStore: createAccountImportStore({ storage }),
     privacyModeStore: createPrivacyModeStore({ storage }),
     textSizeStore: createTextSizeStore({ storage }),
+    themeStore: createThemeStore({ storage }),
     interiorPlanStore: createInteriorPlanStore({
       storage,
       createId: createRandomId,
@@ -87,6 +89,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       accountImportStore,
       privacyModeStore,
       textSizeStore,
+      themeStore,
       interiorPlanStore,
       interiorPlanImportStore,
       interiorGroupCollapseStore,
@@ -94,7 +97,8 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
   const textSize = useSyncExternalStore(textSizeStore.subscribe, textSizeStore.getSnapshot);
-  // 글자 크기 시트는 모든 화면 위에 뜬다. 열린 동안 머리 줄·화면·탭은 inert다(aria-modal이 약속하는 동작).
+  const theme = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot);
+  // 화면 설정(화면 모드·글자 크기) 시트는 모든 화면 위에 뜬다. 열린 동안 머리 줄·화면·탭은 inert다(aria-modal이 약속하는 동작).
   const textSizeSheet = useOpenSheet<"textSize">();
   // 저장 시트 이름 제안. 목록의 "복사"가 채우고 계산 화면이 쓰므로 두 화면 위에 둔다.
   const [suggestedName, setSuggestedName] = useState("");
@@ -239,9 +243,11 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
         />
       </div>
       {textSizeSheet.isOpen && (
-        <TextSizeSheet
-          value={textSize}
-          onSelect={textSizeStore.set}
+        <DisplaySheet
+          theme={theme}
+          onThemeSelect={themeStore.set}
+          textSize={textSize}
+          onTextSizeSelect={textSizeStore.set}
           onClose={textSizeSheet.close}
         />
       )}

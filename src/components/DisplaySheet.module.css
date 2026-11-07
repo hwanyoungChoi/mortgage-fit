@@ -1,3 +1,15 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groupTitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
 .options {
   display: flex;
   flex-direction: column;
@@ -6,7 +18,7 @@
 
 /*
  * 상태 고르기 시트(ListingStatusSheet)와 같은 넓은 줄. 고르지 않은 줄은 채운 면(투명 테두리는 고대비 모드의 윤곽),
- * 지금 크기는 흰 면 + 2px 먹색 테두리다(상태 시트와 같은 표시).
+ * 지금 설정은 흰 면 + 2px 먹색 테두리다(상태 시트와 같은 표시).
  */
 .option {
   display: flex;

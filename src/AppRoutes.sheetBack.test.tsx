@@ -175,14 +175,14 @@ describe("다른 시트도 같게 동작한다", () => {
     const storage = createMemoryStorage();
     const history = await renderAppFromHub(storage, "#/calculator");
     const setItem = vi.spyOn(storage, "setItem");
-    await userEvent.click(screen.getByRole("button", { name: "글자 크기" }));
-    expect(screen.getByRole("dialog", { name: "글자 크기" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "화면 설정" }));
+    expect(screen.getByRole("dialog", { name: "화면 설정" })).toBeInTheDocument();
     expect(window.history.length).toBe(history.length + 1);
 
     window.history.back();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(window.location.hash).toBe("#/calculator");
-    expect(screen.getByRole("button", { name: "글자 크기" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "화면 설정" })).toHaveFocus();
     await expectBackAt(history);
     expect(setItem).not.toHaveBeenCalled();
     await expectNextBackLeaves();
