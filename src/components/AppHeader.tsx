@@ -1,16 +1,25 @@
+import Moon from "lucide-react/icons/moon";
+import Sun from "lucide-react/icons/sun";
+
 import styles from "./AppHeader.module.css";
 
+import type { Theme } from "@/lib/types/theme";
+
 type AppHeaderProps = {
-  /** 화면 설정(화면 모드·글자 크기) 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
+  theme: Theme;
+  /** 라이트 ↔ 다크 */
+  onThemeToggle: () => void;
+  /** 글자 크기 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
   onTextSizeOpen: (button: HTMLButtonElement) => void;
 };
 
 /**
  * 모든 화면 맨 위의 머리 줄(고정하지 않아 스크롤과 함께 올라간다, ADR-031 D3).
- * 왼쪽은 서비스 이름(제목이 아닌 글자, 화면 제목은 각 화면의 h1), 오른쪽 [가가]는 화면 설정(화면 모드·글자 크기) 시트를 연다.
+ * 왼쪽은 서비스 이름(제목이 아닌 글자, 화면 제목은 각 화면의 h1), 오른쪽은 화면 모드 토글(라이트면 달, 다크면 해 = 누르면 바뀔 모드)과 [가가](글자 크기 시트).
  * 화면 안에도 `<header>`가 있어 이름으로 구분한다(`banner "모기지핏"`).
  */
-function AppHeader({ onTextSizeOpen }: AppHeaderProps) {
+function AppHeader({ theme, onThemeToggle, onTextSizeOpen }: AppHeaderProps) {
+  const isDark = theme === "dark";
   return (
     <header className={styles.header} aria-label="모기지핏">
       <div className={styles.bar}>
@@ -18,18 +27,29 @@ function AppHeader({ onTextSizeOpen }: AppHeaderProps) {
           <img className={styles.logo} src="/favicon.svg" alt="" width={22} height={22} />
           모기지핏
         </span>
-        <button
-          type="button"
-          className={styles.textSizeButton}
-          aria-label="화면 설정"
-          aria-haspopup="dialog"
-          onClick={(event) => onTextSizeOpen(event.currentTarget)}
-        >
-          <span className={styles.smallGlyph} aria-hidden="true">
-            가
-          </span>
-          <span aria-hidden="true">가</span>
-        </button>
+        <div className={styles.tools}>
+          <button
+            type="button"
+            className={styles.toolButton}
+            aria-label="다크 모드"
+            aria-pressed={isDark}
+            onClick={onThemeToggle}
+          >
+            {isDark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            className={styles.textSizeButton}
+            aria-label="글자 크기"
+            aria-haspopup="dialog"
+            onClick={(event) => onTextSizeOpen(event.currentTarget)}
+          >
+            <span className={styles.smallGlyph} aria-hidden="true">
+              가
+            </span>
+            <span aria-hidden="true">가</span>
+          </button>
+        </div>
       </div>
     </header>
   );

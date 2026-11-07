@@ -113,8 +113,8 @@
   line-height: 1.5;
   color: var(--color-text);
   background: var(--color-bg);
-  /* 기기 설정을 따른다. [화면 설정]에서 고르면 <html data-theme>로 하나로 고정한다(아래). */
-  color-scheme: light dark;
+  /* 머리 줄 토글이 <html data-theme>로 정한다(아래). */
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -127,11 +127,7 @@
   scroll-padding-bottom: calc(var(--bottom-tab-offset) + var(--summary-bar-height));
 }
 
-/* 화면 설정의 화면 모드(이 기기, `<html data-theme>`). system이면 :root 그대로 기기 설정을 따른다. 인쇄는 종이라 늘 라이트다. */
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
+/* 화면 모드(머리 줄 토글, 이 기기에 저장, `<html data-theme>`). 인쇄는 종이라 늘 라이트다. */
 :root[data-theme="dark"] {
   color-scheme: dark;
 }

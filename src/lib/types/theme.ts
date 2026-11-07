@@ -1,5 +1,5 @@
-/** 화면 모드(이 기기). system = 기기 설정을 따름. 값과 라벨은 `constants/theme.ts` */
-export type Theme = "system" | "light" | "dark";
+/** 화면 모드(이 기기). 머리 줄 토글로 바꾼다 */
+export type Theme = "light" | "dark";
 
 export type ThemeStore = {
   getSnapshot: () => Theme;

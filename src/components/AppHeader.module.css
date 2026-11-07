@@ -24,6 +24,29 @@
   flex: none;
 }
 
+/* 오른쪽 도구: 화면 모드 토글 + [가가] */
+.tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+/* 화면 모드 토글(해·달 아이콘). [가가]와 같은 44px 누르는 자리·같은 흐린 색 */
+.toolButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+}
+
+.toolButton:focus-visible {
+  outline-offset: -2px;
+}
+
 /* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼 */
 .textSizeButton {
   display: flex;

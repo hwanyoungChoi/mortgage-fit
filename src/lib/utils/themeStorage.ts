@@ -1,5 +1,3 @@
-import { DEFAULT_THEME, THEMES } from "@/lib/constants/theme";
-
 import { isOneOf } from "./isOneOf";
 
 import type { Theme, ThemeStore } from "@/lib/types/theme";
@@ -7,14 +5,22 @@ import type { Theme, ThemeStore } from "@/lib/types/theme";
 /** 새 키. 원문은 따옴표 없는 값 그대로 */
 export const THEME_STORAGE_KEY = "loan-calculator/theme";
 
-/** 키 없음·모르는 값·접근 불가는 기기 설정을 따른다. */
+const THEMES: readonly Theme[] = ["light", "dark"];
+
+/** 아직 고른 적 없으면 처음 열 때의 기기 설정으로 시작한다(저장은 토글을 누를 때만). */
+function deviceTheme(): Theme {
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/** 저장한 값. 키 없음·모르는 값·접근 불가면 기기 설정 */
 export function loadTheme(storage: Storage): Theme {
   try {
     const raw = storage.getItem(THEME_STORAGE_KEY);
-    return isOneOf(THEMES, raw) ? raw : DEFAULT_THEME;
+    if (isOneOf(THEMES, raw)) return raw;
   } catch {
-    return DEFAULT_THEME;
+    // 접근 불가: 기기 설정으로 시작한다.
   }
+  return deviceTheme();
 }
 
 /** `<html data-theme>`. index.css가 이 값으로 `color-scheme`을 정하고, 색 토큰(`light-dark()`)이 그에 맞는 값을 고른다. */
