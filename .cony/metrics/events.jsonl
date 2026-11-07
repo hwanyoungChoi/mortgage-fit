@@ -346,3 +346,9 @@
 {"ts":"2026-11-06T02:20:54.864Z","type":"ship","pr":71,"result":"merged"}
 {"ts":"2026-11-06T02:20:58.924Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-11-06T02:38:50.287Z","type":"status","status":"완료"}
+{"ts":"2026-11-06T02:42:07.187Z","type":"ship","pr":72,"result":"merged"}
+{"ts":"2026-11-07T07:18:00.354Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-07T07:18:00.356Z","type":"decision","file":"decisions/039-group-collapse-storage.md"}
+{"ts":"2026-11-07T07:20:39.460Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"row.key"}
+{"ts":"2026-11-07T07:26:31.749Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-07T07:28:07.485Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
