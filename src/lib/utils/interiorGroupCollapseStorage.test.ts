@@ -91,4 +91,16 @@ describe("interiorGroupCollapseStorage 읽기·쓰기 실패(AC-4)", () => {
     collapse(store, "Q", "욕실");
     expect(storage.getItem(KEY)).toBe('{"Q":["주방","욕실"]}');
   });
+
+  it("모두 접기는 지금 묶음 전부를 쓰고(없어진 구분은 버림), 이미 그 상태면 쓰지 않는다. 모두 펴기는 그 계획 키를 지운다", () => {
+    const { storage, store } = storeWith('{"P":["옛 구분"],"Q":["주방"]}');
+    store.setAllCollapsed({ planId: "P", isCollapsed: true, presentTrades: ["도배", "욕실"] });
+    expect(storage.getItem(KEY)).toBe('{"P":["도배","욕실"],"Q":["주방"]}');
+    const listener = vi.fn();
+    store.subscribe(listener);
+    store.setAllCollapsed({ planId: "P", isCollapsed: true, presentTrades: ["욕실", "도배"] });
+    expect(listener).not.toHaveBeenCalled();
+    store.setAllCollapsed({ planId: "P", isCollapsed: false, presentTrades: ["도배", "욕실"] });
+    expect(storage.getItem(KEY)).toBe('{"Q":["주방"]}');
+  });
 });

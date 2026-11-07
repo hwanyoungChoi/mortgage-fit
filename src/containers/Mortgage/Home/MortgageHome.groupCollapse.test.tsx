@@ -148,6 +148,32 @@ describe("묶음 접기·펼치기 (P: 도배 2줄, 욕실 3줄)", () => {
     expect(storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY)).toBe("{}");
   });
 
+  it("AC-9: [모두 접기]는 펼친 묶음이 하나라도 있으면 모두 접고, 모두 접히면 [모두 펴기]로 바뀌어 모두 편다", async () => {
+    const user = userEvent.setup();
+    const storage = seedPlanP({
+      [INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY]: '{"plan-simple":["도배"]}',
+    });
+    await renderLoggedOut(storage);
+
+    await user.click(screen.getByRole("button", { name: "모두 접기" }));
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "false");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "false");
+    expect(JSON.parse(storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY) ?? "")).toStrictEqual({
+      "plan-simple": ["도배", "욕실"],
+    });
+
+    await user.click(toggleButton("욕실"));
+    expect(screen.getByRole("button", { name: "모두 접기" })).toBeInTheDocument();
+    await user.click(toggleButton("욕실"));
+
+    await user.click(screen.getByRole("button", { name: "모두 펴기" }));
+    expect(toggleButton("도배")).toHaveAttribute("aria-expanded", "true");
+    expect(toggleButton("욕실")).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: R1 })).toBeInTheDocument();
+    expect(storage.getItem(INTERIOR_COLLAPSED_GROUPS_STORAGE_KEY)).toBe("{}");
+    expect(screen.getByRole("button", { name: "모두 접기" })).toBeInTheDocument();
+  });
+
   it("AC-2: 제목에서 스페이스 들기 → 놓기 뒤 접힘이 그대로고, 화살표에서 스페이스는 들지 않고 접는다", async () => {
     const user = userEvent.setup();
     const storage = seedPlanP();

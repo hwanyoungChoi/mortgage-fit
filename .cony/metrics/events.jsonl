@@ -359,3 +359,8 @@
 {"ts":"2026-11-07T07:46:35.108Z","type":"task","task":3,"from":"todo","to":"progress","owner":"qa"}
 {"ts":"2026-11-07T07:46:35.128Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
 {"ts":"2026-11-07T07:46:35.161Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-07T07:49:15.473Z","type":"ship","pr":73,"result":"merged"}
+{"ts":"2026-11-07T07:49:21.538Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-11-07T07:49:35.743Z","type":"hook","hook":"context-on-stop","decision":"block","context":223816}
+{"ts":"2026-11-07T10:38:15.629Z","type":"hook","hook":"guard-instructions","decision":"deny","file":".claude/launch.json"}
+{"ts":"2026-11-07T10:39:12.272Z","type":"status","status":"진행 중"}
