@@ -1,12 +1,27 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 
 import { currentSheetHistoryId, pushSheetHistoryEntry } from "@/lib/utils/sheetHistory";
 
 import styles from "./Sheet.module.css";
 
+/** 손잡이를 이만큼(시트 높이 비율) 넘게 내리거나 */
+const DISMISS_DISTANCE_RATIO = 0.25;
+/** 이 속도(px/ms)보다 빠르게 튕겨 내리면 닫는다(Vaul과 같은 기준). 아니면 제자리로 돌아간다 */
+const DISMISS_VELOCITY = 0.4;
+
+type DragStart = { pointerId: number; y: number; time: number };
+
 type SheetProps = {
   title: string;
-  /** Esc·닫기 버튼·뒤로 가기. 열고 닫기·포커스 복귀·뒤 화면 inert·이력 항목은 `useOpenSheet`가 맡는다. */
+  /** Esc·닫기 버튼·뒤로 가기·바깥 누르기·손잡이 끌어 내리기. 열고 닫기·포커스 복귀·뒤 화면 inert·이력 항목은 `useOpenSheet`가 맡는다. */
   onClose: () => void;
   children: ReactNode;
 };
@@ -18,6 +33,9 @@ type SheetProps = {
 function Sheet({ title, onClose, children }: SheetProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef<DragStart | null>(null);
+  // 바깥(어두운 막)에서 누르기 시작했는지. 시트 안에서 눌러 바깥에서 뗀 것(글자 선택 등)은 닫지 않는다.
+  const isBackdropPressRef = useRef(false);
   // 열 때 `useOpenSheet`가 쌓은 이력 항목과 그 주소. 시트를 바꿔 열어도(계획 관리 → 만들기) 같은 항목이다.
   const [historyEntry] = useState(() => ({
     id: currentSheetHistoryId(),
@@ -52,8 +70,62 @@ function Sheet({ title, onClose, children }: SheetProps) {
     };
   }, [onClose, historyEntry]);
 
+  const handleBackdropPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    isBackdropPressRef.current = event.target === event.currentTarget;
+  };
+  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (isBackdropPressRef.current && event.target === event.currentTarget) onClose();
+    isBackdropPressRef.current = false;
+  };
+
+  // 손잡이·제목 줄을 끌어 내리면 시트가 손가락을 따라오고, 놓을 때 기준을 넘었으면 닫기 요청을 한다.
+  // 확인을 취소했거나 기준에 못 미치면 제자리로 돌아간다. 닫혔으면 시트가 사라져 되돌릴 것이 없다.
+  const handleGrabPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || event.button !== 0) return;
+    if ((event.target as Element).closest("button") !== null) return;
+    dragStartRef.current = { pointerId: event.pointerId, y: event.clientY, time: event.timeStamp };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const handleGrabPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const start = dragStartRef.current;
+    const sheet = dialogRef.current;
+    if (start === null || sheet === null || start.pointerId !== event.pointerId) return;
+    const offset = Math.max(0, event.clientY - start.y);
+    sheet.style.transition = "none";
+    sheet.style.transform = `translateY(${offset}px)`;
+  };
+  const settle = () => {
+    const sheet = dialogRef.current;
+    if (sheet === null) return;
+    sheet.style.transition = "";
+    sheet.style.transform = "";
+  };
+  const handleGrabPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const start = dragStartRef.current;
+    const sheet = dialogRef.current;
+    dragStartRef.current = null;
+    if (start === null || sheet === null || start.pointerId !== event.pointerId) return;
+    const offset = Math.max(0, event.clientY - start.y);
+    const velocity = offset / Math.max(1, event.timeStamp - start.time);
+    const isDismiss =
+      offset > sheet.offsetHeight * DISMISS_DISTANCE_RATIO ||
+      (offset > 0 && velocity > DISMISS_VELOCITY);
+    if (!isDismiss) {
+      settle();
+      return;
+    }
+    onClose();
+    // 닫혔으면 다음 그리기 전에 시트가 사라진다. 남아 있으면(확인 취소) 제자리로.
+    requestAnimationFrame(settle);
+  };
+
   return (
-    <div className={styles.backdrop}>
+    // 바깥 누르기는 포인터 보조 수단이다. 키보드·보조기기는 Esc와 [닫기]로 닫는다.
+    <div
+      className={styles.backdrop}
+      onPointerDown={handleBackdropPointerDown}
+      onClick={handleBackdropClick}
+    >
       <div
         ref={dialogRef}
         className={styles.sheet}
@@ -62,13 +134,25 @@ function Sheet({ title, onClose, children }: SheetProps) {
         aria-labelledby={titleId}
         tabIndex={-1}
       >
-        <div className={styles.titleRow}>
-          <h2 id={titleId} className={styles.title}>
-            {title}
-          </h2>
-          <button type="button" className={styles.closeButton} onClick={onClose}>
-            닫기
-          </button>
+        <div
+          className={styles.grabArea}
+          onPointerDown={handleGrabPointerDown}
+          onPointerMove={handleGrabPointerMove}
+          onPointerUp={handleGrabPointerUp}
+          onPointerCancel={() => {
+            dragStartRef.current = null;
+            settle();
+          }}
+        >
+          <span className={styles.handle} aria-hidden="true" />
+          <div className={styles.titleRow}>
+            <h2 id={titleId} className={styles.title}>
+              {title}
+            </h2>
+            <button type="button" className={styles.closeButton} onClick={onClose}>
+              닫기
+            </button>
+          </div>
         </div>
         {children}
       </div>
