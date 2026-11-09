@@ -10,7 +10,7 @@
 }
 
 /*
- * 위쪽만 둥근 흰 시트. 맨 위 손잡이(36×4 막대)는 시트임을 알리는 장식이라 마크업 없이 그린다.
+ * 위쪽만 둥근 흰 시트. 맨 위 손잡이(36×4 막대)와 제목 줄을 끌어 내리면 닫힌다(.grabArea).
  * 내용이 길면 시트 전체가, 내용이 스스로 스크롤 영역을 두면(min-height: 0) 그 영역만 스크롤한다.
  */
 .sheet {
@@ -25,15 +25,25 @@
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   background: var(--color-surface);
   animation: slide-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  /* 끌다 놓았을 때 제자리로 돌아가는 움직임. 끄는 동안은 스크립트가 transition을 끈다 */
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.sheet::before {
-  content: "";
+/* 손잡이 + 제목 줄. 여기서 끌면 페이지 스크롤·당겨서 새로고침 대신 시트가 따라 내려온다 */
+.grabArea {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-1);
+  touch-action: none;
+  cursor: grab;
+}
+
+.handle {
   flex: none;
   align-self: center;
   width: 36px;
   height: 4px;
-  margin-bottom: calc(var(--space-1) - var(--space-4));
   border-radius: var(--radius-pill);
   background: var(--color-border);
 }
@@ -88,5 +98,6 @@
   .backdrop,
   .sheet {
     animation: none;
+    transition: none;
   }
 }
