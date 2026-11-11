@@ -5,7 +5,7 @@
   /* 글자 크기가 다른 이름·초과 건수·금액·버튼 글자를 한 기준선에 둔다 */
   align-items: baseline;
   gap: var(--space-1) var(--space-2);
-  padding: var(--space-3) var(--space-3) var(--space-3) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
   font-size: var(--fs-body);
@@ -13,16 +13,18 @@
 
 .formBar {
   composes: bar;
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
 }
 
+/* 가로 쌍(P1): 라벨 body 400 muted, 금액 value 700 tabular */
 .label {
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .amount {
   margin-left: auto;
-  font-size: var(--fs-section);
+  font-size: var(--fs-value);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -37,7 +39,7 @@
 
 .overCount {
   color: var(--color-error);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;
 }

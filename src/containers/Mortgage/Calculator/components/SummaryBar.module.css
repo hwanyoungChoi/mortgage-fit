@@ -46,12 +46,12 @@
   border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-/* 요약 두 줄: 라벨(muted) 왼쪽, 금액 20px 700 오른쪽. 예상 한도는 이 화면의 주 데이터라 코발트, 자기자금은 잉크. */
+/* 요약 두 줄(가로 쌍 P1의 강조 줄): 라벨(muted) 왼쪽, 금액 figure 700 오른쪽. 예상 한도는 이 화면의 주 데이터라 코발트, 자기자금은 잉크. */
 .figure {
   display: flex;
   align-items: baseline;
@@ -61,17 +61,19 @@
   line-height: 1.3;
 }
 
+/* 폭이 모자라면 라벨이 줄을 바꾸고 금액은 한 줄을 지킨다(P1) */
 .figure dt {
+  min-width: 0;
   color: var(--color-text-muted);
-  white-space: nowrap;
 }
 
 .figure dd {
+  flex: none;
   font-size: var(--fs-figure);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .figure:first-child dd {

@@ -7,12 +7,16 @@
   padding: var(--space-2) var(--space-4) calc(var(--space-5) + var(--bottom-tab-offset));
 }
 
-/* 제목 왼쪽, 계정 버튼 오른쪽 같은 줄(모든 화면 머리글 구조). 제목 줄 높이 = 머리글 버튼 높이 36px */
+/*
+ * 제목 왼쪽, 계정 버튼 오른쪽 같은 줄(모든 화면 머리글 구조). 제목 줄 높이 = 머리글 버튼 높이 36px.
+ * 머리글 아래 첫 면까지는 네 화면 모두 페이지 gap + --space-1이다.
+ */
 .titleRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+  margin-bottom: var(--space-1);
 }
 
 .title {
@@ -38,8 +42,8 @@
   content: "";
   position: absolute;
   top: 0;
-  right: calc(var(--space-4) + var(--space-1));
-  left: calc(var(--space-4) + var(--space-1));
+  right: var(--card-padding);
+  left: var(--card-padding);
   border-top: 1px solid var(--color-border);
 }
 

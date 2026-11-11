@@ -77,7 +77,7 @@
 }
 
 .notice {
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -113,7 +113,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-5) var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -145,7 +145,7 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) calc(var(--space-4) + var(--space-1)) var(--space-1);
+  padding: var(--space-3) var(--card-padding) var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--fs-small);
 }

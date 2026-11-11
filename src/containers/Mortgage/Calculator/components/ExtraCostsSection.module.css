@@ -3,14 +3,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
 
+/* 제목 + 같은 줄 합계(P3): 제목 section 700, 합계 body 700 tabular, 기준선 맞춤 */
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
 }
@@ -24,7 +25,7 @@
 
 .title {
   font-size: var(--fs-section);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .description {
@@ -37,7 +38,7 @@
   flex: none;
   flex-direction: column;
   align-items: flex-end;
-  font-size: var(--fs-section);
+  font-size: var(--fs-body);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -93,8 +94,10 @@
   border-top: 1px solid var(--color-rule);
 }
 
+/* 묶음 칸 라벨(P5): small 600 muted */
 .groupTitle {
-  font-size: calc(var(--fs-body) - 1px);
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }

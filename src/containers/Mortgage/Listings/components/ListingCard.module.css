@@ -3,8 +3,6 @@
   --reveal-button-width: 56px;
   /* 상태 칩(ListingStatusChip .chip의 min-width)도 같은 방식으로 머리 왼쪽, 이름 맨 앞에 앉힌다. */
   --status-chip-width: 56px;
-  /* 목록 줄 글자와 같은 안쪽 여백 */
-  --card-inset: calc(var(--space-4) + var(--space-1));
   /* 오른쪽 위 접기 꺾쇠(CompactListingRow) 자리 */
   --collapse-width: 44px;
 
@@ -15,7 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4) var(--card-inset) var(--space-3);
+  padding: var(--space-4) var(--card-padding) var(--space-3);
   color: inherit;
   text-decoration: none;
 }
@@ -43,7 +41,7 @@
 .statusButton {
   position: absolute;
   top: calc(var(--space-4) - var(--space-2));
-  left: calc(var(--card-inset) - var(--space-2));
+  left: calc(var(--card-padding) - var(--space-2));
   z-index: 1;
   display: flex;
   align-items: center;
@@ -60,7 +58,7 @@
 }
 
 .statusError {
-  margin: 0 var(--card-inset) var(--space-3);
+  margin: 0 var(--card-padding) var(--space-3);
   color: var(--color-error);
   font-size: var(--fs-small);
   overflow-wrap: anywhere;
@@ -120,7 +118,7 @@
 .name {
   min-width: 0;
   font-size: var(--fs-section);
-  font-weight: 600;
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
@@ -130,7 +128,7 @@
   border-radius: var(--radius-control);
   background: var(--color-badge-bg);
   color: var(--color-badge-text);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -171,28 +169,36 @@
   margin-top: var(--space-2);
 }
 
+/*
+ * 가로 쌍(P1): 라벨 body 400 muted, 값 value 600 잉크 tabular. 줄의 글자를 값이 물려받는다.
+ * 폭이 모자라면 라벨이 줄을 바꾸고 금액은 한 줄을 지킨다.
+ */
 .figure {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  font-size: var(--fs-body);
+  font-size: var(--fs-value);
+  font-weight: 600;
 }
 
 .figure dt {
+  min-width: 0;
   color: var(--color-text-muted);
-  white-space: nowrap;
+  font-size: var(--fs-body);
+  font-weight: 400;
 }
 
 .figure dd {
+  flex: none;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 /*
- * 필요한 자기자금: 카드의 답. 옅은 구분선 아래 카드에서 가장 큰 숫자(--fs-answer). 좁은 카드에서 라벨과 한 줄에
- * 들어가지 않으면 금액이 다음 줄 오른쪽으로 내려간다(숫자 중간에서 끊기지 않게).
+ * 필요한 자기자금: 카드의 답. 옅은 구분선 아래 카드에서 가장 큰 숫자(--fs-answer), 라벨은 흐린 small 600(P2 라벨).
+ * 좁은 카드에서 라벨과 한 줄에 들어가지 않으면 금액이 다음 줄 오른쪽으로 내려간다(숫자 중간에서 끊기지 않게).
  */
 .emphasisFigure {
   composes: figure;
@@ -207,22 +213,28 @@
 }
 
 .emphasisFigure dt {
-  color: var(--color-text);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   font-weight: 600;
   letter-spacing: 0;
 }
 
 .emphasisFigure dd {
+  flex: initial;
   margin-left: auto;
+  white-space: normal;
   word-break: keep-all;
 }
 
-/* 자기자금 내역. 위 행보다 작고 흐리게 둔다. */
+/* 자기자금 내역. 하위 내역이라 라벨·값 모두 작고 흐리게 둔다. */
 .breakdown {
   composes: figure;
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
+  font-weight: 400;
+}
+
+.breakdown dt {
+  font-size: var(--fs-small);
 }
 
 /*
@@ -236,18 +248,16 @@
   border-top: 1px solid var(--color-rule);
 }
 
+/* 총 필요 금액: 가로 쌍의 강조 줄(figure 700). 답(answer)보다는 작다 */
 .totalFigure {
   composes: figure;
-  font-weight: 600;
-}
-
-.totalFigure dt {
-  color: var(--color-text);
+  font-size: var(--fs-figure);
+  font-weight: 700;
 }
 
 /* [추가 비용 내역 n개]: 본문 링크 밖의 펼침. 메모 우물과 같은 들여쓰기 */
 .extraCosts {
-  margin: 0 var(--card-inset) var(--space-3);
+  margin: 0 var(--card-padding) var(--space-3);
   font-size: var(--fs-small);
 }
 
@@ -289,7 +299,7 @@
  */
 .actions {
   display: flex;
-  margin: 0 var(--card-inset);
+  margin: 0 var(--card-padding);
   border-top: 1px solid var(--color-rule);
 }
 
@@ -299,7 +309,7 @@
   align-items: center;
   justify-content: center;
   min-height: 40px;
-  margin: var(--space-1) var(--card-inset) var(--space-4);
+  margin: var(--space-1) var(--card-padding) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-raised);
   color: var(--color-text);

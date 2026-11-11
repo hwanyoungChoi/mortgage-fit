@@ -27,21 +27,27 @@
   border-top: 1px solid var(--color-rule);
 }
 
+/* 목록 줄(P4): 이름 body 500 잉크, 금액 value 700 오른쪽 tabular, 기준선 맞춤 */
 .rowTop {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
 .rowTitle {
   min-width: 0;
+  font-size: var(--fs-body);
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 
 .rowAmount {
   flex: none;
+  font-size: var(--fs-value);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .rowDetail {

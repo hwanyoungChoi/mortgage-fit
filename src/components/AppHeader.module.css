@@ -15,7 +15,7 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-text);
-  font-size: calc(var(--fs-body) + 1px);
+  font-size: var(--fs-value);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -70,7 +70,7 @@
 }
 
 .smallGlyph {
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
 }
 
 /* 화면 도구라 인쇄하지 않는다(표 보기가 아닌 화면은 인쇄 허용 목록이 걸리지 않는다). */

@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-5) var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
   text-align: center;
