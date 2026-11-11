@@ -64,7 +64,7 @@
 .title {
   min-width: 0;
   font-size: var(--fs-section);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* 텍스트 동작. 주 동작이 아니라 흐린 글자다. 누르는 자리는 44px */

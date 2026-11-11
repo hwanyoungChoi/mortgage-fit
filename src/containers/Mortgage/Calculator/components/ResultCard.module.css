@@ -21,7 +21,7 @@
 
 .condition {
   font-size: var(--fs-section);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .unverified {
@@ -34,12 +34,19 @@
   flex-direction: column;
 }
 
+/*
+ * 가로 쌍(P1): 라벨 body 400 muted, 값 value 600 잉크 tabular. 줄의 글자를 값이 물려받는다.
+ * 값 칸이 먼저 제 폭을 갖고 라벨이 남은 폭에서 줄을 바꾼다(360px·크게에서 금액이 두 줄로 갈리지 않게).
+ */
 .row {
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(min-content, 1fr) auto;
+  align-items: baseline;
   column-gap: var(--space-3);
   padding: var(--space-3) 0;
   border-top: 1px solid var(--color-rule);
+  font-size: var(--fs-value);
+  font-weight: 600;
 }
 
 .emphasisRow {
@@ -49,13 +56,13 @@
 }
 
 /*
- * 이 화면의 답(필요한 자기자금): 잉크 선 사이, 화면에서 가장 큰 숫자. 라벨 아래 줄에 금액을 오른쪽으로 둬
- * 360px에서도 "8억 1,875만원"이 한 줄에 들어간다.
+ * 이 화면의 답(필요한 자기자금): 잉크 선 사이, 화면에서 가장 큰 숫자. 세로 쌍(P2): 흐린 작은 라벨 아래 줄에 금액을
+ * 오른쪽으로 둬 360px에서도 "8억 1,875만원"이 한 줄에 들어간다.
  */
 .answerRow {
   composes: row;
   grid-template-columns: minmax(0, 1fr);
-  row-gap: var(--space-1);
+  row-gap: 2px;
   padding: var(--space-4) 0;
   /* 영수증의 합계 줄: 위아래 잉크 선 두 줄이 여기까지의 합임을 보인다 */
   border-top: 1px solid var(--color-text);
@@ -71,17 +78,15 @@
   border-top: 0;
 }
 
-.answerRow .rowLabel {
-  color: var(--color-text);
-  font-size: var(--fs-section);
-  font-weight: 600;
-}
-
 .rowLabel {
   color: var(--color-text-muted);
   font-size: var(--fs-body);
   font-weight: 400;
-  align-self: center;
+}
+
+.answerRow .rowLabel {
+  font-size: var(--fs-small);
+  font-weight: 600;
 }
 
 .rowValue {
