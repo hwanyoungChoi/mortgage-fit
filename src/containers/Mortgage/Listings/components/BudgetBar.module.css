@@ -16,13 +16,15 @@
   padding: var(--card-padding);
 }
 
+/* 가로 쌍(P1): 라벨 body 400 muted, 금액 value 700 tabular */
 .label {
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .amount {
   margin-left: auto;
-  font-size: var(--fs-section);
+  font-size: var(--fs-value);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

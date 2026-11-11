@@ -12,7 +12,7 @@
 
 .name {
   font-size: var(--fs-section);
-  font-weight: 600;
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
@@ -27,37 +27,42 @@
   margin-top: var(--space-1);
 }
 
+/*
+ * 가로 쌍(P1): 라벨 body 400 muted, 값 value 600 잉크 tabular. 줄의 글자를 값이 물려받는다.
+ * 폭이 모자라면 라벨이 줄을 바꾸고 금액은 한 줄을 지킨다.
+ */
 .figure {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  font-size: var(--fs-body);
+  font-size: var(--fs-value);
+  font-weight: 600;
 }
 
 .figure dt {
+  min-width: 0;
   color: var(--color-text-muted);
-  white-space: nowrap;
+  font-size: var(--fs-body);
+  font-weight: 400;
 }
 
 .figure dd {
+  flex: none;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
-/* 매물의 답(필요한 자기자금): 줄에서 가장 큰 금액 */
+/* 매물의 답(필요한 자기자금): 줄에서 가장 큰 금액(figure 700), 라벨은 흐린 small 600 */
 .emphasisFigure {
   composes: figure;
+  font-size: var(--fs-figure);
   font-weight: 700;
 }
 
-.emphasisFigure dd {
-  font-size: var(--fs-figure);
-}
-
 .emphasisFigure dt {
-  color: var(--color-text);
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 

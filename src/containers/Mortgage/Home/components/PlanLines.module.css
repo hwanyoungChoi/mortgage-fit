@@ -114,12 +114,15 @@
   overflow-wrap: anywhere;
 }
 
-/* 확정 합계: 줄 금액과 같은 숫자 모양. 확정·완료 두 칸만큼(화살표 자리 포함) 비워 줄 금액 열과 자리를 맞춘다. */
+/*
+ * 확정 합계(P3): 제목(section)보다 3px 작은 body 700 tabular, 기준선 맞춤. 확정·완료 두 칸만큼(화살표 자리 포함)
+ * 비워 줄 금액 열과 오른쪽 끝을 맞춘다.
+ */
 .groupTotal {
   flex: none;
   padding: var(--space-2) calc(2 * var(--check-column) + var(--space-1) - var(--group-toggle-width))
     var(--space-1) 0;
-  font-size: var(--fs-section);
+  font-size: var(--fs-body);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -385,7 +388,7 @@
   white-space: nowrap;
 }
 
-/* 금액: 오른쪽 정렬 tabular, 본문보다 한 단계 큰 16px 600 */
+/* 금액(P4): 오른쪽 정렬 value 600 tabular */
 .amount {
   flex: none;
   font-size: var(--fs-value);

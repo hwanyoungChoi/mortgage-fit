@@ -74,7 +74,7 @@ function PlanSummary({ summary, onBudgetEdit }: PlanSummaryProps) {
       )}
       <div className={styles.detailGroups}>
         <dl>
-          <div className={styles.plannedDetail}>
+          <div className={styles.detail}>
             <dt>
               {hasBudget && <span className={styles.swatchPlanned} aria-hidden="true" />}
               지출 예정

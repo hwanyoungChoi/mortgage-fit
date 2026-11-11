@@ -92,28 +92,35 @@
   gap: var(--space-1);
 }
 
+/*
+ * 가로 쌍(P1): 라벨 body 400 muted, 값 value 600 잉크 tabular. 줄의 글자를 값이 물려받는다.
+ * 폭이 모자라면 라벨이 줄을 바꾸고 금액은 한 줄을 지킨다.
+ */
 .detail {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
   min-width: 0;
-  font-size: var(--fs-body);
+  font-size: var(--fs-value);
+  font-weight: 600;
 }
 
 .detail dt {
   display: flex;
-  flex: none;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   color: var(--color-text-muted);
+  font-size: var(--fs-body);
+  font-weight: 400;
 }
 
 .detail dd {
-  min-width: 0;
+  flex: none;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 /* 막대 색과 같은 점. 어느 칸이 무엇인지 잇는다. */
@@ -131,14 +138,6 @@
 
 .swatchPlanned {
   background: var(--color-accent);
-}
-
-.plannedDetail {
-  composes: detail;
-}
-
-.plannedDetail dd {
-  font-weight: 600;
 }
 
 /* 금액 미정 안내: 지출 예정 값 바로 아래 */

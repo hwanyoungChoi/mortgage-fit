@@ -1,7 +1,9 @@
+/* 머리글 아래 첫 면까지는 네 화면 모두 페이지 gap + --space-1이다. */
 .header {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  margin-bottom: var(--space-1);
 }
 
 /*

@@ -1,27 +1,27 @@
 .summary {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
 }
 
-/* 긴 이름은 한 줄에서 말줄임한다. */
+/* 목록 줄(P4) 이름 body 500. 긴 이름은 한 줄에서 말줄임하고 금액은 줄지 않는다. */
 .name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--fs-value);
+  font-size: var(--fs-body);
   font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-/* 금액: 오른쪽 정렬 tabular 16px 600(줄 목록 금액 규칙) */
+/* 금액(P4): value 700 오른쪽 정렬 tabular */
 .amount {
   flex: none;
   font-size: var(--fs-value);
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
