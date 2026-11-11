@@ -371,3 +371,13 @@
 {"ts":"2026-11-11T06:06:19.098Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-11-11T06:06:19.100Z","type":"status","status":"진행 중"}
 {"ts":"2026-11-11T06:06:19.101Z","type":"decision","file":"decisions/040-label-value-pattern.md"}
+{"ts":"2026-11-11T06:18:00.759Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-11T06:18:00.760Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-11T06:25:44.123Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-11T06:25:44.124Z","type":"task","task":3,"from":"todo","to":"progress","owner":"qa"}
+{"ts":"2026-11-11T06:36:32.921Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-11T06:36:32.922Z","type":"task","task":2,"from":"review","to":"progress","owner":"fe"}
+{"ts":"2026-11-11T06:39:45.102Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-11T06:41:23.305Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-11T06:41:23.306Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-11T06:41:23.343Z","type":"task","task":3,"from":"review","to":"done","owner":null}
