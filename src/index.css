@@ -182,10 +182,10 @@
 }
 
 :root[data-text-size="smallest"] {
-  --fs-title: 19px;
-  --fs-answer: 22px;
-  --fs-figure: 17px;
-  --fs-section: 14px;
+  --fs-title: 21px;
+  --fs-answer: 24px;
+  --fs-figure: 18px;
+  --fs-section: 15px;
   --fs-value: 15px;
   --fs-body: 12px;
   --fs-small: 10px;
