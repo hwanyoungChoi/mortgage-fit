@@ -6,13 +6,17 @@
   padding: var(--card-padding) var(--card-padding) 0;
 }
 
+/* 오른쪽 위 접기 꺾쇠(ListingCard .card의 --collapse-width) 자리를 비워 글자 수가 그 밑에 깔리지 않게 한다. */
 .labelRow {
   display: flex;
   justify-content: space-between;
   gap: var(--space-2);
+  padding-right: var(--collapse-width);
 }
 
+/* 칸 위 라벨(P5): small 600 muted */
 .label {
+  color: var(--color-text-muted);
   font-size: var(--fs-small);
   font-weight: 600;
 }
