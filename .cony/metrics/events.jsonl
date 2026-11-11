@@ -364,3 +364,10 @@
 {"ts":"2026-11-07T07:49:35.743Z","type":"hook","hook":"context-on-stop","decision":"block","context":223816}
 {"ts":"2026-11-07T10:38:15.629Z","type":"hook","hook":"guard-instructions","decision":"deny","file":".claude/launch.json"}
 {"ts":"2026-11-07T10:39:12.272Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-07T11:19:18.455Z","type":"hook","hook":"skill-update-on-prompt","decision":"notice","from":"0.24.0","to":"0.24.1"}
+{"ts":"2026-11-10T08:48:02.972Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/500290a0-e931-4e0f-91c2-a80e81855e14/scratchpad; rm -rf $S/frames; mkdir -p $S/frames && cd $S/frames; for i in $(seq -w 0 3"}
+{"ts":"2026-11-10T08:48:36.350Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/500290a0-e931-4e0f-91c2-a80e81855e14/scratchpad; rm -rf $S/panel; mkdir -p $S/panel && cd $S/panel; for i in $(seq -w 0 119)"}
+{"ts":"2026-11-10T08:50:54.631Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/500290a0-e931-4e0f-91c2-a80e81855e14/scratchpad; rm -rf $S/panel $S/psheet.png $S/d1.png $S/d2.png $S/d3.png $S/d1top.png $S"}
+{"ts":"2026-11-11T06:06:19.098Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-11T06:06:19.100Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-11T06:06:19.101Z","type":"decision","file":"decisions/040-label-value-pattern.md"}
