@@ -3,8 +3,6 @@
   --reveal-button-width: 56px;
   /* 상태 칩(ListingStatusChip .chip의 min-width)도 같은 방식으로 머리 왼쪽, 이름 맨 앞에 앉힌다. */
   --status-chip-width: 56px;
-  /* 목록 줄 글자와 같은 안쪽 여백 */
-  --card-inset: calc(var(--space-4) + var(--space-1));
   /* 오른쪽 위 접기 꺾쇠(CompactListingRow) 자리 */
   --collapse-width: 44px;
 
@@ -15,7 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4) var(--card-inset) var(--space-3);
+  padding: var(--space-4) var(--card-padding) var(--space-3);
   color: inherit;
   text-decoration: none;
 }
@@ -43,7 +41,7 @@
 .statusButton {
   position: absolute;
   top: calc(var(--space-4) - var(--space-2));
-  left: calc(var(--card-inset) - var(--space-2));
+  left: calc(var(--card-padding) - var(--space-2));
   z-index: 1;
   display: flex;
   align-items: center;
@@ -60,7 +58,7 @@
 }
 
 .statusError {
-  margin: 0 var(--card-inset) var(--space-3);
+  margin: 0 var(--card-padding) var(--space-3);
   color: var(--color-error);
   font-size: var(--fs-small);
   overflow-wrap: anywhere;
@@ -130,7 +128,7 @@
   border-radius: var(--radius-control);
   background: var(--color-badge-bg);
   color: var(--color-badge-text);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -222,7 +220,7 @@
 .breakdown {
   composes: figure;
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
 }
 
 /*
@@ -247,7 +245,7 @@
 
 /* [추가 비용 내역 n개]: 본문 링크 밖의 펼침. 메모 우물과 같은 들여쓰기 */
 .extraCosts {
-  margin: 0 var(--card-inset) var(--space-3);
+  margin: 0 var(--card-padding) var(--space-3);
   font-size: var(--fs-small);
 }
 
@@ -289,7 +287,7 @@
  */
 .actions {
   display: flex;
-  margin: 0 var(--card-inset);
+  margin: 0 var(--card-padding);
   border-top: 1px solid var(--color-rule);
 }
 
@@ -299,7 +297,7 @@
   align-items: center;
   justify-content: center;
   min-height: 40px;
-  margin: var(--space-1) var(--card-inset) var(--space-4);
+  margin: var(--space-1) var(--card-padding) var(--space-4);
   border-radius: var(--radius-control);
   background: var(--color-raised);
   color: var(--color-text);

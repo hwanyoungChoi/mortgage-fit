@@ -46,7 +46,7 @@
   border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 600;
   overflow-wrap: anywhere;
 }

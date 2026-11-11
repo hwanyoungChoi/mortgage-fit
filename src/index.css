@@ -63,17 +63,37 @@
   --space-4: 16px;
   --space-5: 24px;
 
+  /* 카드 안쪽 여백(기본 16·크게 20·더 작게 14). 간격 설정을 따라 함께 줄어든다. */
+  --card-padding: calc(var(--space-4) + var(--space-1));
+
   /*
-   * 글자 크기: 큰 것 하나(답 = 돈), 작은 것 몇 개. 굵기는 쓰는 자리에서 정한다(제목 700 -0.02em, 답·금액 700 tabular,
-   * 구역 제목 600).
+   * 글자 크기: 역할 7단계(스펙 design-polish). 컴포넌트 CSS는 이 토큰만 쓰고 `calc(--fs ± px)`·`font-size: Npx`를
+   * 두지 않는다. 굵기는 400·500·600·700 넷(탭 라벨 800만 예외). 라벨→값, 구역 제목→수치는 3px 이상 벌린다.
+   *
+   * 라벨·값 구분 패턴(ADR-040: 토큰 + 이 주석, 공통 모듈·컴포넌트 없음). 각 *.module.css가 이대로 쓴다.
+   * - P1 가로 쌍(라벨 왼쪽·값 오른쪽, dt/dd): 라벨 --fs-body 400 muted, 값 --fs-value 600 잉크 tabular 오른쪽 정렬,
+   *   기준선 맞춤. 강조 줄 값은 --fs-figure 700. 값은 nowrap(금액은 keep-all), 모자라면 라벨이 줄을 바꾼다.
+   * - P2 세로 쌍(라벨 위·숫자 아래): 라벨 --fs-small 600 muted, 숫자 --fs-figure 또는 --fs-answer 700 tabular, 사이 2px.
+   * - P3 제목 + 같은 줄 합계: 제목 --fs-section 700 잉크, 합계 --fs-body 700 잉크 tabular, 기준선 맞춤.
+   * - P4 목록 줄: 이름 --fs-body 500 잉크(둘째 줄 --fs-small muted), 금액 --fs-value 오른쪽 tabular, "미정"은 같은 자리
+   *   muted. 한 줄 말줄임이면 이름만 줄이고 금액은 줄지 않는다.
+   * - P5 칸 라벨: 입력칸·고르는 칸 위 라벨 --fs-small 600 muted.
+   * - P6 구역 제목: 카드·묶음·시트 제목과 매물 이름 --fs-section 700 잉크. 바로 아래 설명 줄은 --fs-small muted.
    */
-  --fs-title: 24px;
+  /* 화면 제목(h1) 700 -0.02em */
+  --fs-title: 26px;
+  /* 답(화면마다 하나) 700 tabular -0.02em */
   --fs-answer: 30px;
-  --fs-figure: 20px;
+  /* 수치(카드의 주요 숫자) 700 tabular */
+  --fs-figure: 22px;
+  /* 구역 제목 700 */
   --fs-section: 18px;
+  /* 값(가로 쌍의 값, 목록 줄 금액) 600 tabular */
+  --fs-value: 18px;
+  /* 본문·가로 쌍 라벨·목록 줄 이름 */
   --fs-body: 15px;
+  /* 라벨·보조(칸 라벨, 세로 쌍 라벨, 기준일·내역·배지) */
   --fs-small: 13px;
-  --fs-tiny: 12px;
   /* 화면 기본 글자(따로 정하지 않은 글자). 글자 크기 설정이 함께 줄인다. */
   --fs-base: 16px;
   /*
@@ -145,13 +165,13 @@
  * 버튼·입력 높이와 입력칸 글자(--fs-input)는 그대로이고, 줄 높이는 누르는 자리라 44px 아래로 줄이지 않는다.
  */
 :root[data-text-size="smaller"] {
-  --fs-title: 20px;
-  --fs-answer: 24px;
-  --fs-figure: 17px;
+  --fs-title: 22px;
+  --fs-answer: 26px;
+  --fs-figure: 19px;
   --fs-section: 16px;
+  --fs-value: 16px;
   --fs-body: 13px;
   --fs-small: 11px;
-  --fs-tiny: 11px;
   --fs-base: 14px;
 
   --space-3: 10px;
@@ -162,13 +182,13 @@
 }
 
 :root[data-text-size="smallest"] {
-  --fs-title: 18px;
-  --fs-answer: 21px;
-  --fs-figure: 15px;
+  --fs-title: 19px;
+  --fs-answer: 22px;
+  --fs-figure: 17px;
   --fs-section: 14px;
+  --fs-value: 15px;
   --fs-body: 12px;
   --fs-small: 10px;
-  --fs-tiny: 10px;
   --fs-base: 12px;
 
   --space-2: 6px;

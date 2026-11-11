@@ -1,6 +1,6 @@
 /* 면 없는 글자 줄(로그인 이유·계정 확인 실패)은 카드 안 글자와 같은 선에서 시작한다 */
 .reason {
-  padding: 0 calc(var(--space-4) + var(--space-1));
+  padding: 0 var(--card-padding);
   color: var(--color-text-muted);
   font-size: var(--fs-small);
   line-height: 1.5;
@@ -32,7 +32,7 @@
   justify-content: space-between;
   gap: var(--space-2);
   min-height: 36px;
-  padding: 0 calc(var(--space-4) + var(--space-1));
+  padding: 0 var(--card-padding);
 }
 
 .error {

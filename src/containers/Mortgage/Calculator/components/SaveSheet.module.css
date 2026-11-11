@@ -18,7 +18,7 @@
 
 /* 칸 위 라벨: 본문보다 한 단계 작은 14px 600 */
 .label {
-  font-size: calc(var(--fs-body) - 1px);
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 

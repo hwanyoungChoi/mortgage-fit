@@ -4,7 +4,7 @@
   flex-direction: column;
   gap: var(--space-1);
   min-height: 44px;
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -15,7 +15,7 @@
 .primaryCard {
   composes: card;
   gap: var(--space-3);
-  padding: calc(var(--space-5) + var(--space-2)) calc(var(--space-4) + var(--space-1));
+  padding: calc(var(--space-5) + var(--space-2)) var(--card-padding);
 }
 
 /* 줄은 흰 면 안에 있어(면이 넘침을 자른다) 포커스 링을 안쪽에 그린다 */
@@ -23,7 +23,7 @@
   outline-offset: -3px;
 }
 
-/* 카드 제목 20px 700(오른쪽 위 chevron 자리를 비운다). 대출 계산 카드는 22px */
+/* 카드 제목 --fs-figure 700(오른쪽 위 chevron 자리를 비운다) */
 .title {
   padding-right: var(--space-5);
   font-size: var(--fs-figure);
@@ -32,15 +32,11 @@
   line-height: 1.3;
 }
 
-.primaryCard .title {
-  font-size: calc(var(--fs-figure) + 2px);
-}
-
 /* 오른쪽 위 회색 chevron: 제목 첫 줄 높이에 맞춘다 */
 .chevron {
   position: absolute;
-  top: calc(var(--space-4) + var(--space-1) + 3px);
-  right: calc(var(--space-4) + var(--space-1));
+  top: calc(var(--card-padding) + 3px);
+  right: var(--card-padding);
   color: var(--color-text-muted);
 }
 

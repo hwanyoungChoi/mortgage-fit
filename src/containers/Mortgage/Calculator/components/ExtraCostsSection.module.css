@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }
@@ -94,7 +94,7 @@
 }
 
 .groupTitle {
-  font-size: calc(var(--fs-body) - 1px);
+  font-size: var(--fs-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }

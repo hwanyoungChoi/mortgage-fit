@@ -52,7 +52,7 @@
 
 .label {
   min-width: 0;
-  font-size: calc(var(--fs-body) - 1px);
+  font-size: var(--fs-small);
   font-weight: 600;
   overflow-wrap: anywhere;
 }

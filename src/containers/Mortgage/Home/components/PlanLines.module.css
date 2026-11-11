@@ -108,7 +108,7 @@
 .groupTitle {
   flex: 1;
   min-width: 0;
-  padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-1);
+  padding: var(--space-2) var(--card-padding) var(--space-1);
   font-size: var(--fs-section);
   font-weight: 700;
   overflow-wrap: anywhere;
@@ -136,10 +136,9 @@
  */
 .groupHandle {
   display: block;
-  width: calc(100% + 2 * (var(--space-4) + var(--space-1)));
-  margin: calc(-1 * var(--space-2)) calc(-1 * (var(--space-4) + var(--space-1)))
-    calc(-1 * var(--space-1));
-  padding: var(--space-2) calc(var(--space-4) + var(--space-1)) var(--space-1);
+  width: calc(100% + 2 * var(--card-padding));
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--card-padding)) calc(-1 * var(--space-1));
+  padding: var(--space-2) var(--card-padding) var(--space-1);
   border: 0;
   background: none;
   color: inherit;
@@ -232,7 +231,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-height: var(--row-min-height);
-  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--card-padding);
   font-size: var(--fs-body);
 }
 
@@ -266,7 +265,7 @@
   gap: var(--space-3);
   min-width: 0;
   min-height: var(--row-min-height);
-  padding: var(--space-3) var(--space-1) var(--space-3) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-3) var(--space-1) var(--space-3) var(--card-padding);
   border: 0;
   background: none;
   font-size: var(--fs-body);
@@ -309,7 +308,7 @@
   gap: var(--space-3);
   height: 100%;
   min-height: var(--row-min-height);
-  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--space-1));
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--card-padding);
   border-radius: var(--radius-control);
   background: var(--color-accent-soft);
   font-size: var(--fs-body);
@@ -389,7 +388,7 @@
 /* 금액: 오른쪽 정렬 tabular, 본문보다 한 단계 큰 16px 600 */
 .amount {
   flex: none;
-  font-size: calc(var(--fs-body) + 1px);
+  font-size: var(--fs-value);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -411,7 +410,7 @@
   width: var(--check-column);
   min-height: 44px;
   color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
+  font-size: var(--fs-small);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -491,7 +490,7 @@
 .groupAddButton {
   width: 100%;
   min-height: 48px;
-  padding: 0 calc(var(--space-4) + var(--space-1));
+  padding: 0 var(--card-padding);
   border: 0;
   border-top: 1px solid var(--color-rule);
   background: none;

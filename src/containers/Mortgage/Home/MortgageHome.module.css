@@ -16,7 +16,7 @@
 }
 
 .notice {
-  padding: calc(var(--space-4) + var(--space-1));
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }

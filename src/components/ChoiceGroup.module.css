@@ -7,7 +7,7 @@
 /* 칸 위 라벨: 입력칸 라벨과 같은 14px 600 */
 .legend {
   margin-bottom: var(--space-2);
-  font-size: calc(var(--fs-body) - 1px);
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 
