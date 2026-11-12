@@ -45,3 +45,10 @@
   color: var(--color-on-primary);
   font-weight: 600;
 }
+
+/* 본문 스켈레톤: 드러낸 본문과 같은 간격으로 쌓는다 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

@@ -1,0 +1,32 @@
+/* 예산 줄(BudgetBar)과 같은 흰 면·여백. 막대는 기준선이 없어 가운데로 맞춘다 */
+.budgetBar {
+  composes: bar from "./BudgetBar.module.css";
+  align-items: center;
+}
+
+.amount {
+  composes: amount from "./BudgetBar.module.css";
+}
+
+.table {
+  composes: compactTable from "../MortgageListings.module.css";
+}
+
+.header {
+  composes: compactHeader from "../MortgageListings.module.css";
+}
+
+/* 줄(CompactListingRow .row)과 같은 높이·여백, 줄 사이 구분선(CompactListingList .item) */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--row-min-height);
+  padding: var(--space-3) var(--card-padding);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
