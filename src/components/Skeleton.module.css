@@ -1,0 +1,53 @@
+/*
+ * 스켈레톤 막대(ADR-041). 흰 면 위 --color-raised, 바탕 위 --color-raised-on-bg(light-dark 토큰이라 다크 모드가 따라온다).
+ * 300ms 동안 투명하게 자리만 차지하다가(그 안에 끝나면 회색이 한 번도 안 보인다) 밝기 맥박(opacity만)으로 보인다.
+ * 맥박은 forwards로 끝 모양(opacity 1)을 남겨, 반복을 줄이는 환경에서도 막대가 사라지지 않는다.
+ */
+.bar {
+  display: inline-block;
+  max-width: 100%;
+  border-radius: var(--radius-chip);
+  background: var(--color-raised);
+  opacity: 0;
+  vertical-align: middle;
+  animation: pulse 1.6s ease-in-out 300ms infinite forwards;
+}
+
+.barOnBackground {
+  composes: bar;
+  background: var(--color-raised-on-bg);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+/* 줄어든 움직임: 맥박 없이 300ms 뒤 멈춘 막대로 나타난다(나타나는 시점은 같다) */
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: appear 0s 300ms forwards;
+  }
+}
+
+/* 화면에서는 숨기고 보조기기에는 읽힌다 */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

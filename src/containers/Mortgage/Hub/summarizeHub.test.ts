@@ -16,7 +16,7 @@ import {
 import { makeSimplePlanP, makeSimplePlanPPlus, r6 } from "@/test/interiorSimpleFixture";
 import { makeListing } from "@/test/listingFixture";
 
-import { summarizeHub, type HubSummary } from "./summarizeHub";
+import { isHubRevealed, summarizeHub, type HubSummary } from "./summarizeHub";
 
 import type { InteriorPlanWithItems } from "@/lib/types/interiorPlan";
 import type { InteriorPlanListState } from "@/lib/types/interiorPlanStore";
@@ -308,5 +308,28 @@ describe("우리 집 카드 — 금액 미정 건수 (interior-tbd-amount)", () 
       kind: "summary",
       value: [{ id: plan.id, name: plan.name, plannedTotalWon, doneTotalWon: 0, tbdCount }],
     });
+  });
+});
+
+describe("loading-skeleton 홈 한 번에(isHubRevealed): 계정 확인과 두 카드가 모두 로딩이 아니어야 드러낸다", () => {
+  it.each<[string, Parameters<typeof isHubRevealed>[0], Partial<Input>, boolean]>([
+    ["모두 끝남", "loggedIn", {}, true],
+    ["계정 확인 중", "loading", {}, false],
+    ["매물만 로딩", "loggedIn", { listings: { status: "loading" } }, false],
+    ["계획만 로딩", "loggedIn", { plans: { status: "loading" } }, false],
+    [
+      "매물 실패·계획 정상(실패는 로딩이 아니다)",
+      "loggedIn",
+      { listings: { status: "loadFailed" } },
+      true,
+    ],
+    [
+      "계정 확인 실패(두 카드 accountError)",
+      "error",
+      { listings: { status: "accountError" }, plans: { status: "accountError" } },
+      true,
+    ],
+  ])("%s", (_row, accountStatus, overrides, expected) => {
+    expect(isHubRevealed(accountStatus, summarize(overrides))).toBe(expected);
   });
 });
