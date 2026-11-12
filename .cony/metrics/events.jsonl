@@ -393,3 +393,8 @@
 {"ts":"2026-11-12T09:39:20.070Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
 {"ts":"2026-11-12T09:46:52.571Z","type":"task","task":2,"from":"review","to":"progress","owner":"fe"}
 {"ts":"2026-11-12T09:49:05.796Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.404Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-12T09:50:55.405Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-12T09:50:55.405Z","type":"task","task":3,"from":"todo","to":"progress","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.429Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.464Z","type":"task","task":3,"from":"review","to":"done","owner":null}
