@@ -25,7 +25,7 @@ import ItemSheet from "./components/ItemSheet";
 import PlanPicker from "./components/PlanPicker";
 import PlanScreen from "./components/PlanScreen";
 import PlanSettingsSheet from "./components/PlanSettingsSheet";
-import { isHomeLoading } from "./homeLoading";
+import { isHomeLoading, isLinkedPlan } from "./homeLoading";
 import { useInteriorPlanSource } from "./hooks/useInteriorPlanSource";
 import { interiorPlanImportProblem } from "./interiorPlanImportProblem";
 import { linkedListingOf } from "./linkedListing";
@@ -136,6 +136,8 @@ function MortgageHome({
     planId === undefined ? (plans.length === 1 ? plans[0] : null) : findPlan(planId);
   // 계획(+연결 매물)이 다 온 뒤 한 번에 드러낸다(ADR-041).
   const isLoading = isHomeLoading(list, currentPlan, listingSource.list);
+  // 드러내면 계획 머리글 + 연결된 매물 줄이 될 자리. 스켈레톤이 그 머리글 모양을 그려 요약 카드가 밀리지 않는다(AC-3).
+  const hasPlanHeaderSkeleton = isLoading && listingId === undefined && isLinkedPlan(currentPlan);
 
   useEffect(() => {
     if (notice === null) return;
@@ -347,7 +349,7 @@ function MortgageHome({
           ) : (
             <SkeletonLabel>예산 계획을 불러오는 중</SkeletonLabel>
           )}
-          <HomeSkeleton />
+          <HomeSkeleton hasPlanHeader={hasPlanHeaderSkeleton} />
         </div>
       );
     }
@@ -379,7 +381,7 @@ function MortgageHome({
       return (
         <div className={styles.loading} aria-busy="true">
           <SkeletonLabel>매물을 확인하는 중</SkeletonLabel>
-          <HomeSkeleton />
+          <HomeSkeleton hasPlanHeader={false} />
         </div>
       );
     }
@@ -410,9 +412,10 @@ function MortgageHome({
   return (
     <>
       <div className={styles.page} inert={sheet.isOpen}>
-        {(isLoading || currentPlan === null || listingId !== undefined) && (
-          <h1 className={styles.title}>예산</h1>
-        )}
+        {!hasPlanHeaderSkeleton &&
+          (isLoading || currentPlan === null || listingId !== undefined) && (
+            <h1 className={styles.title}>예산</h1>
+          )}
         <HomeNotices
           isSessionExpired={source.isSessionExpired}
           isAccountError={source.status === "error"}

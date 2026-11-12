@@ -123,4 +123,23 @@ describe("AC-7 예산 한 번에", () => {
     });
     expect(main.querySelector('[aria-busy="true"]')).toBeNull();
   });
+
+  // qa: 매물 목록 조회 실패는 로딩이 아니다(스펙 "실패·손상·빈 상태는 스켈레톤이 아니다")
+  it("매물에 연결된 계획에서 매물 목록 조회가 500이면 스켈레톤에 머물지 않고 계획을 드러낸다", async () => {
+    const failedListings = {
+      respond: (call: PlanApiCall) =>
+        call.method === "GET" && call.path === "/api/listings"
+          ? Promise.resolve(jsonResponse(500, { error: "internal" }))
+          : undefined,
+      resolve: async () => {},
+    };
+    renderApp("#/home", [makePlanP({ listingId: "server-1" })], [failedListings]);
+    const main = await screen.findByRole("main");
+
+    await waitFor(() =>
+      expect(within(main).getByRole("heading", { level: 1, name: "우리 집" })).toBeInTheDocument(),
+    );
+    expect(main.querySelector('[aria-busy="true"]')).toBeNull();
+    expect(within(main).queryByText(/연결된 매물/)).toBeNull();
+  });
 });
