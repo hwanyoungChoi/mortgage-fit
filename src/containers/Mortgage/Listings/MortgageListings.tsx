@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { SkeletonLabel } from "@/components/Skeleton";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
@@ -16,10 +17,12 @@ import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import HeaderNotices from "./components/HeaderNotices";
 import { type ListingStatusFailure } from "./components/ListingCard";
 import ListingStatusSheet from "./components/ListingStatusSheet";
+import ListingsSkeleton from "./components/ListingsSkeleton";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
 import { useListingOrderSource } from "./hooks/useListingOrderSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
+import { isListingsLoading } from "./listingsLoading";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { BudgetImportStore, BudgetStore } from "@/lib/types/budget";
@@ -183,6 +186,9 @@ function MortgageListings({
   // 계정 순서를 아직 못 받았으면 다른 순서로 대신 보이지 않는다.
   const isOrderMissing = pendingOrder === null && orderSource.state.status !== "ok";
   const canReorder = orderSource.state.status === "ok" && pendingOrder === null;
+  // 목록·예산·순서가 다 온 뒤 본문과 제목 줄 버튼을 한 번에 드러낸다(ADR-041).
+  const isLoading = isListingsLoading(list, budgetSource.state, orderSource.state);
+  const hasTitleActions = !isLoading && sortedListings.length > 0;
 
   /** 끌어 놓은 순서를 저장한다. 저장하지 못하면 원래 순서로 되돌리고 한 줄로 알린다. */
   const handleReorder = async (ids: string[]) => {
@@ -301,13 +307,17 @@ function MortgageListings({
 
   const renderBody = () => {
     // 출처가 정해지기 전에는 로컬 목록을 먼저 그리지 않는다(서버 목록으로 바뀌며 깜빡이지 않게).
-    if (list.status === "loading") {
+    // 계정으로 옮기는 중은 평소보다 오래 걸리는 이유라 보이는 한 줄로 스켈레톤 위에 둔다.
+    if (isLoading) {
       return (
-        <p className={styles.notice} aria-busy="true">
-          {accountImport.state?.status === "running"
-            ? "이 기기의 매물을 계정으로 옮기는 중"
-            : "저장 목록을 불러오는 중"}
-        </p>
+        <div className={styles.loading} aria-busy="true">
+          {accountImport.state?.status === "running" ? (
+            <p className={styles.notice}>이 기기의 매물을 계정으로 옮기는 중</p>
+          ) : (
+            <SkeletonLabel>저장 목록을 불러오는 중</SkeletonLabel>
+          )}
+          <ListingsSkeleton />
+        </div>
       );
     }
     // 제목 아래 안내가 [다시 시도]를 보인다. 로컬 목록으로 대신 보이지 않는다.
@@ -333,7 +343,7 @@ function MortgageListings({
     if (list.status === "corrupt") {
       return <CorruptListingsNotice rawText={list.rawText} onReset={() => listingStore.reset()} />;
     }
-    if (list.listings.length === 0) {
+    if (sortedListings.length === 0) {
       return (
         <div className={styles.empty}>
           <p>저장한 매물이 없습니다</p>
@@ -375,26 +385,20 @@ function MortgageListings({
   };
 
   const renderListings = (listLabel: string) => {
+    // 순서를 기다리는 중이면 본문 전체가 스켈레톤이라 여기서는 실패만 남는다.
     if (isOrderMissing) {
-      if (orderSource.state.status === "loadFailed") {
-        return (
-          <div className={styles.notice}>
-            <p role="alert">직접 정한 순서를 불러오지 못했습니다</p>
-            <button
-              type="button"
-              className={styles.retryButton}
-              disabled={orderSource.isRetrying}
-              onClick={orderSource.retry}
-            >
-              다시 시도
-            </button>
-          </div>
-        );
-      }
       return (
-        <p className={styles.notice} aria-busy="true">
-          직접 정한 순서를 불러오는 중
-        </p>
+        <div className={styles.notice}>
+          <p role="alert">직접 정한 순서를 불러오지 못했습니다</p>
+          <button
+            type="button"
+            className={styles.retryButton}
+            disabled={orderSource.isRetrying}
+            onClick={orderSource.retry}
+          >
+            다시 시도
+          </button>
+        </div>
       );
     }
     return (
@@ -435,7 +439,7 @@ function MortgageListings({
           <div className={styles.titleRow}>
             <h1 className={styles.title}>저장 목록</h1>
             <div className={styles.titleActions}>
-              {sortedListings.length > 0 && (
+              {hasTitleActions && (
                 <>
                   {/* 켜짐은 aria-pressed와 채운 색으로 보인다. 이름은 바꾸지 않는다(토글 버튼 규칙). */}
                   <button

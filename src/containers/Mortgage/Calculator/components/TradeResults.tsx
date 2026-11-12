@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import Skeleton from "@/components/Skeleton";
+
 import { canRetryTradesError, describeTradesError } from "../describeTradesError";
 import styles from "./TradeResults.module.css";
 import TradeRow from "./TradeRow";
@@ -26,7 +28,7 @@ function TradeResults({ status, data, error, onRetry }: TradeResultsProps) {
     return (
       <div role="status" aria-label="실거래가를 불러오는 중" className={styles.skeletonList}>
         {SKELETON_ROWS.map((row) => (
-          <div key={row} className={styles.skeletonRow} aria-hidden="true" />
+          <Skeleton key={row} width="100%" height="44px" />
         ))}
       </div>
     );

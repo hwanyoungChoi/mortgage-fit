@@ -381,3 +381,20 @@
 {"ts":"2026-11-11T06:41:23.305Z","type":"task","task":2,"from":"review","to":"done","owner":null}
 {"ts":"2026-11-11T06:41:23.306Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
 {"ts":"2026-11-11T06:41:23.343Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-11T06:44:52.981Z","type":"ship","pr":83,"result":"merged"}
+{"ts":"2026-11-11T06:45:08.962Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-11-11T06:45:58.286Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-11T06:47:49.972Z","type":"status","status":"중단됨"}
+{"ts":"2026-11-12T09:26:47.631Z","type":"status","status":"진행 중"}
+{"ts":"2026-11-12T09:26:57.803Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-12T09:26:57.803Z","type":"decision","file":"decisions/041-loading-skeleton.md"}
+{"ts":"2026-11-12T09:39:20.046Z","type":"task","task":1,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:39:20.046Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-11-12T09:39:20.070Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:46:52.571Z","type":"task","task":2,"from":"review","to":"progress","owner":"fe"}
+{"ts":"2026-11-12T09:49:05.796Z","type":"task","task":2,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.404Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-12T09:50:55.405Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-11-12T09:50:55.405Z","type":"task","task":3,"from":"todo","to":"progress","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.429Z","type":"task","task":3,"from":"progress","to":"review","owner":"qa"}
+{"ts":"2026-11-12T09:50:55.464Z","type":"task","task":3,"from":"review","to":"done","owner":null}

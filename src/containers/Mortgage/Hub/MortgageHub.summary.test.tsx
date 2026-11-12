@@ -480,7 +480,8 @@ describe("AC-7 카드별 상태 (화면)", () => {
     expect(window.history.length).toBe(historyLength + 1);
   });
 
-  it("행 5: 로그인, 매물 이전 중(계획 이전 끝) → 매물 카드 불러오는 중, 우리 집 카드 서버 계획 요약", async () => {
+  // loading-skeleton AC-8: 홈은 로딩에 한해 함께 드러낸다(ADR-041). 계획을 받았어도 매물이 로딩이면 우리 집 카드도 불러오는 중이다.
+  it("행 5: 로그인, 매물 이전 중(계획 이전 끝) → 매물·우리 집 카드 모두 불러오는 중(서버 계획을 받아도 드러내지 않음)", async () => {
     const { api } = renderHub({
       // 매물 이전 기록이 없어 로그인 직후 이전이 시작된다(응답을 막아 둔다). 계획 이전은 끝난 기록
       seed: {
@@ -493,12 +494,18 @@ describe("AC-7 카드별 상태 (화면)", () => {
       serverListings: listingsOf(2, "server"),
       respond: (call) => (call.path === "/api/listings/import" ? PENDING : undefined),
     });
-    await findHub();
-    await expectPlanLines([SERVER_LINE]);
+    const hub = await findHub();
     await waitFor(() => expect(api.callsTo("POST", "/api/listings/import")).toHaveLength(1));
+    await waitFor(() =>
+      expect(api.callsTo("GET", "/api/interior-plans").length).toBeGreaterThan(0),
+    );
+    await waitFor(() => expect(api.queryClient.isFetching()).toBe(0));
     expect(card("listings")).toHaveAccessibleDescription("불러오는 중");
     expect(isBusy("listings")).toBe(true);
-    expect(screen.getByRole("main").textContent).not.toContain("5개");
+    expect(card("home")).toHaveAccessibleDescription("불러오는 중");
+    expect(isBusy("home")).toBe(true);
+    expect(hub.textContent).not.toContain("서버 계획");
+    expect(hub.textContent).not.toContain("5개");
     expect(card("calculator")).toHaveAccessibleDescription("작성 중 · 매매가 12억 5,000만원");
   });
 
@@ -735,5 +742,73 @@ describe("AC-7 카드별 상태 (화면)", () => {
       await act(() => vi.advanceTimersByTimeAsync(HOUSEHOLD_REFETCH_INTERVAL_MS * 2));
       expect(planGets()).toBe(1);
     });
+  });
+});
+
+describe("loading-skeleton AC-1 홈 한 번에", () => {
+  /** 원하는 순간에 응답하는 GET 하나 */
+  function deferredGet(path: string, body: unknown) {
+    let open: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    return {
+      respond: (call: PlanApiCall) =>
+        call.method === "GET" && call.path === path
+          ? gate.then(() => jsonResponse(200, body))
+          : undefined,
+      resolve: () => act(async () => open()),
+    };
+  }
+
+  it("매물만 먼저 와도 스켈레톤이고, 계획까지 오면 두 카드·계정 버튼·함께 쓰기 줄이 같이 나타난다. 다시 오면 스켈레톤 없음", async () => {
+    const listings = deferredGet("/api/listings", { listings: listingsOf(2, "server") });
+    const plans = deferredGet("/api/interior-plans", {
+      plans: [makePlanP({ id: "plan-s", name: "서버 계획" })],
+    });
+    const { api } = renderHub({
+      seed: {
+        ...settledImports([], []),
+        [DRAFT_STORAGE_KEY]: draftRaw("125000"),
+      },
+      userId: USER_ID,
+      respond: (call) => listings.respond(call) ?? plans.respond(call),
+    });
+    const hub = await findHub();
+    // 대출 계산 카드는 첫 렌더부터 draft
+    expect(card("calculator")).toHaveAccessibleDescription("작성 중 · 매매가 12억 5,000만원");
+    await waitFor(() => expect(api.callsTo("GET", "/api/listings").length).toBeGreaterThan(0));
+
+    await listings.resolve();
+    await waitFor(() =>
+      expect(api.callsTo("GET", "/api/interior-plans").length).toBeGreaterThan(0),
+    );
+    expect(card("listings")).toHaveAccessibleDescription("불러오는 중");
+    expect(isBusy("listings")).toBe(true);
+    expect(isBusy("home")).toBe(true);
+    expect(hub.textContent).not.toContain("2개");
+    expect(within(hub).queryByRole("button", { name: "로그아웃" })).toBeNull();
+    expect(within(hub).queryByRole("button", { name: "함께 쓰기" })).toBeNull();
+
+    await plans.resolve();
+    await waitFor(() => {
+      expect(card("listings")).toHaveAccessibleDescription("저장한 매물 2개");
+      expect(planLines()).toEqual(["서버 계획 · 지출 예정 15,300,000원"]);
+      expect(within(hub).getByRole("button", { name: "로그아웃" })).toBeInTheDocument();
+      expect(within(hub).getByRole("button", { name: "함께 쓰기" })).toBeInTheDocument();
+    });
+    expect(hub.querySelector('[aria-busy="true"]')).toBeNull();
+
+    // 다른 탭에 다녀오면 캐시로 바로 그린다
+    act(() => {
+      window.location.hash = "#/listings";
+    });
+    await screen.findByRole("heading", { level: 1, name: "저장 목록" });
+    act(() => {
+      window.location.hash = "#/";
+    });
+    const backHub = await findHub();
+    expect(backHub.querySelector('[aria-busy="true"]')).toBeNull();
+    expect(card("listings")).toHaveAccessibleDescription("저장한 매물 2개");
   });
 });

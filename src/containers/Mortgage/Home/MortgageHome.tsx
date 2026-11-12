@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import Sheet from "@/components/Sheet";
+import { SkeletonLabel } from "@/components/Skeleton";
 import StatusPanel from "@/components/StatusPanel";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
@@ -19,10 +20,12 @@ import CorruptPlansNotice from "./components/CorruptPlansNotice";
 import CreatePlanSheet from "./components/CreatePlanSheet";
 import HomeEmpty from "./components/HomeEmpty";
 import HomeNotices from "./components/HomeNotices";
+import HomeSkeleton from "./components/HomeSkeleton";
 import ItemSheet from "./components/ItemSheet";
 import PlanPicker from "./components/PlanPicker";
 import PlanScreen from "./components/PlanScreen";
 import PlanSettingsSheet from "./components/PlanSettingsSheet";
+import { isHomeLoading, isLinkedPlan } from "./homeLoading";
 import { useInteriorPlanSource } from "./hooks/useInteriorPlanSource";
 import { interiorPlanImportProblem } from "./interiorPlanImportProblem";
 import { linkedListingOf } from "./linkedListing";
@@ -131,6 +134,10 @@ function MortgageHome({
   /** 주소에 플랜이 있으면 그 플랜, 없으면 하나뿐일 때 그 플랜 */
   const currentPlan =
     planId === undefined ? (plans.length === 1 ? plans[0] : null) : findPlan(planId);
+  // 계획(+연결 매물)이 다 온 뒤 한 번에 드러낸다(ADR-041).
+  const isLoading = isHomeLoading(list, currentPlan, listingSource.list);
+  // 드러내면 계획 머리글 + 연결된 매물 줄이 될 자리. 스켈레톤이 그 머리글 모양을 그려 요약 카드가 밀리지 않는다(AC-3).
+  const hasPlanHeaderSkeleton = isLoading && listingId === undefined && isLinkedPlan(currentPlan);
 
   useEffect(() => {
     if (notice === null) return;
@@ -333,13 +340,17 @@ function MortgageHome({
 
   const renderBody = () => {
     // 출처가 정해지기 전에는 로컬 계획을 먼저 그리지 않는다(서버 계획으로 바뀌며 깜빡이지 않게).
-    if (list.status === "loading") {
+    // 계정으로 옮기는 중은 평소보다 오래 걸리는 이유라 보이는 한 줄로 스켈레톤 위에 둔다.
+    if (isLoading) {
       return (
-        <p className={styles.notice} aria-busy="true">
-          {planImport.state?.status === "running"
-            ? "이 기기의 예산 계획을 계정으로 옮기는 중"
-            : "예산 계획을 불러오는 중"}
-        </p>
+        <div className={styles.loading} aria-busy="true">
+          {planImport.state?.status === "running" ? (
+            <p className={styles.notice}>이 기기의 예산 계획을 계정으로 옮기는 중</p>
+          ) : (
+            <SkeletonLabel>예산 계획을 불러오는 중</SkeletonLabel>
+          )}
+          <HomeSkeleton hasPlanHeader={hasPlanHeaderSkeleton} />
+        </div>
       );
     }
     // 위쪽 안내가 [다시 시도]를 보인다. 로컬 계획으로 대신 보이지 않는다.
@@ -368,9 +379,10 @@ function MortgageHome({
     // 매물 카드에서 왔다: 연결 계획으로 가거나 만들기 시트를 열 때까지 고르기·빈 상태를 먼저 그리지 않는다.
     if (listingId !== undefined) {
       return (
-        <p className={styles.notice} aria-busy="true">
-          매물을 확인하는 중
-        </p>
+        <div className={styles.loading} aria-busy="true">
+          <SkeletonLabel>매물을 확인하는 중</SkeletonLabel>
+          <HomeSkeleton hasPlanHeader={false} />
+        </div>
       );
     }
     if (currentPlan !== null) return renderPlan(currentPlan);
@@ -400,9 +412,10 @@ function MortgageHome({
   return (
     <>
       <div className={styles.page} inert={sheet.isOpen}>
-        {(currentPlan === null || listingId !== undefined) && (
-          <h1 className={styles.title}>예산</h1>
-        )}
+        {!hasPlanHeaderSkeleton &&
+          (isLoading || currentPlan === null || listingId !== undefined) && (
+            <h1 className={styles.title}>예산</h1>
+          )}
         <HomeNotices
           isSessionExpired={source.isSessionExpired}
           isAccountError={source.status === "error"}

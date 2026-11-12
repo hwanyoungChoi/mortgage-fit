@@ -21,7 +21,7 @@ import HubNotices, { type HubResult } from "./components/HubNotices";
 import HubSummaryPair from "./components/HubSummaryPair";
 import { useLeaveHousehold } from "./hooks/useLeaveHousehold";
 import { useLogout } from "./hooks/useLogout";
-import { summarizeHub, type HubPlanLine } from "./summarizeHub";
+import { isHubRevealed, summarizeHub, type HubPlanLine } from "./summarizeHub";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { InteriorPlanImport } from "@/hooks/useInteriorPlanImport";
@@ -64,6 +64,9 @@ const LEAVE_CONFIRM_MESSAGE = [
 
 /** 홈의 시트(한 번에 하나, ADR-017): 함께 쓰기 */
 type HubSheet = { name: "household" };
+
+/** 홈을 드러내기 전 매물·예산 카드의 요약 줄 */
+const LOADING_SUMMARY = { kind: "loading" } as const;
 
 /** 계획 줄 뒤에 붙는 지출 완료·확정 미정 줄 수(있는 것만). 둘 다 없으면 없음 */
 function planLineTailOf(line: HubPlanLine): string | undefined {
@@ -201,6 +204,9 @@ function MortgageHub({
     isListingsHousehold: listingSource.household !== null,
     plans: planSource.list,
   });
+  // 계정 확인과 두 카드가 다 끝나야 한 번에 드러낸다(ADR-041). 그 전에는 계정 버튼·계정 자리도 확인 중 모양이다.
+  const isRevealed = isHubRevealed(status, summary);
+  const shownStatus = isRevealed ? status : "loading";
 
   // 시트가 열린 동안 뒤 화면은 inert로 키보드·보조기기에서 빼낸다(aria-modal이 약속하는 동작).
   return (
@@ -209,7 +215,7 @@ function MortgageHub({
         <div className={styles.titleRow}>
           <h1 className={styles.title}>홈</h1>
           <HubAccountAction
-            status={status}
+            status={shownStatus}
             onLogout={handleLogout}
             isLoggingOut={logout.isPending}
           />
@@ -249,7 +255,7 @@ function MortgageHub({
               title="매물 모으기"
               href={PATHS.listings}
               intro="본 매물을 저장해 자기자금·추가 비용을 비교합니다"
-              summary={summary.listings}
+              summary={isRevealed ? summary.listings : LOADING_SUMMARY}
               renderSummary={({ count, isHousehold }) =>
                 isHousehold ? (
                   <HubSummaryPair label="함께 쓰는 목록" mark="·" figure={`매물 ${count}개`} />
@@ -265,7 +271,7 @@ function MortgageHub({
               title="예산 계획"
               href={PATHS.home()}
               intro="공정별 업체 견적을 모아 확정한 금액을 예산과 비교합니다"
-              summary={summary.home}
+              summary={isRevealed ? summary.home : LOADING_SUMMARY}
               renderSummary={(lines) =>
                 lines.map((line) => (
                   <span key={line.id} className={styles.planLine}>
@@ -285,7 +291,7 @@ function MortgageHub({
         {/* 기능 카드 아래 계정 자리(로그인 이유·함께 쓰기 줄). 안쪽 여백은 HubAccount가 정한다 */}
         <div ref={accountRef} tabIndex={-1}>
           <HubAccount
-            status={status}
+            status={shownStatus}
             hasSessionHint={sessionHintStore.has()}
             onAccountRetry={handleAccountRetry}
             isAccountRetrying={listingSource.isRetrying}

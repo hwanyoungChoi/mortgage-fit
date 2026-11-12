@@ -3,7 +3,7 @@ import { summarizeInteriorPlan } from "@/lib/utils/interiorPlanRows";
 
 import type { Draft } from "@/lib/types/draft";
 import type { InteriorPlanListState } from "@/lib/types/interiorPlanStore";
-import type { ListingListState } from "@/lib/types/listing";
+import type { ListingListState, ListingSourceStatus } from "@/lib/types/listing";
 
 /**
  * 홈 카드 하나의 요약 줄. intro: 소개 문구, loading: 불러오는 중, error: 불러오지 못함, corrupt: 로컬 원문이 깨짐,
@@ -103,4 +103,17 @@ export function summarizeHub({
     listings: summarizeListings(listings, isListingsHousehold),
     home: summarizePlans(plans),
   };
+}
+
+/**
+ * 홈의 받아 오는 자리(매물·예산 카드 요약, 제목 줄 계정 버튼, 계정 자리)를 드러낼 수 있다: 계정 확인과 두 카드가 모두
+ * 로딩이 아니다. 로딩에 한해 함께 드러낸다(ADR-041, ADR-031 조건 2 개정). 실패·손상·빈 상태는 카드별 그대로다.
+ * 대출 계산 카드는 기기 값이라 기다리지 않는다.
+ */
+export function isHubRevealed(accountStatus: ListingSourceStatus, summary: HubSummary): boolean {
+  return (
+    accountStatus !== "loading" &&
+    summary.listings.kind !== "loading" &&
+    summary.home.kind !== "loading"
+  );
 }

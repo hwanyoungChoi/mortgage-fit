@@ -73,12 +73,6 @@
   padding: var(--space-2) 0;
 }
 
-.skeletonRow {
-  height: 44px;
-  border-radius: var(--radius-chip);
-  background: var(--color-raised);
-}
-
 .secondaryButton {
   min-height: 44px;
   padding: 0 var(--space-4);

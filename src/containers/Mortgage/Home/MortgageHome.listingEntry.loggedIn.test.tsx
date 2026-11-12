@@ -222,7 +222,9 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     expect(JSON.stringify(serverListings)).toBe(listingsRawBefore);
   });
 
-  it("연결 계획이 여럿이면 첫 번째로, 매물 목록 응답을 기다리지 않는다", async () => {
+  // loading-skeleton AC-7: 연결 계획 찾기(주소 이동)는 매물 목록을 기다리지 않지만, 연결된 계획 화면은 매물 목록이
+  // 올 때까지 스켈레톤이다(연결된 매물 줄이 늦게 끼어들지 않게, ADR-041).
+  it("연결 계획이 여럿이면 첫 번째로, 매물 목록 응답을 기다리지 않는다(화면은 매물 목록까지 스켈레톤)", async () => {
     const { api } = setUp({
       plans: [
         makePlanP({ id: "plan-first", name: "첫 계획", listingId: RAEMIAN_ID, items: [] }),
@@ -232,7 +234,9 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     });
     renderApp(api, `#/home?listing=${RAEMIAN_ID}`);
     await waitFor(() => expect(window.location.hash).toBe("#/home/plan-first"));
-    expect(await screen.findByRole("heading", { level: 1, name: "첫 계획" })).toBeInTheDocument();
+    expect(await screen.findByText("예산 계획을 불러오는 중")).toBeInTheDocument();
+    expect(screen.getByRole("main").querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(screen.queryByRole("heading", { level: 1, name: "첫 계획" })).not.toBeInTheDocument();
     // 매물 목록이 아직 없으니 연결 표시는 판단하지 않는다
     expect(screen.queryByText(MISSING_TEXT)).not.toBeInTheDocument();
     expect(screen.queryByText(/^연결된 매물 · /)).not.toBeInTheDocument();
@@ -277,7 +281,8 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
     expect(screen.queryByText(MISSING_TEXT)).not.toBeInTheDocument();
   });
 
-  it("연결 끊김은 매물 목록 확정 로드 뒤에만: 응답 전엔 문구 없음 → 매물 없는 목록을 받으면 문구, 플랜은 그대로", async () => {
+  // loading-skeleton AC-7: 응답 전에는 연결된 계획 화면 대신 스켈레톤이고, 받으면 계획과 끊김 문구가 함께 나타난다.
+  it("연결 끊김은 매물 목록 확정 로드 뒤에만: 응답 전엔 스켈레톤(문구 없음) → 매물 없는 목록을 받으면 계획과 문구가 함께, 플랜은 그대로", async () => {
     const listings = deferred<Response>();
     const { api } = setUp({
       plans: [
@@ -286,12 +291,16 @@ describe("AC-6 매물 카드 → [예산] (로그인)", () => {
       listingsGet: () => listings.promise,
     });
     renderApp(api, "#/home/plan-linked");
-    expect(await screen.findByRole("heading", { level: 1, name: "연결 계획" })).toBeInTheDocument();
     await waitFor(() => expect(api.callsTo("GET", "/api/listings").length).toBeGreaterThan(0));
+    expect(await screen.findByText("예산 계획을 불러오는 중")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1, name: "연결 계획" })).not.toBeInTheDocument();
     expect(screen.queryByText(MISSING_TEXT)).not.toBeInTheDocument();
 
     listings.resolve(jsonResponse(200, { listings: [xi] }));
-    expect(await screen.findByText(MISSING_TEXT)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 1, name: "연결 계획" })).toBeInTheDocument();
+      expect(screen.getByText(MISSING_TEXT)).toBeInTheDocument();
+    });
     expect(screen.getByRole("button", { name: "샷시 E샷시 열기" })).toBeInTheDocument();
     expect(api.server.plans[0].items).toHaveLength(4);
   });
